@@ -2,6 +2,7 @@
 #define SHARED_HEADER
 
 #include <stdio.h>
+#include <stdbool.h>
 
 // Descriptor del archivo de entrada que utiliza Bison.
 extern FILE * yyin;
@@ -28,24 +29,24 @@ extern int yylex(void);
 extern int yyparse(void);
 
 // Emular tipo "boolean".
-typedef enum {
-	false = 0,
-	true = 1
-} boolean;
+// typedef enum {
+//     false = 0,
+//     true = 1
+// } boolean;
 
 // Estado global de toda la aplicación.
 typedef struct {
 
-	// Indica si la compilación tuvo problemas hasta el momento:
-	boolean succeed;
+    // Indica si la compilación tuvo problemas hasta el momento:
+    bool succeed;
 
-	// Indica el resultado de la compilación:
-	int result;
+    // Indica el resultado de la compilación:
+    int result;
 
-	// Agregar una pila para almacenar tokens/nodos.
-	// Agregar un nodo hacia la raíz del árbol de sintaxis abstracta.
-	// Agregar una tabla de símbolos.
-	// ...
+    // Agregar una pila para almacenar tokens/nodos.
+    // Agregar un nodo hacia la raíz del árbol de sintaxis abstracta.
+    // Agregar una tabla de símbolos.
+    // ...
 
 } CompilerState;
 

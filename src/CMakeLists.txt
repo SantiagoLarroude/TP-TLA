@@ -78,6 +78,7 @@ add_executable(${PROJECT_NAME}
     frontend/lexical-analysis/flex-scanner.c
     frontend/syntactic-analysis/bison-actions.c
     frontend/syntactic-analysis/bison-parser.c
+    backend/logger.c
 )
 
 target_link_libraries(${PROJECT_NAME})

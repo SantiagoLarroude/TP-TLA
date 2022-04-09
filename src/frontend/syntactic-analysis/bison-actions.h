@@ -8,7 +8,7 @@
  * abstracta (i.e., el AST).
  */
 
-/* // Programa.
+// Programa.
 int ProgramGrammarAction(const int value);
 
 // Expresión.
@@ -23,6 +23,6 @@ int ExpressionFactorGrammarAction(const int value);
 int ConstantFactorGrammarAction(const int value);
 
 // Constantes.
-int IntegerConstantGrammarAction(const int value); */
+int IntegerConstantGrammarAction(const int value);
 
 #endif
