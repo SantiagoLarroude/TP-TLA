@@ -382,4 +382,4 @@ bison-parser.c
 bison-parser.h
 flex-scanner.c
 
-# private/
+private/

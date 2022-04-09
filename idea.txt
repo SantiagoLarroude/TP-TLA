@@ -1,0 +1,91 @@
+G
+---------------------------------------------------------------------------------------------------
+
+program_name file_name
+    # Nombre del archivo de entrada es SIEMPRE 'input'
+    # Puede ser 'file' para un archivo, o 'stdout' para la salida estándar
+    file "nombre_del_archivo" + input -> output     # Crea el archivo "nombre_del_archivo" concatenado con el valor de input
+                                                    # y lo guarda en output
+    # Si quisieramos usar salida estándar:
+    # STDOUT -> output
+
+    # Ejemplo para entender "nombre_del_archivo" + input
+    #   ./programa archivo1.csv archivo2.csv
+    #   nombre_del_archivo-archivo1.csv nombre_del_archivo-archivo2.csv 
+
+    longest line                        # Devuelve la línea más larga (?)
+    sort column 3                       # Ordena por la tercer columna
+    row contains "string"               # Devuelve las filas que contienen "string" (filtro)
+
+    output: change separator from "," to ";"    # Cambia el separador
+    input: row number 9                         # Devuelve la fila 9
+            | each column contains "string"     # Devuelve las columnas que contienen "string"
+                -> col                          # La guarda en la variable col
+                | each row contains "string"
+                    -> fila                     # La guarda en la variable fila
+                    | fila.toLower()
+
+
+    # eq: Equals (==)
+    # neq: Not equals (!=)
+    # lt: Less than (<)
+    # gt: Greater than (>)
+    # le: Less equal (<=)
+    # ge: Greater equal (>=)
+    # and, or y not (se comportan como conocemos)
+
+    "string1" eq "string2"              # Devuelve si string1 está compuesto por los mismos caracteres que string2
+    "number1" eq "number2"              # Devuelve si number1 está compuesto por los mismos dígitos que number2
+    
+
+    output: row number 2                                # En la fila 2 del archivo
+            | column number [2, 5]                      # Tomar las columnas 2 y 5
+                -> [left, right]                        # Las llama left (columna 2) y right (columna 5)
+                | if left lt 55 and right gt 4522:      # Si cumplen este condicional
+                    | [right, left] -> [left, right]    # Las intercambia
+                | else:                                 # Sino
+                    | left * 2 -> left                  # Multiplica los valores por una constante
+                    | right * 5 -> right
+
+end_program
+
+---------------------------------------------------------------------------------------------------
+
+Precedencia de operadores:
+
+() []           # (): Asociatividad; []: Listas                         # Left to right
+not             # not: Lógico                                           # Right to left
+++ --           # ++: Concatenación; --: Resta de strings               # Left to right
+* / %           # Aritméticos                                           # Left to right
++ -             # Aritméticos                                           # Left to right
+gt ge lt le     # Relacionales                                          # Left to right
+eq neq          # Relacionales                                          # Left to right
+and             # Lógico                                                # Left to right
+or              # Lógico                                                # Left to right
+->              # Asignación                                            # Left to right
+|               # Pipe                                                  # Left to right
+
+"string" ++ "string" --> "stringstring"
+"string" -- "trin" --> "sg"
+"string" - 5 --> "s"
+"string" + 5 --> Error
+"string" ++ 5 --> "string5"
+"string" * 5 --> "stringstringstringstringstring"
+
+---------------------------------------------------------------------------------------------------
+
+./pepito mi_archivo.csv mi_otro_archivo.csv
+
+---------------------------------------------------------------------------------------------------
+
+CSV ejemplo:
+
+John,Doe,120 jefferson st.,Riverside, NJ, 08075
+Jack,McGinnis,220 hobo Av.,Phila, PA,09119
+"John ""Da Man""",Repici,120 Jefferson St.,Riverside, NJ,08075
+Stephen,Tyler,"7452 Terrace ""At the Plaza"" road",SomeTown,SD, 91234
+,Blankman,,SomeTown, SD, 00298
+"Joan ""the bone"", Anne",Jet,"9th, at Terrace plc",Desert City,CO,00123
+
+
+---------------------------------------------------------------------------------------------------
