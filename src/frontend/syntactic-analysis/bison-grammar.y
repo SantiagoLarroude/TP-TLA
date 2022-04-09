@@ -4,6 +4,12 @@
 
 %}
 
+/* // The union tag defaults to ‘YYSTYPE’
+%union {
+    char * string;
+    double number;
+} */
+
 // Flex tokens:
 
 /* Pipe operator */
@@ -47,8 +53,9 @@
 
 /* Data types */
 %token NUMBER
-%token STRING
-%token FILE_TYPE
+/* %token <string> STRING */
+
+/* %token FILE_TYPE */
 
 // Reglas de asociatividad y precedencia (de menor a mayor):
 %left   PIPE
@@ -80,7 +87,11 @@ factor: OPEN_PARENTHESIS expression CLOSE_PARENTHESIS            { $$ = Expressi
     | constant                                                    { $$ = ConstantFactorGrammarAction($1); }
     ;
 
-constant: INTEGER                                                { $$ = IntegerConstantGrammarAction($1); }
+constant: NUMBER                                                { $$ = IntegerConstantGrammarAction($1); }
     ;
+
+/* value:  NUMBER    { $$ = NumberConstantGrammarAction($1); }
+    |   STRING    { $$ = StringConstantGrammarAction($1); }
+    ; */
 
 %%

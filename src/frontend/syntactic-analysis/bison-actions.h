@@ -25,4 +25,8 @@ int ConstantFactorGrammarAction(const int value);
 // Constantes.
 int IntegerConstantGrammarAction(const int value);
 
+// /* Constant */
+// char * StringConstantGrammarAction(const char * value);
+// double NumberConstantGrammarAction(const double value);
+
 #endif
