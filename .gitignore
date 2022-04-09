@@ -30,6 +30,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+[Bb]uild/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -348,3 +349,37 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+# Folders:
+.DS_Store/
+.vs/
+bin/
+cache/
+log/
+obj/
+node_modules/
+
+# Files:
+*.csproj.user
+*~
+
+# Project specific:
+bison-parser.c
+bison-parser.h
+flex-scanner.c
+
+# private/
