@@ -41,9 +41,9 @@ program_name file_name
     output: row number 2                                # En la fila 2 del archivo
             | column number [2, 5]                      # Tomar las columnas 2 y 5
                 -> [left, right]                        # Las llama left (columna 2) y right (columna 5)
-                | if left lt 55 and right gt 4522:      # Si cumplen este condicional
+                | if left lt 55 and right gt 4522       # Si cumplen este condicional
                     | [right, left] -> [left, right]    # Las intercambia
-                | else:                                 # Sino
+                | else                                  # Sino
                     | left * 2 -> left                  # Multiplica los valores por una constante
                     | right * 5 -> right
 
