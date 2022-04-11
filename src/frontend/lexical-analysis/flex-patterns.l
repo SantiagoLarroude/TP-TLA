@@ -2,6 +2,15 @@
 
 #include "flex-actions.h"
 
+
+/* Macros and constants */
+// Debug
+
+// Log token
+#define log_debug_token(yytxt)                                              \
+        LogDebug("Token: '%s'.", yytxt);
+
+
 %}
 
 /* Obliga a crear una regla explícita para manejar lexemas desconocidos. */
@@ -20,53 +29,80 @@ lf              \n
 crlf            \r\n
 endline         \n */
 
-number          [0-9\.]
-whitespace      [ \f\n\r\t\v]
-comment         \#
-string          \".\"
+comment         #.*
+/* [ \t\v\f\n\r] */
+whitespace      [[:space:]]
+
+/* [a-zA-Z] */
+alpha           [[:alpha:]]
+/* [0-9] */
+digit           [[:digit:]]
+/* [a-zA-Z]+[a-zA-Z0-9_\-]* */
+id              {alpha}+[{alpha}{digit}_\-]*
+/* Both integer and decimal */
+/* number          {digit}+[\.]?{digit}+ */
+number          ({digit}+|{digit}+[\.]?{digit}+)
+
+string          \".*\"
 /* "dakjfkdlsjgaljd.gadsjbfdjba" --> esto deberia poder tomarlo el string */
+
+row             [row|ROW]
+column          [column|COLUMN]
+
 
 %%
 
-"|"                                         { return PIPE; }
-"->"                                        { return ASSIGN; }
+"|"             { log_debug_token(yytext); return PIPE; }
+"->"            { log_debug_token(yytext); return ASSIGN; }
 
-"or"                                        { return OR; }
-"and"                                       { return AND; }
+"not"           { log_debug_token(yytext); return NOT; }
+"and"           { log_debug_token(yytext); return AND; }
+"or"            { log_debug_token(yytext); return OR; }
 
-"eq"                                        { return EQUALS; }
-"neq"                                       { return NOT_EQUALS; }
+"eq"            { log_debug_token(yytext); return EQUALS; }
+"neq"           { log_debug_token(yytext); return NOT_EQUALS; }
 
-"gt"                                        { return GREATER_THAN; }
-"ge"                                        { return GREATER_EQUAL; }
-"lt"                                        { return LESS_EQUAL; }
-"le"                                        { return LESS_THAN; }
+"gt"            { log_debug_token(yytext);  return GREATER_THAN; }
+"ge"            { log_debug_token(yytext);  return GREATER_EQUAL; }
+"lt"            { log_debug_token(yytext);  return LESS_EQUAL; }
+"le"            { log_debug_token(yytext);  return LESS_THAN; }
 
-"+"                                         { return ADD; }
-"-"                                         { return SUB; }
-"%"                                         { return MOD; }
-"*"                                         { return MUL; }
-"/"                                         { return DIV; }
+"+"             { log_debug_token(yytext);  return ADD; }
+"-"             { log_debug_token(yytext);  return SUB; }
+"%"             { log_debug_token(yytext);  return MOD; }
+"*"             { log_debug_token(yytext);  return MUL; }
+"/"             { log_debug_token(yytext);  return DIV; }
 
+"--"            { log_debug_token(yytext);  return STR_SUB; }
+"++"            { log_debug_token(yytext);  return STR_ADD; }
 
-"--"                                        { return STR_SUB; }
-"++"                                        { return STR_ADD; }
+"if"            { log_debug_token(yytext);  return IF; }
+"else"          { log_debug_token(yytext);  return ELSE; }
 
-"not"                                       { return NOT; }
+"each"          { log_debug_token(yytext);  return EACH;}
+"contains"      { log_debug_token(yytext);  return CONTAINS;}
 
-"["                                         { return OPEN_BRACKETS; }
-"]"                                         { return CLOSE_BRACKETS; }
+","             { log_debug_token(yytext);  return COMMA; }
+":"             { log_debug_token(yytext);  return COLON; }
 
-"("                                         { return OPEN_PARENTHESIS; }
-")"                                         { return CLOSE_PARENTHESIS; }
+"["             { log_debug_token(yytext);  return OPEN_BRACKETS; }
+"]"             { log_debug_token(yytext);  return CLOSE_BRACKETS; }
 
-{string}                                    { return StringPatternAction(yytext); }
+"("             { log_debug_token(yytext);  return OPEN_PARENTHESIS; }
+")"             { log_debug_token(yytext);  return CLOSE_PARENTHESIS; }
 
-{number}+                                   { return NumberPatternAction(yytext); }
+{row}           { log_debug_token(yytext);  return ROW;}
+{column}        { log_debug_token(yytext);  return COLUMN;}
 
-{whitespace}                                { IgnoredPatternAction(yytext); }
-{comment}                                   { IgnoredPatternAction(yytext); }
+{id}            { return pattern_id(yytext); }
 
-.                                           { return UnknownPatternAction(yytext); }
+{string}        { return pattern_string(yytext); }
+
+{number}        { return pattern_number(yytext); }
+
+{whitespace}    { pattern_ignored(yytext); }
+{comment}       { pattern_ignored(yytext); }
+
+.               { return pattern_unknown(yytext); }
 
 %%
