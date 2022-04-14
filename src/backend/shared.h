@@ -7,14 +7,15 @@
 typedef unsigned int token_t;  // Must be before including node.h
 
 #include "../frontend/syntactic-analysis/node.h"        /* node_* types */
+#include "../backend/logger.h"                          /* LogError */
 
 /* Macros and constants */
 // Error
 
 // Log "out of memory error".
 #define log_error_no_mem()                                                  \
-        LogError("Could not allocate memory.\n\tFunction: %s\n\tFile: %s",  \
-                __func__, __FILE__);
+        LogError("Could not allocate memory.\n\tFunction: %s\n\tFile: %s\n\tLine: %s",  \
+                __func__, __FILE__, __LINE__);
 
 
 /* Structures and types */
@@ -25,10 +26,7 @@ union YYSTYPE {
         struct node_statement* stmt;
         struct node_identifier* id;
 
-        struct {
-                char* string;
-                size_t length;
-        };
+        char* string;
 
         token_t token;
 };
