@@ -16,7 +16,15 @@
 void grammar_program(const node_expression* value);
 
 
+node_expression* grammar_expression_assignment(const node_expression* lvalue,
+                                               const node_identifier* id);
+
+node_expression*
+grammar_expression_assignment_list(const node_expression* lvalue,
+                                   const node_expression* list);
+
 /* Expressions */
+
 node_expression* grammar_expression_logic(const token_t operator,
                                           const node_expression* lvalue,
                                           const node_expression* rvalue);
@@ -34,6 +42,25 @@ node_expression*
 grammar_expression_arithmetic_string(const token_t operator,
                                      const node_expression* lvalue,
                                      const node_expression* rvalue);
+
+
+/* Lists */
+node_expression*
+grammar_expression_list_new(const node_expression* expression);
+
+node_expression*
+grammar_expression_list_append(const node_expression* list,
+                               const node_expression* expression);
+
+node_expression*
+grammar_identifier_list_new(const char* id);
+
+node_expression*
+grammar_identifier_list_append(const node_expression* list, const char* id);
+
+
+/* Identifier */
+node_identifier* grammar_identifier(const char* id);
 
 /* Constant */
 node_expression* grammar_constant_number(const char* value);

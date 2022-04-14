@@ -3,7 +3,7 @@
 #include "bison-actions.h"
 
 /* Top level root node in the AST */
-node_block * programblock = NULL;
+node_block* programblock = NULL;
 
 %}
 
@@ -62,11 +62,10 @@ node_block * programblock = NULL;
 
 // Types
 
-%type <int> program /* stmts */ /* block */
-
-/* %type <stmt>    stmt if_stmt loop_stmt; */
+%type <void>    program
+%type <id>      identifier
 %type <expr>    expression
-                /* list id_list */
+                list id_list
                 constant
 %type <token>   comparison num_arithm str_arithm;
 
@@ -92,19 +91,15 @@ node_block * programblock = NULL;
 
 
 program     :   expression  { grammar_program($1); }
-                /* stmts {} */
             ;
 
-// stmts       :   stmt {}
-//             |   stmts stmt {}
-//             ;
-// 
-// stmt        :   expression {}
-//             ;
-
-expression  : /*  expression ASSIGN ID { $$ = AssignmentGrammarAction($1, $3); }
-            |   expression ASSIGN id_list {}
-            |*/   expression AND expression {
+expression  : expression ASSIGN identifier { 
+                    $$ = grammar_expression_assignment($1, $3); 
+                }
+            |   expression ASSIGN OPEN_BRACKETS id_list CLOSE_BRACKETS {
+                    $$ = grammar_expression_assignment_list($1, $4);
+                }
+            |   expression AND expression {
                     $$ = grammar_expression_logic($2, $1, $3);
                 }
             |   expression OR expression {
@@ -122,21 +117,22 @@ expression  : /*  expression ASSIGN ID { $$ = AssignmentGrammarAction($1, $3); }
             |   expression str_arithm expression {
                     $$ = grammar_expression_arithmetic_string($2, $1, $3); 
                 }
-//            |   OPEN_BRACKETS list CLOSE_BRACKETS {}
+            |   OPEN_BRACKETS list CLOSE_BRACKETS {}
             |   OPEN_PARENTHESIS expression CLOSE_PARENTHESIS { 
                     $$ = $2;        /* TODO: Test this. (!) */
                 }
-            | constant
+            |   constant
             ;
 
-// loop_stmt   :   EACH COLUMN CONTAINS expression {}
+// loop        :   EACH COLUMN CONTAINS expression {}
 //             |   EACH ROW CONTAINS expression {}
 //             ;
 
-// if_stmt     :   IF expression {}
+// if          :   IF expression {}
 //             |   ELSE IF expression {}
-//            |   ELSE expression {}
-//            ;
+//             |   ELSE expression {}
+//             ;
+
 
 comparison  :   EQUALS | NOT_EQUALS
             |   GREATER_THAN | GREATER_EQUAL | LESS_THAN | LESS_EQUAL
@@ -150,14 +146,25 @@ num_arithm  :   ADD | SUB
 str_arithm  :   STR_ADD | STR_SUB
             ;
 
-// list        :   /* blank */ {}
-//             |   expression {}
-//             |   list COMMA expression {}
-//             ;
-// 
-// id_list     : ID { $$ = NewList($1); }
-//             | id_list COMMA ID { $1 = }
-//             ;
+list        :   /* blank */ {
+                    $$ = grammar_expression_list_new(NULL);
+                }
+            |   expression {
+                    $$ = grammar_expression_list_new($1);
+                }
+            |   list COMMA expression {
+                    $1 = grammar_expression_list_append($1, $3); 
+                }
+            ;
+
+id_list     :   ID               { $$ = grammar_identifier_list_new($1); }
+            |   id_list COMMA ID {
+                    $1 = grammar_identifier_list_append($1, $3);
+                }
+            ;
+
+identifier  :   ID { $$ = grammar_identifier($1); }
+            ;
 
 constant    :   NUMBER      { $$ = grammar_constant_number($1); }
             |   STRING      { $$ = grammar_constant_string($1); }
