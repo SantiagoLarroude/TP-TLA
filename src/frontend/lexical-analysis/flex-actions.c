@@ -3,7 +3,7 @@
 #include <string.h>             /* strcpy */
 
 /* Backend */
-#include "../../backend/logger.h"
+#include "../../backend/logger.h"       /* LogDebug */
 
 /* This file */
 #include "flex-actions.h"
@@ -58,7 +58,27 @@ TokenID pattern_number(const char* lexeme)
 
 void pattern_ignored(const char* lexeme)
 {
-        log_debug_single_value(lexeme);
+        /* Easier to read in the terminal */
+        switch (lexeme[0]) {
+        case '\t':
+                log_debug_single_value("\\t");
+                break;
+        case '\v':
+                log_debug_single_value("\\v");
+                break;
+        case '\f':
+                log_debug_single_value("\\f");
+                break;
+        case '\n':
+                log_debug_single_value("\\n");
+                break;
+        case '\r':
+                log_debug_single_value("\\r");
+                break;
+        default:
+                log_debug_single_value(lexeme);
+                break;
+        }
 }
 
 TokenID pattern_unknown(const char* lexeme)
@@ -68,16 +88,20 @@ TokenID pattern_unknown(const char* lexeme)
         return YYUNDEF;
 }
 
+void free_yylval()
+{
+        free(yylval.string);
+}
+
 static bool save_token(const char* lexeme)
 {
-        size_t len = strlen(lexeme);
-
-        yylval.string = malloc(sizeof(char) * len);
+        yylval.string = realloc(yylval.string, sizeof(char) * strlen(lexeme));
         if (yylval.string == NULL) {
                 log_error_no_mem();
                 return false;
         }
 
-        yylval.length = len;
+        strcpy(yylval.string, lexeme);
+
         return true;
 }
