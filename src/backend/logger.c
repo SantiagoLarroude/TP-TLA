@@ -18,10 +18,12 @@ Log(FILE* const stream, const char* prefix, const char* const format,
 
 void LogDebug(const char* const format, ...)
 {
+#ifdef DEBUG
         va_list arguments;
         va_start(arguments, format);
         Log(stdout, "[DEBUG] ", format, "\n", arguments);
         va_end(arguments);
+#endif
 }
 
 void LogError(const char* const format, ...)

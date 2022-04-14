@@ -76,6 +76,12 @@ add_compile_options(
         # -pedantic
 )
 
+if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
+        add_compile_definitions(
+                DEBUG
+        )
+endif()
+
 add_executable(${PROJECT_NAME}
         main.c
         frontend/lexical-analysis/flex-actions.c

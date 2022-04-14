@@ -42,6 +42,8 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
 
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
 add_subdirectory(
         ${CMAKE_SOURCE_DIR}/src
 )
