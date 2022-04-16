@@ -7,23 +7,7 @@ node_block* programblock = NULL;
 
 %}
 
-%union {
-    struct node_block* block;
-    struct node_expression* expr;
-    struct node_statement* stmt;
-    struct node_identifier* id;
-
-    char* string;
-
-    token_t token;
-
-    token_t void;
-
-    FILE* file;
-}
-/* esta chequeado esto????????????????????? */
-/* %define api.value.type {union YYSTYPE} */
-
+%define api.value.type {union YYSTYPE}
 
 // Flex tokens:
 

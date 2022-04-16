@@ -9,7 +9,7 @@
 //Estado de la aplicación.
 CompilerState state;
 
-// Punto de entrada principalP del compilador.
+// Punto de entrada principal del compilador.
 const int main(const int argumentCount, const char** arguments)
 {
         // Inicializar estado de la aplicación.
@@ -28,7 +28,7 @@ const int main(const int argumentCount, const char** arguments)
         switch (result) {
         case 0:
                 if (state.succeed) {
-                        LogInfo("La compilacion fue exitosa.");
+                        LogInfo("La compilación fue exitosa.");
                         // Generator(state.result);
                 }
                 else {
@@ -37,10 +37,10 @@ const int main(const int argumentCount, const char** arguments)
                 }
                 break;
         case 1:
-                LogError("Bison finalizo debido a un error de sintaxis.");
+                LogError("Bison finalizó debido a un error de sintaxis.");
                 break;
         case 2:
-                LogError("Bison finalizo abruptamente debido a que ya no hay memoria disponible.");
+                LogError("Bison finalizó abruptamente debido a que ya no hay memoria disponible.");
                 break;
         default:
                 LogError("Error desconocido mientras se ejecutaba el analizador Bison (codigo %d).", result);
