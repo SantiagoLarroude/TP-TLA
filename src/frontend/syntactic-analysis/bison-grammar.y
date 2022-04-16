@@ -7,7 +7,22 @@ node_block* programblock = NULL;
 
 %}
 
-%define api.value.type {union YYSTYPE}
+%union {
+    struct node_block* block;
+    struct node_expression* expr;
+    struct node_statement* stmt;
+    struct node_identifier* id;
+
+    char* string;
+
+    token_t token;
+
+    token_t void;
+
+    FILE* file;
+}
+/* esta chequeado esto????????????????????? */
+/* %define api.value.type {union YYSTYPE} */
 
 
 // Flex tokens:
@@ -36,6 +51,7 @@ node_block* programblock = NULL;
 
 /* Conditional */
 %token <token> IF
+%token <token> THEN
 %token <token> ELSE
 
 /* Loop */
@@ -53,7 +69,8 @@ node_block* programblock = NULL;
 /* Data types */
 %token <string> NUMBER
 %token <string> STRING
-    /* %token FILE_TYPE */
+
+%token <file> FILE_TYPE
 
 /* File internals */
 %token <token> ROW
@@ -124,15 +141,20 @@ expression  : expression ASSIGN identifier {
             |   constant
             ;
 
-// loop        :   EACH COLUMN CONTAINS expression {}
-//             |   EACH ROW CONTAINS expression {}
-//             ;
+ loop        :   EACH COLUMN CONTAINS expression {}
+             |   EACH ROW CONTAINS expression {}
+             ;
 
-// if          :   IF expression {}
-//             |   ELSE IF expression {}
-//             |   ELSE expression {}
-//             ;
+ if          :   IF expression THEN { /* do stuff when this rule is encountered */ }
+             |   ELSE IF expression { /* tengo que hacer algo. Ej: expression */ }
+             |   ELSE expression { expression | loop | comparison | num_arithm | str_arithm | if } 
+             /* esta bien asi? xq lit que puedo tener cualquier cosa dentro del if */
+             /* ese {} lo pondria en los 3 casos */
+             ;
 
+
+file_param          :   FILE_TYPE
+                    |   STRING
 
 comparison  :   EQUALS | NOT_EQUALS
             |   GREATER_THAN | GREATER_EQUAL | LESS_THAN | LESS_EQUAL

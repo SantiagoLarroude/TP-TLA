@@ -1,5 +1,5 @@
 # TP-TLA
-Borracci, Hinojo, Larroude y Zahnd
+Borracci, Hinojo Toré, Larroude Alvarez y Zahnd
 
 # Resources
 

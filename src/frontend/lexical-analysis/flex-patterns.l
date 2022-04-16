@@ -49,6 +49,9 @@ string          \".*\"
 row             [row|ROW]
 column          [column|COLUMN]
 
+/* https://regex101.com/r/UUUxB0/1 */
+file            (^[\w\/]+\.csv)$ 
+/* "test.csv" */
 
 %%
 
