@@ -80,6 +80,7 @@ file            (^[\w\/]+\.csv)$
 "++"            { log_debug_token(yytext);  return STR_ADD; }
 
 "if"            { log_debug_token(yytext);  return IF; }
+"then"          { log_debug_token(yytext);  return THEN; }
 "else"          { log_debug_token(yytext);  return ELSE; }
 
 "each"          { log_debug_token(yytext);  return EACH;}

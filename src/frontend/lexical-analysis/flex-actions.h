@@ -54,6 +54,7 @@ typedef enum TokenID {
 
         /* Conditional */
         IF,
+        THEN,
         ELSE,
 
         /* Loop */
