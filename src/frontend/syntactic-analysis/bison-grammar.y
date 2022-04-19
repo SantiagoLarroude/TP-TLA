@@ -50,6 +50,8 @@ node_block* programblock = NULL;
 /* Parentheses */
 %token <token> OPEN_PARENTHESIS CLOSE_PARENTHESIS
 
+%token <token> START_FN END_FN
+
 /* Data types */
 %token <string> NUMBER
 %token <string> STRING
@@ -69,7 +71,8 @@ node_block* programblock = NULL;
 %type <expr>    expression
                 list id_list
                 constant
-%type <token>   comparison num_arithm str_arithm;
+                if
+%type <token>   comparison num_arithm str_arithm
 
 // Associativity and precedence rules (from lower precedence to higher)
 %left   PIPE
@@ -86,7 +89,7 @@ node_block* programblock = NULL;
 %left   OPEN_PARENTHESIS CLOSE_PARENTHESIS    // TODO: Consultar
 
 /* Root node */
-/* %start program */
+%start program
 
 
 %%
@@ -95,14 +98,16 @@ node_block* programblock = NULL;
 program     :   commands { grammar_program($1); }
             ;
 
-commands    :   /* blank */
+commands    :   command
             |   commands command
             ;
 
-command     :   expression
+command     :   expression {
+                    $$ = grammar_command_from_expression($1);
+                }
             ;
 
-expression  : expression ASSIGN identifier { 
+expression  :   expression ASSIGN identifier { 
                     $$ = grammar_expression_assignment($1, $3); 
                 }
             |   expression ASSIGN OPEN_BRACKETS id_list CLOSE_BRACKETS {
@@ -124,29 +129,43 @@ expression  : expression ASSIGN identifier {
                     $$ = grammar_expression_arithmetic_numeric($2, $1, $3);
                 }
             |   expression str_arithm expression {
-                    $$ = grammar_expression_arithmetic_string($2, $1, $3); 
+                    $$ = grammar_expression_arithmetic_string($2, $1, $3);
                 }
             |   OPEN_BRACKETS list CLOSE_BRACKETS {}
             |   OPEN_PARENTHESIS expression CLOSE_PARENTHESIS { 
                     $$ = $2;        /* TODO: Test this. (!) */
                 }
+            |   if
             |   constant
             ;
 
- loop        :   EACH COLUMN CONTAINS expression {}
-             |   EACH ROW CONTAINS expression {}
-             ;
+// loop       :   EACH COLUMN CONTAINS expression {}
+//            |   EACH ROW CONTAINS expression {}
+//            ;
 
- if          :   IF expression THEN { /* do stuff when this rule is encountered */ }
-             |   ELSE IF expression { /* tengo que hacer algo. Ej: expression */ }
-             |   ELSE expression { expression | loop | comparison | num_arithm | str_arithm | if } 
-             /* esta bien asi? xq lit que puedo tener cualquier cosa dentro del if */
-             /* ese {} lo pondria en los 3 casos */
-             ;
+if          :   IF expression THEN expression ELSE expression {
+                    $$ = grammar_expression_if($2, $4, $6);
+                }
+            ;
+
+// bool_expr   :   expression AND expression {
+//                     $$ = grammar_expression_logic($2, $1, $3);
+//                 }
+//             |   expression OR expression {
+//                     $$ = grammar_expression_logic($2, $1, $3);
+//                 }
+//             |   NOT expression {
+//                     $$ = grammar_expression_logic($1, NULL, $2);
+//                 }
+//             |   expression comparison expression {
+//                     $$ = grammar_expression_comparison($2, $1, $3);
+//                 }
+//             ;
 
 
-file_param          :   FILE_TYPE
-                    |   STRING
+file_param  :   FILE_TYPE
+            |   STRING
+            ;
 
 comparison  :   EQUALS | NOT_EQUALS
             |   GREATER_THAN | GREATER_EQUAL | LESS_THAN | LESS_EQUAL

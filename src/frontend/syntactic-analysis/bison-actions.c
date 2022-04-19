@@ -31,11 +31,17 @@
         LogDebug("%s(%s: %p, %s: %p)\n\tFile: %s",                          \
         __func__, type1, (void*) ptr1, type2, (void*) ptr2, __FILE__);
 
+// Log function call with prototype: function(any* val, any* val, any* val)
+#define log_debug_triple_arg(type1, ptr1, type2, ptr2, type3, ptr3)         \
+        LogDebug("%s(%s: %p, %s: %p, %s: %p)\n\tFile: %s",                  \
+        __func__, type1, (void*) ptr1, type2, (void*) ptr2,                 \
+        type3, (void*) ptr3, __FILE__);
+
 // Log function call with prototype: function(int op, char* lv, char* rv)
 #define log_debug_operator_lvalue_rvalue(op_pretty_name, op, lv, rv)        \
         LogDebug("{%s} %s(%d, %s, %s)\n\tFile: %s",                         \
-                op_pretty_name, __func__, op, gen_null_str(lv),             \
-                gen_null_str(rv), __FILE__);
+                op_pretty_name, __func__, op, (void*) lv, (void*) rv,       \
+                __FILE__);
 
 /* Prototypes */
 static bool const_to_expr_cpy(const char* value, node_expression* expression);
@@ -64,11 +70,11 @@ void yyerror(const char* string)
 
 
 void
-grammar_program(const node_expression* value)
+grammar_program(const node_command* value)
 {
         // TODO: Implement
 
-        log_debug_single_arg("const node_expression*", &value);
+        log_debug_single_arg("const node_command*", value);
 
         state.succeed = true;
         state.result = 5;
@@ -84,12 +90,21 @@ grammar_program(const node_expression* value)
         return;
 }
 
+node_command*
+grammar_command_from_expression(const node_expression* expression)
+{
+        // TODO: Implement
+        log_debug_single_arg("const node_expression*", expression);
+
+        return NULL;
+}
+
 node_expression* grammar_expression_assignment(const node_expression* lvalue,
                                                const node_identifier* id)
 {
         // TODO: Implement.
 
-        log_debug_dual_arg("node_expression", &lvalue, "node_identifier", &id);
+        log_debug_dual_arg("node_expression", lvalue, "node_identifier", id);
 
         return (node_expression*) lvalue; // TODO: Change when implemented
 }
@@ -100,8 +115,8 @@ grammar_expression_assignment_list(const node_expression* lvalue,
 {
         // TODO: Implement.
 
-        log_debug_dual_arg("node_expression", &lvalue,
-                           "node_expression", &list);
+        log_debug_dual_arg("node_expression", lvalue,
+                           "node_expression", list);
 
         return (node_expression*) lvalue; // TODO: Change when implemented
 }
@@ -116,19 +131,19 @@ node_expression* grammar_expression_logic(const token_t operator,
         switch (operator) {
         case AND:
                 log_debug_operator_lvalue_rvalue("AND", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         case OR:
                 log_debug_operator_lvalue_rvalue("OR", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         case NOT:
                 log_debug_operator_lvalue_rvalue("NOT", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         default:
                 log_debug_operator_lvalue_rvalue("Invalid", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         }
         return (node_expression*) lvalue; // TODO: Change when implemented
@@ -143,31 +158,31 @@ node_expression* grammar_expression_comparison(const token_t operator,
         switch (operator) {
         case EQUALS:
                 log_debug_operator_lvalue_rvalue("EQUALS", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         case NOT_EQUALS:
                 log_debug_operator_lvalue_rvalue("NOT_EQUALS", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         case GREATER_THAN:
                 log_debug_operator_lvalue_rvalue("GREATER_THAN", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         case GREATER_EQUAL:
                 log_debug_operator_lvalue_rvalue("GREATER_EQUAL", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         case LESS_THAN:
                 log_debug_operator_lvalue_rvalue("LESS_THAN", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         case LESS_EQUAL:
                 log_debug_operator_lvalue_rvalue("LESS_EQUAL", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         default:
                 log_debug_operator_lvalue_rvalue("Invalid", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         }
         return (node_expression*) lvalue; // TODO: Change when implemented
@@ -183,27 +198,27 @@ grammar_expression_arithmetic_numeric(const token_t operator,
         switch (operator) {
         case ADD:
                 log_debug_operator_lvalue_rvalue("ADD", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         case SUB:
                 log_debug_operator_lvalue_rvalue("SUB", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         case MUL:
                 log_debug_operator_lvalue_rvalue("MUL", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         case DIV:
                 log_debug_operator_lvalue_rvalue("DIV", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         case MOD:
                 log_debug_operator_lvalue_rvalue("MOD", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         default:
                 log_debug_operator_lvalue_rvalue("Invalid", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         }
 
@@ -220,19 +235,32 @@ grammar_expression_arithmetic_string(const token_t operator,
         switch (operator) {
         case STR_ADD:
                 log_debug_operator_lvalue_rvalue("STR_ADD", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         case STR_SUB:
                 log_debug_operator_lvalue_rvalue("STR_SUB", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         default:
                 log_debug_operator_lvalue_rvalue("Invalid", operator,
-                                                 lvalue->value, rvalue->value);
+                                                 &lvalue, &rvalue);
                 break;
         }
 
         return (node_expression*) lvalue; // TODO: Change when implemented
+}
+
+node_expression*
+grammar_expression_if(const node_expression* condition,
+                      const node_expression* expr1, 
+                      const node_expression* expr2)
+{
+        // TODO: Implement
+        log_debug_triple_arg("node_expression", condition,
+                             "node_expression", expr1,
+                             "node_expression", expr2);
+
+        return (node_expression*) expr1; // TODO: Change when implemented
 }
 
 node_expression* grammar_expression_list_new(const node_expression* expression)
@@ -244,14 +272,14 @@ node_expression* grammar_expression_list_new(const node_expression* expression)
 }
 
 node_expression* grammar_expression_list_append(const node_expression* list,
-                                                const node_expression* expression)
+                                                const node_expression* expr)
 {
         // TODO: Implement
 
-        log_debug_dual_arg("node_expression", &list,
-                           "node_expression", &expression);
+        log_debug_dual_arg("node_expression", list,
+                           "node_expression", expr);
 
-        return (node_expression*) expression; // TODO: Change when implemented
+        return (node_expression*) expr; // TODO: Change when implemented
 }
 
 node_expression*
@@ -270,8 +298,8 @@ grammar_identifier_list_append(const node_expression* list,
 {
         // TODO: Implement
 
-        log_debug_dual_arg("node_expression", &list,
-                           "char", &id);
+        log_debug_dual_arg("node_expression", list,
+                           "char", id);
 
         return NULL; // TODO: Change when implemented
 }

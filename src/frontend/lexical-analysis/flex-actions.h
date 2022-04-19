@@ -73,6 +73,9 @@ typedef enum TokenID {
         OPEN_PARENTHESIS,
         CLOSE_PARENTHESIS,
 
+        START_FN,
+        END_FN,
+
         /* Data types */
         NUMBER,
         STRING,

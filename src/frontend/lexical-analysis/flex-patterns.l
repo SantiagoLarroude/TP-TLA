@@ -50,7 +50,7 @@ row             [row|ROW]
 column          [column|COLUMN]
 
 /* https://regex101.com/r/UUUxB0/1 */
-file            (^[\w\/]+\.csv)$ 
+file            (^[{alpha}{digit}\/]+\.csv)$ 
 /* "test.csv" */
 
 %%
@@ -67,8 +67,8 @@ file            (^[\w\/]+\.csv)$
 
 "gt"            { log_debug_token(yytext);  return GREATER_THAN; }
 "ge"            { log_debug_token(yytext);  return GREATER_EQUAL; }
-"lt"            { log_debug_token(yytext);  return LESS_EQUAL; }
-"le"            { log_debug_token(yytext);  return LESS_THAN; }
+"lt"            { log_debug_token(yytext);  return LESS_THAN; }
+"le"            { log_debug_token(yytext);  return LESS_EQUAL; }
 
 "+"             { log_debug_token(yytext);  return ADD; }
 "-"             { log_debug_token(yytext);  return SUB; }
@@ -94,6 +94,9 @@ file            (^[\w\/]+\.csv)$
 
 "("             { log_debug_token(yytext);  return OPEN_PARENTHESIS; }
 ")"             { log_debug_token(yytext);  return CLOSE_PARENTHESIS; }
+
+"function"      { log_debug_token(yytext);  return START_FN; }
+"endfunction"   { log_debug_token(yytext);  return END_FN; }
 
 {row}           { log_debug_token(yytext);  return ROW;}
 {column}        { log_debug_token(yytext);  return COLUMN;}

@@ -13,8 +13,13 @@
  */
 
  /* Program */
-void grammar_program(const node_expression* value);
+void grammar_program(const node_command* value);
 
+
+node_command*
+grammar_command_from_expression(const node_expression* expression);
+
+/* Expressions */
 
 node_expression* grammar_expression_assignment(const node_expression* lvalue,
                                                const node_identifier* id);
@@ -22,8 +27,6 @@ node_expression* grammar_expression_assignment(const node_expression* lvalue,
 node_expression*
 grammar_expression_assignment_list(const node_expression* lvalue,
                                    const node_expression* list);
-
-/* Expressions */
 
 node_expression* grammar_expression_logic(const token_t operator,
                                           const node_expression* lvalue,
@@ -43,6 +46,12 @@ grammar_expression_arithmetic_string(const token_t operator,
                                      const node_expression* lvalue,
                                      const node_expression* rvalue);
 
+/* Control flow */
+
+node_expression*
+grammar_expression_if(const node_expression* condition,
+                      const node_expression* exp1,
+                      const node_expression* exp2);
 
 /* Lists */
 node_expression*
