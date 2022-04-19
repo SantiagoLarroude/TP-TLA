@@ -65,6 +65,7 @@ node_block* programblock = NULL;
 
 %type <void>    program
 %type <id>      identifier
+%type <cmd>     commands command
 %type <expr>    expression
                 list id_list
                 constant
@@ -85,13 +86,20 @@ node_block* programblock = NULL;
 %left   OPEN_PARENTHESIS CLOSE_PARENTHESIS    // TODO: Consultar
 
 /* Root node */
-%start program
+/* %start program */
 
 
 %%
 
 
-program     :   expression  { grammar_program($1); }
+program     :   commands { grammar_program($1); }
+            ;
+
+commands    :   /* blank */
+            |   commands command
+            ;
+
+command     :   expression
             ;
 
 expression  : expression ASSIGN identifier { 

@@ -5,9 +5,9 @@ typedef struct node {
         //
 } node;
 
-typedef struct node_statement {
+typedef struct node_command {
         // 
-} node_statement;
+} node_command;
 
 typedef struct node_variable_declaration {
         token_t type;

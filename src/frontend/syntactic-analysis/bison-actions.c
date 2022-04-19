@@ -15,11 +15,14 @@
 /* Macros and constants */
 // Debug
 
-// Log function call with prototype: function(char* val)
-#define log_debug_single_arg_char(val)                                      \
-        LogDebug("%s(%s)\n\tFile: %s", __func__, val, __FILE__);
+// Return "NULL" string when value is NULL. Ideal to use with log_* macros
+#define gen_null_str(value) ((value == NULL) ? "NULL" : value)
 
 // Log function call with prototype: function(char* val)
+#define log_debug_single_arg_char(val)                                      \
+        LogDebug("%s(%s)\n\tFile: %s", __func__, gen_null_str(val), __FILE__);
+
+// Log function call with prototype: function(any* val)
 #define log_debug_single_arg(type, ptr)                                     \
         LogDebug("%s(%s: %p)\n\tFile: %s", __func__, type, ptr, __FILE__);
 
@@ -31,10 +34,8 @@
 // Log function call with prototype: function(int op, char* lv, char* rv)
 #define log_debug_operator_lvalue_rvalue(op_pretty_name, op, lv, rv)        \
         LogDebug("{%s} %s(%d, %s, %s)\n\tFile: %s",                         \
-                op_pretty_name, __func__, op, lv, rv, __FILE__);
-
-// Return "NULL" string when value is NULL. Ideal to use with log_* macros
-#define gen_null_str(value) ((value == NULL) ? "NULL" : value)
+                op_pretty_name, __func__, op, gen_null_str(lv),             \
+                gen_null_str(rv), __FILE__);
 
 /* Prototypes */
 static bool const_to_expr_cpy(const char* value, node_expression* expression);
@@ -67,7 +68,7 @@ grammar_program(const node_expression* value)
 {
         // TODO: Implement
 
-        LogDebug("grammar_program(%s)", value->value);
+        log_debug_single_arg("const node_expression*", &value);
 
         state.succeed = true;
         state.result = 5;
@@ -115,23 +116,19 @@ node_expression* grammar_expression_logic(const token_t operator,
         switch (operator) {
         case AND:
                 log_debug_operator_lvalue_rvalue("AND", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         case OR:
                 log_debug_operator_lvalue_rvalue("OR", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         case NOT:
                 log_debug_operator_lvalue_rvalue("NOT", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         default:
                 log_debug_operator_lvalue_rvalue("Invalid", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         }
         return (node_expression*) lvalue; // TODO: Change when implemented
@@ -146,38 +143,31 @@ node_expression* grammar_expression_comparison(const token_t operator,
         switch (operator) {
         case EQUALS:
                 log_debug_operator_lvalue_rvalue("EQUALS", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         case NOT_EQUALS:
                 log_debug_operator_lvalue_rvalue("NOT_EQUALS", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         case GREATER_THAN:
                 log_debug_operator_lvalue_rvalue("GREATER_THAN", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         case GREATER_EQUAL:
                 log_debug_operator_lvalue_rvalue("GREATER_EQUAL", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         case LESS_THAN:
                 log_debug_operator_lvalue_rvalue("LESS_THAN", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         case LESS_EQUAL:
                 log_debug_operator_lvalue_rvalue("LESS_EQUAL", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         default:
                 log_debug_operator_lvalue_rvalue("Invalid", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         }
         return (node_expression*) lvalue; // TODO: Change when implemented
@@ -193,33 +183,27 @@ grammar_expression_arithmetic_numeric(const token_t operator,
         switch (operator) {
         case ADD:
                 log_debug_operator_lvalue_rvalue("ADD", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         case SUB:
                 log_debug_operator_lvalue_rvalue("SUB", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         case MUL:
                 log_debug_operator_lvalue_rvalue("MUL", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         case DIV:
                 log_debug_operator_lvalue_rvalue("DIV", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         case MOD:
                 log_debug_operator_lvalue_rvalue("MOD", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         default:
                 log_debug_operator_lvalue_rvalue("Invalid", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         }
 
@@ -236,18 +220,15 @@ grammar_expression_arithmetic_string(const token_t operator,
         switch (operator) {
         case STR_ADD:
                 log_debug_operator_lvalue_rvalue("STR_ADD", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         case STR_SUB:
                 log_debug_operator_lvalue_rvalue("STR_SUB", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         default:
                 log_debug_operator_lvalue_rvalue("Invalid", operator,
-                                                 gen_null_str(lvalue->value),
-                                                 gen_null_str(rvalue->value));
+                                                 lvalue->value, rvalue->value);
                 break;
         }
 
@@ -298,6 +279,7 @@ grammar_identifier_list_append(const node_expression* list,
 node_identifier* grammar_identifier(const char* id)
 {
         // TODO: Implement
+        log_debug_single_arg_char(id);
 
         /* node_identifier* nid = malloc(sizeof(node_identifier));
         if (nid == NULL) {
