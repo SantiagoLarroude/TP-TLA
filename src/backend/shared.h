@@ -25,6 +25,7 @@ union YYSTYPE {
         struct node_expression* expr;
         struct node_statement* stmt;
         struct node_identifier* id;
+        struct node_file_type* file_type;
 
         char* string;
 

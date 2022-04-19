@@ -37,8 +37,7 @@ whitespace      [[:space:]]
 alpha           [[:alpha:]]
 /* [0-9] */
 digit           [[:digit:]]
-/* [a-zA-Z]+[a-zA-Z0-9_\-]* */
-id              {alpha}+[{alpha}{digit}_\-]*
+
 /* Both integer and decimal */
 /* number          {digit}+[\.]?{digit}+ */
 number          ({digit}+|{digit}+[\.]?{digit}+)
@@ -52,6 +51,9 @@ column          [column|COLUMN]
 /* https://regex101.com/r/UUUxB0/1 */
 file            (^[\w\/]+\.csv)$ 
 /* "test.csv" */
+
+/* [a-zA-Z]+[a-zA-Z0-9_\-]* */
+id              {alpha}+[{alpha}{digit}_\-]*
 
 %%
 
@@ -106,6 +108,8 @@ file            (^[\w\/]+\.csv)$
 
 {whitespace}    { pattern_ignored(yytext); }
 {comment}       { pattern_ignored(yytext); }
+
+{file}          { return pattern_file_type(yytext); }
 
 .               { return pattern_unknown(yytext); }
 

@@ -24,6 +24,18 @@ static bool save_token(const char* lexeme);
  * "flex-rules.h" implementation
  */
 
+TokenID pattern_file_type(const char* lexeme)
+{
+        log_debug_single_value(lexeme);
+
+        if (save_token(lexeme))
+        {
+                return FILE_TYPE;
+        }
+
+        return YYUNDEF;
+}
+
 TokenID pattern_id(const char* lexeme)
 {
         log_debug_single_value(lexeme);

@@ -100,6 +100,8 @@ void pattern_ignored(const char* lexeme);
 
 TokenID pattern_unknown(const char* lexeme);
 
+TokenID pattern_file_type(const char* lexeme);
+
 void free_yylval();
 
 #endif
