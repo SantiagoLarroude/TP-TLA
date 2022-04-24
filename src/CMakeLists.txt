@@ -29,7 +29,8 @@ add_custom_command(
         OUTPUT  ${CMAKE_SOURCE_DIR}/src/frontend/syntactic-analysis/bison-parser.c
                 ${CMAKE_SOURCE_DIR}/src/frontend/syntactic-analysis/bison-parser.h
         COMMAND bison   -d ${CMAKE_SOURCE_DIR}/src/frontend/syntactic-analysis/bison-grammar.y
-                        -o ${CMAKE_SOURCE_DIR}/src/frontend/syntactic-analysis/bison-parser.c)
+                        -o ${CMAKE_SOURCE_DIR}/src/frontend/syntactic-analysis/bison-parser.c
+                        -Wcounterexamples)
 
 message(STATUS "Bison built.")
 
