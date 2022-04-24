@@ -21,7 +21,7 @@ node_block* programblock = NULL;
 %token <token> ASSIGN
 
 /* Logic */
-%token <token> NOT AND OR
+%token <token> OR AND NOT
 
 /* Relational*/
 %token <token>  EQUALS NOT_EQUALS
@@ -68,11 +68,11 @@ node_block* programblock = NULL;
 %type <void>    program
 %type <id>      identifier
 %type <cmd>     commands command
-%type <expr>    expression
+%type <expr>    expression bool_expr
                 list id_list
                 constant
                 if
-%type <token>   comparison num_arithm str_arithm
+// %type <token>   comparison num_arithm str_arithm
 
 // Associativity and precedence rules (from lower precedence to higher)
 %left   PIPE
@@ -87,6 +87,16 @@ node_block* programblock = NULL;
 %right  NOT
 %left   OPEN_BRACKETS CLOSE_BRACKETS          // TODO: Consultar
 %left   OPEN_PARENTHESIS CLOSE_PARENTHESIS    // TODO: Consultar
+
+/* Avoids Shift/Reduce conflict with if/then/else.
+ *
+ * See sections 
+ * 5.2 Shift/Reduce Conflicts
+ * 5.3.3 Specifying Precedence Only
+ * from the Bison manual for a detailed explanation.
+ */
+%precedence THEN
+%precedence ELSE
 
 /* Root node */
 %start program
@@ -113,28 +123,20 @@ expression  :   expression ASSIGN identifier {
             |   expression ASSIGN OPEN_BRACKETS id_list CLOSE_BRACKETS {
                     $$ = grammar_expression_assignment_list($1, $4);
                 }
-            |   expression AND expression {
-                    $$ = grammar_expression_logic($2, $1, $3);
-                }
-            |   expression OR expression {
-                    $$ = grammar_expression_logic($2, $1, $3);
-                }
-            |   NOT expression {
-                    $$ = grammar_expression_logic($1, NULL, $2);
-                }
-            |   expression comparison expression {
-                    $$ = grammar_expression_comparison($2, $1, $3);
-                }
-            |   expression num_arithm expression {
-                    $$ = grammar_expression_arithmetic_numeric($2, $1, $3);
-                }
-            |   expression str_arithm expression {
-                    $$ = grammar_expression_arithmetic_string($2, $1, $3);
-                }
+//             |   expression comparison expression {
+//                     $$ = grammar_expression_comparison($2, $1, $3);
+//                 }
+//             |   expression num_arithm expression {
+//                     $$ = grammar_expression_arithmetic_numeric($2, $1, $3);
+//                 }
+//             |   expression str_arithm expression {
+//                     $$ = grammar_expression_arithmetic_string($2, $1, $3);
+//                 }
             |   OPEN_BRACKETS list CLOSE_BRACKETS {}
             |   OPEN_PARENTHESIS expression CLOSE_PARENTHESIS { 
                     $$ = $2;        /* TODO: Test this. (!) */
                 }
+            |   bool_expr
             |   if
             |   constant
             ;
@@ -148,36 +150,39 @@ if          :   IF expression THEN expression ELSE expression {
                 }
             ;
 
-// bool_expr   :   expression AND expression {
-//                     $$ = grammar_expression_logic($2, $1, $3);
-//                 }
-//             |   expression OR expression {
-//                     $$ = grammar_expression_logic($2, $1, $3);
-//                 }
-//             |   NOT expression {
-//                     $$ = grammar_expression_logic($1, NULL, $2);
-//                 }
-//             |   expression comparison expression {
-//                     $$ = grammar_expression_comparison($2, $1, $3);
-//                 }
+bool_expr   :   expression AND expression {
+                    LogDebug("Reached AND\n");
+                    $$ = grammar_expression_logic(AND, $1, $3);
+                }
+            |   expression OR expression {
+                    LogDebug("Reached OR\n");
+                    $$ = grammar_expression_logic(OR, $1, $3);
+                }
+            |   NOT expression {
+                    LogDebug("Reached NOT\n");
+                    $$ = grammar_expression_logic(NOT, NULL, $2);
+                }
+            /* |   expression comparison expression {
+                    $$ = grammar_expression_comparison($2, $1, $3);
+                } */
+            ;
+
+
+// file_param  :   FILE_TYPE
+//             |   STRING
 //             ;
 
-
-file_param  :   FILE_TYPE
-            |   STRING
-            ;
-
-comparison  :   EQUALS | NOT_EQUALS
-            |   GREATER_THAN | GREATER_EQUAL | LESS_THAN | LESS_EQUAL
-            ;
-
-num_arithm  :   ADD | SUB
-            |   MUL | DIV 
-            |   MOD
-            ;
-
-str_arithm  :   STR_ADD | STR_SUB
-            ;
+// comparison  :   EQUALS | NOT_EQUALS
+//             |   GREATER_THAN | GREATER_EQUAL | LESS_THAN | LESS_EQUAL
+//             ;
+// 
+// num_arithm  :   ADD | SUB
+//             |   MUL | DIV 
+//             |   MOD
+//             ;
+// 
+// str_arithm  :   STR_ADD | STR_SUB
+//             ;
 
 list        :   /* blank */ {
                     $$ = grammar_expression_list_new(NULL);

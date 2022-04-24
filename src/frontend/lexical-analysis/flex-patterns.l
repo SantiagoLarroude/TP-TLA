@@ -50,15 +50,16 @@ row             [row|ROW]
 column          [column|COLUMN]
 
 /* https://regex101.com/r/UUUxB0/1 */
-file            (^[{alpha}{digit}\/]+\.csv)$ 
+/* file            (^[{alpha}{digit}\/]+\.csv)$  */
 /* "test.csv" */
 
 %%
 
+{comment}       { pattern_ignored(yytext); }
+
 "|"             { log_debug_token(yytext); return PIPE; }
 "->"            { log_debug_token(yytext); return ASSIGN; }
 
-"not"           { log_debug_token(yytext); return NOT; }
 "and"           { log_debug_token(yytext); return AND; }
 "or"            { log_debug_token(yytext); return OR; }
 
@@ -72,12 +73,14 @@ file            (^[{alpha}{digit}\/]+\.csv)$
 
 "+"             { log_debug_token(yytext);  return ADD; }
 "-"             { log_debug_token(yytext);  return SUB; }
-"%"             { log_debug_token(yytext);  return MOD; }
 "*"             { log_debug_token(yytext);  return MUL; }
 "/"             { log_debug_token(yytext);  return DIV; }
+"%"             { log_debug_token(yytext);  return MOD; }
 
-"--"            { log_debug_token(yytext);  return STR_SUB; }
 "++"            { log_debug_token(yytext);  return STR_ADD; }
+"--"            { log_debug_token(yytext);  return STR_SUB; }
+
+"not"           { log_debug_token(yytext); return NOT; }
 
 "if"            { log_debug_token(yytext);  return IF; }
 "then"          { log_debug_token(yytext);  return THEN; }
@@ -108,7 +111,6 @@ file            (^[{alpha}{digit}\/]+\.csv)$
 {number}        { return pattern_number(yytext); }
 
 {whitespace}    { pattern_ignored(yytext); }
-{comment}       { pattern_ignored(yytext); }
 
 .               { return pattern_unknown(yytext); }
 

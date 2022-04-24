@@ -44,7 +44,7 @@
                 __FILE__);
 
 /* Prototypes */
-static bool const_to_expr_cpy(const char* value, node_expression* expression);
+static bool const_to_expr_cp(const char* value, node_expression* expression);
 
 
 /**
@@ -79,14 +79,6 @@ grammar_program(const node_command* value)
         state.succeed = true;
         state.result = 5;
 
-        /* programblock = malloc(sizeof(node_block));
-        if (programblock == NULL) {
-                log_error_no_mem();
-                return;
-        }
-
-        programblock->exp = (node_expression*) value; */
-
         return;
 }
 
@@ -94,6 +86,7 @@ node_command*
 grammar_command_from_expression(const node_expression* expression)
 {
         // TODO: Implement
+
         log_debug_single_arg("const node_expression*", expression);
 
         return NULL;
@@ -106,7 +99,7 @@ node_expression* grammar_expression_assignment(const node_expression* lvalue,
 
         log_debug_dual_arg("node_expression", lvalue, "node_identifier", id);
 
-        return (node_expression*) lvalue; // TODO: Change when implemented
+        return (node_expression*) lvalue;
 }
 
 node_expression*
@@ -118,7 +111,7 @@ grammar_expression_assignment_list(const node_expression* lvalue,
         log_debug_dual_arg("node_expression", lvalue,
                            "node_expression", list);
 
-        return (node_expression*) lvalue; // TODO: Change when implemented
+        return (node_expression*) lvalue;
 }
 
 
@@ -146,7 +139,7 @@ node_expression* grammar_expression_logic(const token_t operator,
                                                  &lvalue, &rvalue);
                 break;
         }
-        return (node_expression*) lvalue; // TODO: Change when implemented
+        return (node_expression*) lvalue;
 }
 
 node_expression* grammar_expression_comparison(const token_t operator,
@@ -185,7 +178,7 @@ node_expression* grammar_expression_comparison(const token_t operator,
                                                  &lvalue, &rvalue);
                 break;
         }
-        return (node_expression*) lvalue; // TODO: Change when implemented
+        return (node_expression*) lvalue;
 }
 
 node_expression*
@@ -222,7 +215,7 @@ grammar_expression_arithmetic_numeric(const token_t operator,
                 break;
         }
 
-        return (node_expression*) lvalue; // TODO: Change when implemented
+        return (node_expression*) lvalue;
 }
 
 node_expression*
@@ -247,7 +240,7 @@ grammar_expression_arithmetic_string(const token_t operator,
                 break;
         }
 
-        return (node_expression*) lvalue; // TODO: Change when implemented
+        return (node_expression*) lvalue;
 }
 
 node_expression*
@@ -256,19 +249,21 @@ grammar_expression_if(const node_expression* condition,
                       const node_expression* expr2)
 {
         // TODO: Implement
+
         log_debug_triple_arg("node_expression", condition,
                              "node_expression", expr1,
                              "node_expression", expr2);
 
-        return (node_expression*) expr1; // TODO: Change when implemented
+        return (node_expression*) expr1;
 }
 
 node_expression* grammar_expression_list_new(const node_expression* expression)
 {
         // TODO: Implement
+
         log_debug_single_arg("node_expression", expression);
 
-        return (node_expression*) expression; // TODO: Change when implemented
+        return (node_expression*) expression;
 }
 
 node_expression* grammar_expression_list_append(const node_expression* list,
@@ -279,7 +274,7 @@ node_expression* grammar_expression_list_append(const node_expression* list,
         log_debug_dual_arg("node_expression", list,
                            "node_expression", expr);
 
-        return (node_expression*) expr; // TODO: Change when implemented
+        return (node_expression*) expr;
 }
 
 node_expression*
@@ -289,7 +284,7 @@ grammar_identifier_list_new(const char* id)
 
         log_debug_single_arg("char", id);
 
-        return NULL; // TODO: Change when implemented
+        return NULL;
 }
 
 node_expression*
@@ -301,31 +296,15 @@ grammar_identifier_list_append(const node_expression* list,
         log_debug_dual_arg("node_expression", list,
                            "char", id);
 
-        return NULL; // TODO: Change when implemented
+        return NULL;
 }
 
 node_identifier* grammar_identifier(const char* id)
 {
         // TODO: Implement
+
         log_debug_single_arg_char(id);
 
-        /* node_identifier* nid = malloc(sizeof(node_identifier));
-        if (nid == NULL) {
-                log_error_no_mem();
-                return NULL;
-        }
-
-        size_t len = strlen(id);
-        nid->name = calloc(sizeof(char), len);
-        if (nid->name == NULL) {
-                log_error_no_mem();
-                return NULL;
-        }
-
-        nid->length = len;
-        strcpy(nid->name, id);
-
-        return nid; */
         return NULL;
 }
 
@@ -336,19 +315,6 @@ grammar_constant_number(const char* value)
 
         log_debug_single_arg_char(value);
 
-        /* node_expression* exp = malloc(sizeof(node_expression));
-        if (exp == NULL) {
-                log_error_no_mem();
-                return NULL;
-        }
-
-        if (const_to_expr_cpy(value, exp) == false) {
-                return NULL;
-        }
-
-        exp->type = NUMBER;
-
-        return exp; */
         return NULL;
 }
 
@@ -359,18 +325,6 @@ grammar_constant_string(const char* value)
 
         log_debug_single_arg_char(value);
 
-        /* node_expression* exp = malloc(sizeof(node_expression));
-        if (exp == NULL) {
-                log_error_no_mem();
-                return NULL;
-        }
-
-        if (const_to_expr_cpy(value, exp) == false) {
-                return NULL;
-        }
-
-        exp->type = NUMBER;
-        return exp; */
         return NULL;
 }
 
@@ -386,7 +340,7 @@ free_programblock(struct node_block* program)
         free(program);
 }
 
-static bool const_to_expr_cpy(const char* value, node_expression* expression)
+static bool const_to_expr_cp(const char* value, node_expression* expression)
 {
         size_t len = strlen(value);
 
