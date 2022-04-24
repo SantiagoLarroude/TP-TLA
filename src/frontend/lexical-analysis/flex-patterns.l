@@ -30,6 +30,7 @@ crlf            \r\n
 endline         \n */
 
 comment         #.*
+
 /* [ \t\v\f\n\r] */
 whitespace      [[:space:]]
 
@@ -43,8 +44,8 @@ id              {alpha}+[{alpha}{digit}_\-]*
 /* number          {digit}+[\.]?{digit}+ */
 number          ({digit}+|{digit}+[\.]?{digit}+)
 
-string          \".*\"
-/* "dakjfkdlsjgaljd.gadsjbfdjba" --> esto deberia poder tomarlo el string */
+/* Source: https://stackoverflow.com/a/2039820 */
+string          \"(\\.|[^"\\])*\"
 
 row             [row|ROW]
 column          [column|COLUMN]

@@ -68,11 +68,13 @@ node_block* programblock = NULL;
 %type <void>    program
 %type <id>      identifier
 %type <cmd>     commands command
-%type <expr>    expression bool_expr
+%type <expr>    expression
+                bool_expr cmp_expr 
+                num_arithm str_arithm
                 list id_list
+                cond_expr
                 constant
-                if
-// %type <token>   comparison num_arithm str_arithm
+// %type <token>   comparison /* num_arithm str_arithm */
 
 // Associativity and precedence rules (from lower precedence to higher)
 %left   PIPE
@@ -123,48 +125,36 @@ expression  :   expression ASSIGN identifier {
             |   expression ASSIGN OPEN_BRACKETS id_list CLOSE_BRACKETS {
                     $$ = grammar_expression_assignment_list($1, $4);
                 }
-//             |   expression comparison expression {
-//                     $$ = grammar_expression_comparison($2, $1, $3);
-//                 }
-//             |   expression num_arithm expression {
-//                     $$ = grammar_expression_arithmetic_numeric($2, $1, $3);
-//                 }
-//             |   expression str_arithm expression {
-//                     $$ = grammar_expression_arithmetic_string($2, $1, $3);
-//                 }
             |   OPEN_BRACKETS list CLOSE_BRACKETS {}
             |   OPEN_PARENTHESIS expression CLOSE_PARENTHESIS { 
                     $$ = $2;        /* TODO: Test this. (!) */
                 }
             |   bool_expr
-            |   if
+            |   cond_expr
             |   constant
+            |   num_arithm
+            |   str_arithm
             ;
 
 // loop       :   EACH COLUMN CONTAINS expression {}
 //            |   EACH ROW CONTAINS expression {}
 //            ;
 
-if          :   IF expression THEN expression ELSE expression {
+cond_expr   :   IF expression THEN expression ELSE expression {
                     $$ = grammar_expression_if($2, $4, $6);
                 }
             ;
 
 bool_expr   :   expression AND expression {
-                    LogDebug("Reached AND\n");
                     $$ = grammar_expression_logic(AND, $1, $3);
                 }
             |   expression OR expression {
-                    LogDebug("Reached OR\n");
                     $$ = grammar_expression_logic(OR, $1, $3);
                 }
             |   NOT expression {
-                    LogDebug("Reached NOT\n");
                     $$ = grammar_expression_logic(NOT, NULL, $2);
                 }
-            /* |   expression comparison expression {
-                    $$ = grammar_expression_comparison($2, $1, $3);
-                } */
+            |   cmp_expr
             ;
 
 
@@ -172,17 +162,50 @@ bool_expr   :   expression AND expression {
 //             |   STRING
 //             ;
 
-// comparison  :   EQUALS | NOT_EQUALS
-//             |   GREATER_THAN | GREATER_EQUAL | LESS_THAN | LESS_EQUAL
-//             ;
-// 
-// num_arithm  :   ADD | SUB
-//             |   MUL | DIV 
-//             |   MOD
-//             ;
-// 
-// str_arithm  :   STR_ADD | STR_SUB
-//             ;
+cmp_expr    :   expression EQUALS expression {
+                        $$ = grammar_expression_comparison(EQUALS, $1, $3);
+                }
+            |   expression NOT_EQUALS expression {
+                    $$ = grammar_expression_comparison(NOT_EQUALS, $1, $3);
+                }
+            |   expression GREATER_THAN expression {
+                    $$ = grammar_expression_comparison(GREATER_THAN, $1, $3);
+                }
+            |   expression GREATER_EQUAL expression {
+                    $$ = grammar_expression_comparison(GREATER_EQUAL, $1, $3);
+                }
+            |   expression LESS_THAN expression {
+                    $$ = grammar_expression_comparison(LESS_THAN, $1, $3);
+                }
+            |   expression LESS_EQUAL expression {
+                    $$ = grammar_expression_comparison(LESS_EQUAL, $1, $3);
+                }
+            ;
+
+num_arithm  :   expression ADD expression {
+                     $$ = grammar_expression_arithmetic_numeric(ADD, $1, $3);
+                }
+            |   expression SUB expression {
+                     $$ = grammar_expression_arithmetic_numeric(SUB, $1, $3);
+                }
+            |   expression MUL expression {
+                     $$ = grammar_expression_arithmetic_numeric(MUL, $1, $3);
+                }
+            |   expression DIV expression {
+                     $$ = grammar_expression_arithmetic_numeric(DIV, $1, $3);
+                }
+            |   expression MOD expression {
+                     $$ = grammar_expression_arithmetic_numeric(MOD, $1, $3);
+                }
+            ;
+ 
+str_arithm  :   expression STR_ADD expression {
+                     $$ = grammar_expression_arithmetic_string(STR_ADD, $1, $3);
+                }
+            |   expression STR_SUB expression {
+                     $$ = grammar_expression_arithmetic_string(STR_SUB, $1, $3);
+                }
+            ;
 
 list        :   /* blank */ {
                     $$ = grammar_expression_list_new(NULL);
