@@ -90,27 +90,187 @@ Stephen,Tyler,"7452 Terrace ""At the Plaza"" road",SomeTown,SD, 91234
 
 ---------------------------------------------------------------------------------------------------
 
-function nombre_de_la_fn1
+# R3.1 [Aceptar] Un programa que lea un archivo y lo imprima sin modificación.
+fn r31
+    file "nombre_del_archivo" -> input
 
-    file "nombre_del_archivo" -> output
+    STDOUT -> output
 
+    input > output
+end
 
-    return output
-endfunction
+# R3.2 [Aceptar] Un programa que lea un archivo y se quede con una parte del
+# mismo.
+fn r32
+    file "nombre_del_archivo" -> input
 
+    file -> output  # Anonymous file (must be returned)
 
-function nombre_de_la_fn2
+    input: row [2, 5, 7]  > output # Keeps rows 2, 5 and 7
+end
 
-    file "nombre_del_archivo2" -> output
+# R3.3 [Aceptar] Un programa que filtre ciertas líneas de un archivo según un
+# predicado.
+fn r33
+    file "nombre_del_archivo" -> input
 
+    STDOUT -> output
 
-    return output
-endfunction
+    input: separator ','
 
-function main
-    file "nombre_del_archivo_de_salida" -> output
+    input:  each row do -> fila
+                each column contains "string" do
+                    fila >> output  # Append
 
-    nombre_de_la_fn1 ++ nombre_de_la_fn2 -> output
-endfunction
+    output: column [2, 3] -> [left, right]
+            | if left eq right then
+                left + right -> left
+              else
+                [left, right] -> [right, left]
+end
 
+# R3.4 [Aceptar] Un programa que aplique una función aritmética sobre cierto 
+# campo del archivo de entrada.
+fn r34
+    file "nombre_del_archivo" -> input
+
+    STDOUT -> output
+
+    input > output
+
+    output: each row do -> fila
+                if fila is number then
+                    fila + 1 -> fila
+                else 
+                    fila -> fila
+end
+
+# R3.5 [Aceptar] Un programa que concatene más de 2 archivos.
+fn r35
+    file "nombre_del_archivo" -> input1
+    file "nombre_del_archivo2" -> input2
+
+    file "archivo_de_salida" -> output
+
+    input1 ++ input2 > output
+end
+
+# R3.6 [Aceptar] Un programa que multiplique (copie) el contenido de un archivo
+# N veces.
+fn r36(n)
+    file "nombre_del_archivo" -> input
+
+    file "archivo_de_salida" -> output
+
+    input * n -> output
+end
+
+# R3.7 [Aceptar] Un programa que separe cada columna de entrada de un CSV/TSV
+# en líneas individuales.
+fn r37
+    file "nombre_del_archivo" -> input
+
+    file "archivo_de_salida" -> output
+
+    input > output
+
+    output: separator from [',', '\t'] to '\n'
+end
+
+# R3.8 [Aceptar] Un programa que agrupe 5 líneas de entrada en 1 de salida
+# separada por comas.
+fn r38
+    file "nombre_del_archivo" -> input
+
+    file "archivo_de_salida" -> output
+
+    input: row [1..5] > output
+    output: separator from '\n' to ','
+end
+
+# R3.9 [Aceptar] Un programa que aplique una transformación diferente sobre
+# cada columna de entrada.
+fn r39
+    file "nombre_del_archivo" -> input
+
+    file "archivo_de_salida" -> output
+
+    input: separator '\t'
+    input > output
+
+    output: each column do -> col
+                if col is string then
+                    col ++ " [STR]" -> col
+                else
+                    col * 2.5 -> col
+end
+
+# R3.10 [Aceptar] Un programa que busque líneas que contengan “ERROR” en todos
+# los archivos de una carpeta.
+fn r310
+    file "path_to_folder/" -> input
+
+    STDOUT -> output
+
+    each input contains "ERROR" do -> file_name
+        file_name >> output
+end
+
+# R3.11 [Rechazar] Un programa que lea de un archivo que no existe.
+fn r311
+    file "non_existent" -> input
+
+    # In backend
+end
+
+# R3.12 [Rechazar] Un programa que aplique una transformación sobre una columna
+# que no existe en un CSV.
+fn r312
+    file "nombre_del_archivo" -> input
+
+    file "archivo_de_salida" -> output
+
+    input: separator ','
+    input > output
+    
+    output: column 4321345342 -> col
+        col + 1 -> col
+        # In backend
+end
+
+# R3.13 [Rechazar] Un programa mal formado
+fn r313
+    file "nombre_del_archivo" -> input
+
+    # Missing "output"
+
+    input: row [1..5] > output
+    output: separator from '\n' to ','
+end
+
+# R3.14 [Rechazar] Un programa que realice una operación entre tipos 
+# incompatibles.
+fn r314
+    file "nombre_del_archivo" -> input
+    file "archivo_de_salida" -> output
+
+    input: separator ':'
+
+    input: row [1..5] > output
+    output: column 5
+                "str" + 1
+end
+
+# R3.15 [Rechazar] Un programa que acceda a una posición dentro de un string
+# fuera de rango.
+fn r315
+    file "nombre_del_archivo" -> input
+    file "archivo_de_salida" -> output
+
+    input: separator ' '
+
+    input: row 1
+            column 1 -> field   # Treats field as string
+                filed[5123]
+end
 ---------------------------------------------------------------------------------------------------
