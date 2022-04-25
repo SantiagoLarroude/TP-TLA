@@ -1,0 +1,7 @@
+fn r32
+    file "nombre_del_archivo" -> input
+
+    file -> output  # Anonymous file (must be returned)
+
+    input: row 2 -> output ! # Returns rows 2, 5 and 7 from input file
+end

@@ -1,0 +1,17 @@
+fn r33
+    file "nombre_del_archivo" -> input
+
+    STDOUT -> output
+
+    input: separator ',' !
+
+    input:  each row do -> fila
+                each column contains "string" do
+                    fila ->> output ! # Append
+
+    output: column [2, 3] -> [left, right]
+            if left eq right then
+                left + right -> left
+            else
+                [left, right] -> [right, left] !
+end

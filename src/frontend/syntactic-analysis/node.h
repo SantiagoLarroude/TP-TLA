@@ -5,6 +5,10 @@ typedef struct node {
         //
 } node;
 
+typedef struct node_function {
+        //
+} node_function;
+
 typedef struct node_command {
         // 
 } node_command;
@@ -44,6 +48,10 @@ typedef struct node_expression {
                 token_t type;
         };
 } node_expression;
+
+typedef struct node_file {
+        char* path;
+} node_file;
 
 
 

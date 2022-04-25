@@ -61,9 +61,10 @@ typedef enum TokenID {
         EACH,
         CONTAINS,
 
-        /* Comma (,) and Colon (:) */
+        /* Comma (,); Colon (:); Exclamation mark (!) */
         COMMA,
         COLON,
+        EXCLAMATION,
 
         /* Brackets */
         OPEN_BRACKETS,
@@ -76,14 +77,20 @@ typedef enum TokenID {
         START_FN,
         END_FN,
 
+        
+        /* File internals */
+        FSTREAM_STDOUT,
+        FSTREAM_OVERWRITE,
+
+        TROW,
+        TCOLUMN,
+        TSEPARATOR,
+
         /* Data types */
         NUMBER,
+        CHARACTER,
         STRING,
-        FILE_TYPE,
-
-        /* File internals */
-        ROW,
-        COLUMN,
+        TFILE,
 } TokenID;
 
 /**
@@ -96,6 +103,8 @@ typedef enum TokenID {
 TokenID pattern_id(const char* lexeme);
 
 TokenID pattern_string(const char* lexeme);
+
+TokenID pattern_char(const char* lexeme);
 
 TokenID pattern_number(const char* lexeme);
 

@@ -70,16 +70,28 @@ void yyerror(const char* string)
 
 
 void
-grammar_program(const node_command* value)
+grammar_program(const node_function* value)
 {
         // TODO: Implement
 
-        log_debug_single_arg("const node_command*", value);
+        log_debug_single_arg("const node_function*", value);
 
         state.succeed = true;
         state.result = 5;
 
         return;
+}
+
+
+node_function* grammar_function_new(const node_identifier* id,
+                                    const node_expression* expr)
+{
+        // TODO: Implement
+
+        log_debug_dual_arg("const node_identifier*", id,
+                           "const node_expression*", expr);
+
+        return NULL;
 }
 
 node_command*
@@ -243,9 +255,18 @@ grammar_expression_arithmetic_string(const token_t operator,
         return (node_expression*) lvalue;
 }
 
+node_expression* grammar_expression_from_identifier(const node_identifier* id)
+{
+        // TODO: Implement
+
+        log_debug_single_arg("const node_identifier*", id);
+
+        return (node_expression*) id;
+}
+
 node_expression*
 grammar_expression_if(const node_expression* condition,
-                      const node_expression* expr1, 
+                      const node_expression* expr1,
                       const node_expression* expr2)
 {
         // TODO: Implement
@@ -299,6 +320,154 @@ grammar_identifier_list_append(const node_expression* list,
         return NULL;
 }
 
+node_expression*
+grammar_expression_file_overwrite(const node_identifier* src,
+                                  const node_identifier* dest)
+{
+        // TODO: Implement
+
+        log_debug_dual_arg("const node_identifier*", src,
+                           "const node_identifier*", dest);
+
+        return (node_expression*) src;
+}
+
+node_expression* grammar_expression_apply_to_file(const node_identifier* id,
+                                                  const node_expression* expr)
+{
+        // TODO: Implement
+
+        log_debug_dual_arg("const node_identifier* id", id,
+                           "const node_expression*", expr);
+
+        return (node_expression*) expr;
+}
+
+node_expression* grammar_expression_from_file(const node_file* file)
+{
+        // TODO: Implement
+
+        log_debug_single_arg("const node_file*", file);
+
+        return (node_expression*) file;
+}
+
+node_expression*
+grammar_expression_get_column_row_constant(const token_t operator,
+                                           const node_expression* expr,
+                                           const char* value)
+{
+        // TODO: Implement
+
+        switch (operator) {
+        case TROW:
+                log_debug_operator_lvalue_rvalue("ROW", operator,
+                                                 expr, value);
+                break;
+        case TCOLUMN:
+                log_debug_operator_lvalue_rvalue("COLUMN", operator,
+                                                 expr, value);
+
+        default:
+                log_debug_operator_lvalue_rvalue("INVALID", operator,
+                                                 expr, value);
+                break;
+        }
+
+        return (node_expression*) expr;
+}
+
+node_expression*
+grammar_expression_get_column_row_list(const token_t operator,
+                                       const node_expression* expr,
+                                       const node_expression* list)
+{
+        // TODO: Implement
+
+        switch (operator) {
+        case TROW:
+                log_debug_operator_lvalue_rvalue("ROW", operator,
+                                                 expr, list);
+                break;
+        case TCOLUMN:
+                log_debug_operator_lvalue_rvalue("COLUMN", operator,
+                                                 expr, list);
+
+        default:
+                log_debug_operator_lvalue_rvalue("INVALID", operator,
+                                                 expr, list);
+                break;
+        }
+
+        return (node_expression*) expr;
+}
+
+node_expression*
+grammar_expression_get_column_row_id(const token_t operator,
+                                     const node_expression* expr,
+                                     const node_identifier* id)
+{
+        // TODO: Implement
+
+        switch (operator) {
+        case TROW:
+                log_debug_operator_lvalue_rvalue("ROW", operator,
+                                                 expr, id);
+                break;
+        case TCOLUMN:
+                log_debug_operator_lvalue_rvalue("COLUMN", operator,
+                                                 expr, id);
+
+        default:
+                log_debug_operator_lvalue_rvalue("INVALID", operator,
+                                                 expr, id);
+                break;
+        }
+
+        return (node_expression*) expr;
+}
+
+node_expression* grammar_expression_separator(const node_identifier* id,
+                                              const char* value)
+{
+        // TODO: Implement
+
+        log_debug_dual_arg("const node_identifier* id", id,
+                           "const node_expression*", value);
+
+        return (node_expression*) value;
+}
+
+node_expression*
+grammar_expression_separator_list(const node_identifier* id,
+                                  const node_expression* list)
+{
+        // TODO: Implement
+
+        log_debug_dual_arg("const node_identifier* id", id,
+                           "const node_expression*", list);
+
+        return (node_expression*) list;
+}
+
+node_file* grammar_file_new(const char* path, const node_identifier* id)
+{
+        // TODO: Implement
+
+        if (strcmp(path, "STDOUT") == 0) {
+                LogDebug("%s(%s, %s: %p)\n\tFile: %s", __func__,
+                         path, "const node_identifier*", (void*) id, __FILE__);
+        } else if (strcmp(path, "ANONYMOUS") == 0) {
+                LogDebug("%s(%s, %s: %p)\n\tFile: %s", __func__,
+                         path, "const node_identifier*", (void*) id, __FILE__);
+        } else {
+                log_debug_dual_arg("const char*", path,
+                                   "const node_identifier*", id);
+        }
+
+        return (node_file*) id;
+}
+
 node_identifier* grammar_identifier(const char* id)
 {
         // TODO: Implement
@@ -310,6 +479,15 @@ node_identifier* grammar_identifier(const char* id)
 
 node_expression*
 grammar_constant_number(const char* value)
+{
+        // TODO: Implement
+
+        log_debug_single_arg_char(value);
+
+        return NULL;
+}
+
+node_expression* grammar_constant_char(const char* value)
 {
         // TODO: Implement
 

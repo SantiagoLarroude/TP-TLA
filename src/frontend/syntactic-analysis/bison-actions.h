@@ -13,8 +13,12 @@
  */
 
  /* Program */
-void grammar_program(const node_command* value);
+void grammar_program(const node_function* value);
 
+
+/* Functions */
+node_function* grammar_function_new(const node_identifier* id,
+                                    const node_expression* expr);
 
 node_command*
 grammar_command_from_expression(const node_expression* expression);
@@ -46,6 +50,8 @@ grammar_expression_arithmetic_string(const token_t operator,
                                      const node_expression* lvalue,
                                      const node_expression* rvalue);
 
+node_expression* grammar_expression_from_identifier(const node_identifier* id);
+
 /* Control flow */
 
 node_expression*
@@ -67,12 +73,47 @@ grammar_identifier_list_new(const char* id);
 node_expression*
 grammar_identifier_list_append(const node_expression* list, const char* id);
 
+/* Files */
+
+node_expression*
+grammar_expression_file_overwrite(const node_identifier* src,
+                                  const node_identifier* dest);
+
+node_expression* grammar_expression_apply_to_file(const node_identifier* id,
+                                                  const node_expression* expr);
+
+node_expression* grammar_expression_from_file(const node_file* file);
+
+node_expression*
+grammar_expression_get_column_row_constant(const token_t operator,
+                                           const node_expression* expr,
+                                           const char* value);
+
+node_expression*
+grammar_expression_get_column_row_list(const token_t operator,
+                                       const node_expression* expr,
+                                       const node_expression* list);
+
+node_expression*
+grammar_expression_get_column_row_id(const token_t operator,
+                                     const node_expression* expr,
+                                     const node_identifier* id);
+
+node_expression* grammar_expression_separator(const node_identifier* id,
+                                              const char* value);
+
+node_expression*
+grammar_expression_separator_list(const node_identifier* id,
+                                  const node_expression* list);
+
+node_file* grammar_file_new(const char* path, const node_identifier* id);
 
 /* Identifier */
 node_identifier* grammar_identifier(const char* id);
 
 /* Constant */
 node_expression* grammar_constant_number(const char* value);
+node_expression* grammar_constant_char(const char* value);
 node_expression* grammar_constant_string(const char* value);
 
 void free_programblock(struct node_block* program);

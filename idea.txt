@@ -96,7 +96,7 @@ fn r31
 
     STDOUT -> output
 
-    input > output
+    input -> output  # -> appends, ->! overwrites
 end
 
 # R3.2 [Aceptar] Un programa que lea un archivo y se quede con una parte del
@@ -106,7 +106,7 @@ fn r32
 
     file -> output  # Anonymous file (must be returned)
 
-    input: row [2, 5, 7]  > output # Keeps rows 2, 5 and 7
+    input: row [2, 5, 7] -> output ! # Keeps rows 2, 5 and 7
 end
 
 # R3.3 [Aceptar] Un programa que filtre ciertas líneas de un archivo según un
@@ -116,17 +116,17 @@ fn r33
 
     STDOUT -> output
 
-    input: separator ','
+    input: separator ',' !
 
     input:  each row do -> fila
                 each column contains "string" do
-                    fila >> output  # Append
+                    fila -> output ! # Append
 
     output: column [2, 3] -> [left, right]
             | if left eq right then
                 left + right -> left
               else
-                [left, right] -> [right, left]
+                [left, right] -> [right, left] !
 end
 
 # R3.4 [Aceptar] Un programa que aplique una función aritmética sobre cierto 
@@ -136,7 +136,7 @@ fn r34
 
     STDOUT -> output
 
-    input > output
+    input -> output
 
     output: each row do -> fila
                 if fila is number then
@@ -152,7 +152,7 @@ fn r35
 
     file "archivo_de_salida" -> output
 
-    input1 ++ input2 > output
+    input1 ++ input2 -> output
 end
 
 # R3.6 [Aceptar] Un programa que multiplique (copie) el contenido de un archivo
@@ -172,7 +172,7 @@ fn r37
 
     file "archivo_de_salida" -> output
 
-    input > output
+    input -> output
 
     output: separator from [',', '\t'] to '\n'
 end
@@ -184,7 +184,7 @@ fn r38
 
     file "archivo_de_salida" -> output
 
-    input: row [1..5] > output
+    input: row [1..5] -> output
     output: separator from '\n' to ','
 end
 
@@ -231,7 +231,7 @@ fn r312
     file "archivo_de_salida" -> output
 
     input: separator ','
-    input > output
+    input -> output
     
     output: column 4321345342 -> col
         col + 1 -> col
@@ -244,7 +244,7 @@ fn r313
 
     # Missing "output"
 
-    input: row [1..5] > output
+    input: row [1..5] -> output
     output: separator from '\n' to ','
 end
 
@@ -256,7 +256,7 @@ fn r314
 
     input: separator ':'
 
-    input: row [1..5] > output
+    input: row [1..5] -> output
     output: column 5
                 "str" + 1
 end

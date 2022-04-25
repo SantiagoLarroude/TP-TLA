@@ -1,0 +1,7 @@
+fn r31
+    file "fname" -> input
+    
+    STDOUT -> output
+
+    input -> output
+end

@@ -39,16 +39,14 @@ alpha           [[:alpha:]]
 /* [0-9] */
 digit           [[:digit:]]
 /* [a-zA-Z]+[a-zA-Z0-9_\-]* */
-id              {alpha}+[{alpha}{digit}_\-]*
+id              {alpha}+({alpha}|{digit}|_|\-)*
 /* Both integer and decimal */
 /* number          {digit}+[\.]?{digit}+ */
 number          ({digit}+|{digit}+[\.]?{digit}+)
 
 /* Source: https://stackoverflow.com/a/2039820 */
 string          \"(\\.|[^"\\])*\"
-
-row             [row|ROW]
-column          [column|COLUMN]
+character       \'(\\.|[^'\\])?\'
 
 /* https://regex101.com/r/UUUxB0/1 */
 /* file            (^[{alpha}{digit}\/]+\.csv)$  */
@@ -87,11 +85,16 @@ column          [column|COLUMN]
 "then"          { log_debug_token(yytext);  return THEN; }
 "else"          { log_debug_token(yytext);  return ELSE; }
 
-"each"          { log_debug_token(yytext);  return EACH;}
-"contains"      { log_debug_token(yytext);  return CONTAINS;}
+"each"          { log_debug_token(yytext);  return EACH; }
+"contains"      { log_debug_token(yytext);  return CONTAINS; }
+
+"file"          { log_debug_token(yytext);  return TFILE; }
+"STDOUT"        { log_debug_token(yytext);  return FSTREAM_STDOUT; }
+"->!"           { log_debug_token(yytext);  return FSTREAM_OVERWRITE; }
 
 ","             { log_debug_token(yytext);  return COMMA; }
 ":"             { log_debug_token(yytext);  return COLON; }
+"!"             { log_debug_token(yytext);  return EXCLAMATION; }
 
 "["             { log_debug_token(yytext);  return OPEN_BRACKETS; }
 "]"             { log_debug_token(yytext);  return CLOSE_BRACKETS; }
@@ -99,20 +102,22 @@ column          [column|COLUMN]
 "("             { log_debug_token(yytext);  return OPEN_PARENTHESIS; }
 ")"             { log_debug_token(yytext);  return CLOSE_PARENTHESIS; }
 
-"function"      { log_debug_token(yytext);  return START_FN; }
-"endfunction"   { log_debug_token(yytext);  return END_FN; }
+"fn"            { log_debug_token(yytext);  return START_FN; }
+"end"           { log_debug_token(yytext);  return END_FN; }
 
-{row}           { log_debug_token(yytext);  return ROW;}
-{column}        { log_debug_token(yytext);  return COLUMN;}
+"row"           { log_debug_token(yytext);  return TROW; }
+"column"        { log_debug_token(yytext);  return TCOLUMN; }
+"separator"     { log_debug_token(yytext);  return TSEPARATOR; }
 
 {id}            { return pattern_id(yytext); }
 
+{character}     { return pattern_char(yytext); }
 {string}        { return pattern_string(yytext); }
-
 {number}        { return pattern_number(yytext); }
 
 {whitespace}    { pattern_ignored(yytext); }
 
 .               { return pattern_unknown(yytext); }
 
+<<EOF>>         { yyterminate(); return 0; }
 %%

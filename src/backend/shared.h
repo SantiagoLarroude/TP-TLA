@@ -22,9 +22,11 @@ typedef unsigned int token_t;  // Must be before including node.h
 
 union YYSTYPE {
         struct node_block* block;
-        struct node_expression* expr;
+        struct node_function* fun;
         struct node_command* cmd;
+        struct node_expression* expr;
         struct node_identifier* id;
+        struct node_file* file;
 
         char* string;
 

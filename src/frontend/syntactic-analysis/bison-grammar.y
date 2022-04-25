@@ -34,15 +34,13 @@ node_block* programblock = NULL;
 %token <token> STR_SUB STR_ADD
 
 /* Conditional */
-%token <token> IF
-%token <token> THEN
-%token <token> ELSE
+%token <token> IF THEN ELSE
 
 /* Loop */
 %token <token> EACH CONTAINS
 
 /* Comma (,) and Colon (:) */
-%token <token> COMMA COLON
+%token <token> COMMA COLON EXCLAMATION
 
 /* Brackets */
 %token <token> OPEN_BRACKETS CLOSE_BRACKETS
@@ -50,34 +48,43 @@ node_block* programblock = NULL;
 /* Parentheses */
 %token <token> OPEN_PARENTHESIS CLOSE_PARENTHESIS
 
+/* Functions */
 %token <token> START_FN END_FN
+
+/* Files */
+%token <token> FSTREAM_STDOUT FSTREAM_OVERWRITE
+
+/* File internals */
+%token <token> TROW TCOLUMN TSEPARATOR
 
 /* Data types */
 %token <string> NUMBER
+%token <string> CHARACTER
 %token <string> STRING
+%token <token>  TFILE
 
-%token <file> FILE_TYPE
-
-/* File internals */
-%token <token> ROW
-%token <token> COLUMN
 
 
 // Types
 
 %type <void>    program
+%type <fun>     functions function
+/* %type <cmd>     commands command */
 %type <id>      identifier
-%type <cmd>     commands command
-%type <expr>    expression
+%type <expr>    expressions expression
                 bool_expr cmp_expr 
                 num_arithm str_arithm
                 list id_list
                 cond_expr
+                file_ops
                 constant
+%type <file>    file_expr
+
 // %type <token>   comparison /* num_arithm str_arithm */
 
 // Associativity and precedence rules (from lower precedence to higher)
 %left   PIPE
+%left   TROW TCOLUMN
 %left   ASSIGN
 %left   OR
 %left   AND
@@ -89,6 +96,8 @@ node_block* programblock = NULL;
 %right  NOT
 %left   OPEN_BRACKETS CLOSE_BRACKETS          // TODO: Consultar
 %left   OPEN_PARENTHESIS CLOSE_PARENTHESIS    // TODO: Consultar
+%left   COLON EXCLAMATION
+
 
 /* Avoids Shift/Reduce conflict with if/then/else.
  *
@@ -107,16 +116,29 @@ node_block* programblock = NULL;
 %%
 
 
-program     :   commands { grammar_program($1); }
+program     :   functions { grammar_program($1); }
             ;
 
-commands    :   command
+functions   :   function
+            |   functions function
+            ;
+
+function    :   START_FN identifier expressions END_FN {
+                    $$ = grammar_function_new($2, $3);
+                }
+            ;
+
+/* commands    :   command
             |   commands command
             ;
 
 command     :   expression {
                     $$ = grammar_command_from_expression($1);
                 }
+            ; */
+
+expressions : expression 
+            | expressions expression
             ;
 
 expression  :   expression ASSIGN identifier { 
@@ -131,9 +153,25 @@ expression  :   expression ASSIGN identifier {
                 }
             |   bool_expr
             |   cond_expr
-            |   constant
             |   num_arithm
             |   str_arithm
+            |   file_expr {
+                    $$ = grammar_expression_from_file($1);
+                }
+            |   file_ops
+            |   identifier { $$ = grammar_expression_from_identifier($1); }
+            |   constant
+            ;
+
+file_expr   :   TFILE STRING ASSIGN identifier {
+                    $$ = grammar_file_new($2, $4);
+                }
+            |   FSTREAM_STDOUT ASSIGN identifier {
+                    $$ = grammar_file_new("STDOUT", $3);
+                }
+            |   TFILE ASSIGN identifier {
+                    $$ = grammar_file_new("ANONYMOUS", $3);
+                }
             ;
 
 // loop       :   EACH COLUMN CONTAINS expression {}
@@ -156,11 +194,6 @@ bool_expr   :   expression AND expression {
                 }
             |   cmp_expr
             ;
-
-
-// file_param  :   FILE_TYPE
-//             |   STRING
-//             ;
 
 cmp_expr    :   expression EQUALS expression {
                         $$ = grammar_expression_comparison(EQUALS, $1, $3);
@@ -207,6 +240,45 @@ str_arithm  :   expression STR_ADD expression {
                 }
             ;
 
+file_ops    :   identifier FSTREAM_OVERWRITE identifier {
+                    $$ = grammar_expression_file_overwrite($1, $3);
+                }
+            |   identifier COLON expressions EXCLAMATION {
+                    $$ = grammar_expression_apply_to_file($1, $3);
+                }
+            |   expression TROW NUMBER {
+                    $$ = grammar_expression_get_column_row_constant(TROW,
+                                                                    $1, $3);
+                }
+            |   expression TROW OPEN_BRACKETS list CLOSE_BRACKETS {
+                    $$ = grammar_expression_get_column_row_list(TROW,
+                                                                $1, $4);
+                }
+            |   expression TROW identifier {
+                    $$ = grammar_expression_get_column_row_id(TROW,
+                                                              $1, $3);
+                }
+            |   expression TCOLUMN NUMBER {
+                    $$ = grammar_expression_get_column_row_constant(TCOLUMN,
+                                                                    $1, $3);
+                }
+            |   expression TCOLUMN OPEN_BRACKETS list CLOSE_BRACKETS {
+                    $$ = grammar_expression_get_column_row_list(TCOLUMN,
+                                                                $1, $4);
+                }
+            |   expression TCOLUMN identifier {
+                    $$ = grammar_expression_get_column_row_id(TCOLUMN,
+                                                              $1, $3);
+                }
+            |   identifier COLON TSEPARATOR CHARACTER EXCLAMATION {
+                    $$ = grammar_expression_separator($1, $4);
+                }
+            |   identifier COLON TSEPARATOR OPEN_BRACKETS list CLOSE_BRACKETS
+                EXCLAMATION {
+                    $$ = grammar_expression_separator_list($1, $5);
+                }
+            ;
+
 list        :   /* blank */ {
                     $$ = grammar_expression_list_new(NULL);
                 }
@@ -228,6 +300,7 @@ identifier  :   ID { $$ = grammar_identifier($1); }
             ;
 
 constant    :   NUMBER      { $$ = grammar_constant_number($1); }
+            |   CHARACTER   { $$ = grammar_constant_char($1); }
             |   STRING      { $$ = grammar_constant_string($1); }
             ;
 
