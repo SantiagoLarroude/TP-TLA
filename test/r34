@@ -1,0 +1,12 @@
+# R3.4 [Aceptar] Un programa que aplique una función aritmética sobre cierto 
+# campo del archivo de entrada.
+function r34()
+    File "path" as input.
+    File "new" as output.
+
+    with input: lines().byIndex(1) -> output .
+    .
+
+    return.
+end
+

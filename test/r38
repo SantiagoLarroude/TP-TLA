@@ -1,0 +1,23 @@
+# R3.8 [Aceptar] Un programa que agrupe 5 líneas de entrada en 1 de salida
+# separada por comas.
+function r38()
+    File "path" as input.
+    File "new" as output.
+
+    let accumulator be "".
+
+    for idx in [1..5] do
+        if idx == 5 then
+            with input: lines().byIndex(idx) -> accumulator.
+            .
+        else
+            with input: lines().byIndex(idx) ++ ", " -> accumulator.
+            .
+        .
+    .
+
+    accumulator -> output.
+
+    return.
+end
+

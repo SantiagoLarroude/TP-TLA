@@ -1,0 +1,3 @@
+# R3.13 [Rechazar] Un programa mal formado
+with input: columns.byIndex(543214) -> tmp
+

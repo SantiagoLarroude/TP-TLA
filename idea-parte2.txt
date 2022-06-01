@@ -1,0 +1,208 @@
+# R3.1 [Aceptar] Un programa que lea un archivo y lo imprima sin modificación.
+function r31()
+    File "path" as input.
+    File STDOUT as output.
+
+    input -> output
+
+    return.
+end
+
+
+# R3.2 [Aceptar] Un programa que lea un archivo y se quede con una parte del
+# mismo.
+function r32()
+    File "path" as input.
+    File "" as output.
+
+    # Líneas 1, 2 y 3 (el rango es inclusivo)
+    with input: for line in lines().byIndex([1..3]) do
+                    line -> output. # End loop
+    . # End 'with'
+
+    return output.
+end
+
+
+# R3.3 [Aceptar] Un programa que filtre ciertas líneas de un archivo según un
+# predicado.
+function r33()
+    File "path" as input.
+    File "new" as output.
+
+    with input: for line in lines() do
+                    line.filter("palabra") -> output.
+    .
+
+    return.
+end
+
+
+# R3.4 [Aceptar] Un programa que aplique una función aritmética sobre cierto 
+# campo del archivo de entrada.
+function r34()
+    File "path" as input.
+    File "new" as output.
+
+    with input: lines().byIndex(1) * 2 -> output
+    .
+
+    return.
+end
+
+
+# R3.5 [Aceptar] Un programa que concatene más de 2 archivos.
+function r35()
+    File "path1" as input1.
+    File "path2" as input2.
+    File "new" as output.
+
+    input1 ++ input2 -> output
+
+    return.
+end
+
+
+# R3.6 [Aceptar] Un programa que multiplique (copie) el contenido de un archivo
+# N veces.
+function r36(n)
+    File "path" as input.
+    File "new" as output.
+
+    input * n -> output
+
+    return.
+end
+
+
+# R3.7 [Aceptar] Un programa que separe cada columna de entrada de un CSV/TSV
+# en líneas individuales.
+function r37()
+    File "path.csv" with [",", "\t"] as input.
+    File "new" with ["\n"] as output.
+
+    input -> output
+
+    return.
+end
+
+
+# R3.8 [Aceptar] Un programa que agrupe 5 líneas de entrada en 1 de salida
+# separada por comas.
+function r38()
+    File "path" as input.
+    File "new" as output.
+
+    let accumulator be "".
+
+    for idx in [1..5] do
+        if idx == 5 then
+            with input: lines().byIndex(idx) -> accumulator
+        else
+            with input: lines().byIndex(idx) ++ ", " -> accumulator
+
+    accumulator -> output.
+
+    return.
+end
+
+
+# R3.9 [Aceptar] Un programa que aplique una transformación diferente sobre
+# cada columna de entrada.
+function r39()
+    File "path" with [","] as input.
+    File "new" as output.
+
+    with input: for col in columns() do
+                    if col is Number then
+                        col * 2.5 -> output.
+                    else
+                        col ++ " :)" -> output.
+                    .
+                .
+    .
+
+    return.
+end
+
+
+# R3.10 [Aceptar] Un programa que busque líneas que contengan “ERROR” en todos
+# los archivos de una carpeta.
+function r310()
+    File "folder_path/" with [","] as input.
+    File "new" as output.
+
+    with input: for line in lines() do
+                    line.filter("ERROR") -> output.
+                .
+    .
+
+    return.
+end
+
+
+# R3.11 [Rechazar] Un programa que lea de un archivo que no existe.
+function r311()
+    File "path_to_nothing" with ["\n"] as input.
+    File "new" as output.
+
+    input -> output.
+
+    return.
+end
+
+
+# R3.12 [Rechazar] Un programa que aplique una transformación sobre una columna
+# que no existe en un CSV.
+function r311()
+    File "path.csv" with [","] as input.
+    File "new" as output.
+
+    let tmp be "".
+
+    with input: columns.byIndex(543214) -> tmp.
+    .
+
+    if tmp is Number then
+        tmp * 5 -> output.
+    else
+        tmp ++ " :(" -> output.
+    .
+
+    return.
+end
+
+
+# R3.13 [Rechazar] Un programa mal formado
+with input: columns.byIndex(543214) -> tmp
+
+
+# R3.14 [Rechazar] Un programa que realice una operación entre tipos 
+# incompatibles.
+function r314()
+    5 % "abc"
+
+    return.
+end
+
+
+# R3.15 [Rechazar] Un programa que acceda a una posición dentro de un string
+# fuera de rango.
+function r315()
+    File "path" as input.
+    File STDOUT as output.
+
+    let myString be "".
+    
+    with input: lines.byIndex(1) -> myString.
+    .
+
+    # Nos aseguramos que sea un string
+    myString.toString() -> myString.
+
+    myString.at(213125151) -> output.
+
+    return.
+end
+
+

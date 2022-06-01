@@ -21,16 +21,18 @@ typedef unsigned int token_t;  // Must be before including node.h
 /* Structures and types */
 
 union YYSTYPE {
-        struct node_block* block;
-        struct node_function* fun;
-        struct node_command* cmd;
-        struct node_expression* expr;
-        struct node_identifier* id;
-        struct node_file* file;
+    struct node_function* fun;
+    struct node_function_call* fun_call;
+    struct node_expression* expr;
+    struct node_file_block* file_block;
+    struct node_list* list;
 
-        char* string;
+    struct variable* var;
+    union variable_value value;
 
-        token_t token;
+    char* string;
+
+    token_t token;
 };
 
 // Descriptor del archivo de entrada que utiliza Bison.
@@ -78,6 +80,6 @@ extern CompilerState state;
 
 extern struct node_block* programblock;
 
-extern void free_programblock(struct node_block* program);
+// extern void free_programblock(struct node_block* program);
 
 #endif

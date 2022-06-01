@@ -2,7 +2,6 @@
 
 #include "flex-actions.h"
 
-
 /* Macros and constants */
 // Debug
 
@@ -23,16 +22,14 @@
 %option yylineno
 
 /* Patrones reutilizables. */
-
-/* cr              \r
-lf              \n
-crlf            \r\n
-endline         \n */
-
 comment         #.*
 
 /* [ \t\v\f\n\r] */
-whitespace      [[:space:]]
+whitespace      ([[:space:]])
+
+cr              \r
+lf              \n
+endline         \.({whitespace})*({comment})?({cr}|{lf}|{cr}{lf})
 
 /* [a-zA-Z] */
 alpha           [[:alpha:]]
@@ -48,27 +45,42 @@ number          ({digit}+|{digit}+[\.]?{digit}+)
 string          \"(\\.|[^"\\])*\"
 character       \'(\\.|[^'\\])?\'
 
-/* https://regex101.com/r/UUUxB0/1 */
-/* file            (^[{alpha}{digit}\/]+\.csv)$  */
-/* "test.csv" */
-
 %%
 
 {comment}       { pattern_ignored(yytext); }
 
-"|"             { log_debug_token(yytext); return PIPE; }
-"->"            { log_debug_token(yytext); return ASSIGN; }
+{character}     { return pattern_char(yytext); }
+{string}        { return pattern_string(yytext); }
+{number}        { return pattern_number(yytext); }
 
+"function"      { log_debug_token(yytext);  return FUNCTION; }
+"return"        { log_debug_token(yytext);  return RETURN; }
+"end"           { log_debug_token(yytext);  return END; }
+
+","             { log_debug_token(yytext);  return COMMA; }
+":"             { log_debug_token(yytext);  return COLON; }
+"."             { log_debug_token(yytext);  return DOT; }
+
+"["             { log_debug_token(yytext);  return OPEN_BRACKETS; }
+"]"             { log_debug_token(yytext);  return CLOSE_BRACKETS; }
+
+"("             { log_debug_token(yytext);  return OPEN_PARENTHESIS; }
+")"             { log_debug_token(yytext);  return CLOSE_PARENTHESIS; }
+
+"->"            { log_debug_token(yytext); return ASSIGN; }
+"->!"           { log_debug_token(yytext); return FSTREAM_OVERWRITE; }
+
+"not"           { log_debug_token(yytext); return NOT; }
 "and"           { log_debug_token(yytext); return AND; }
 "or"            { log_debug_token(yytext); return OR; }
 
-"eq"            { log_debug_token(yytext); return EQUALS; }
-"neq"           { log_debug_token(yytext); return NOT_EQUALS; }
+"=="            { log_debug_token(yytext); return EQUALS; }
+"!="            { log_debug_token(yytext); return NOT_EQUALS; }
 
-"gt"            { log_debug_token(yytext);  return GREATER_THAN; }
-"ge"            { log_debug_token(yytext);  return GREATER_EQUAL; }
-"lt"            { log_debug_token(yytext);  return LESS_THAN; }
-"le"            { log_debug_token(yytext);  return LESS_EQUAL; }
+">"             { log_debug_token(yytext);  return GREATER_THAN; }
+">="            { log_debug_token(yytext);  return GREATER_EQUAL; }
+"<"             { log_debug_token(yytext);  return LESS_THAN; }
+"<="            { log_debug_token(yytext);  return LESS_EQUAL; }
 
 "+"             { log_debug_token(yytext);  return ADD; }
 "-"             { log_debug_token(yytext);  return SUB; }
@@ -79,41 +91,34 @@ character       \'(\\.|[^'\\])?\'
 "++"            { log_debug_token(yytext);  return STR_ADD; }
 "--"            { log_debug_token(yytext);  return STR_SUB; }
 
-"not"           { log_debug_token(yytext); return NOT; }
+"let"           { log_debug_token(yytext);  return LET; }
+"be"            { log_debug_token(yytext);  return BE; }
 
 "if"            { log_debug_token(yytext);  return IF; }
 "then"          { log_debug_token(yytext);  return THEN; }
 "else"          { log_debug_token(yytext);  return ELSE; }
 
-"each"          { log_debug_token(yytext);  return EACH; }
-"contains"      { log_debug_token(yytext);  return CONTAINS; }
+"for"           { log_debug_token(yytext);  return FOR; }
+"in"            { log_debug_token(yytext);  return IN; }
+"do"            { log_debug_token(yytext);  return DO; }
 
-"file"          { log_debug_token(yytext);  return TFILE; }
+"as"            { log_debug_token(yytext);  return AS; }
+"with"          { log_debug_token(yytext);  return WITH; }
+
 "STDOUT"        { log_debug_token(yytext);  return FSTREAM_STDOUT; }
-"->!"           { log_debug_token(yytext);  return FSTREAM_OVERWRITE; }
 
-","             { log_debug_token(yytext);  return COMMA; }
-":"             { log_debug_token(yytext);  return COLON; }
-"!"             { log_debug_token(yytext);  return EXCLAMATION; }
+"True"          { log_debug_token(yytext);  return TTRUE; }
+"False"         { log_debug_token(yytext);  return TFALSE; }
 
-"["             { log_debug_token(yytext);  return OPEN_BRACKETS; }
-"]"             { log_debug_token(yytext);  return CLOSE_BRACKETS; }
-
-"("             { log_debug_token(yytext);  return OPEN_PARENTHESIS; }
-")"             { log_debug_token(yytext);  return CLOSE_PARENTHESIS; }
-
-"fn"            { log_debug_token(yytext);  return START_FN; }
-"end"           { log_debug_token(yytext);  return END_FN; }
-
-"row"           { log_debug_token(yytext);  return TROW; }
-"column"        { log_debug_token(yytext);  return TCOLUMN; }
-"separator"     { log_debug_token(yytext);  return TSEPARATOR; }
+"is"            { log_debug_token(yytext);  return IS; }
+"File"          { log_debug_token(yytext);  return TYPE_FILE; }
+"Number"        { log_debug_token(yytext);  return TYPE_NUMBER; }
+"String"        { log_debug_token(yytext);  return TYPE_STRING; }
+"Boolean"       { log_debug_token(yytext);  return TYPE_BOOLEAN; }
 
 {id}            { return pattern_id(yytext); }
 
-{character}     { return pattern_char(yytext); }
-{string}        { return pattern_string(yytext); }
-{number}        { return pattern_number(yytext); }
+{endline}       { log_debug_token(yytext); return TEOL; }
 
 {whitespace}    { pattern_ignored(yytext); }
 

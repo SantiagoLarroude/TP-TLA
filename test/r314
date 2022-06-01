@@ -1,0 +1,8 @@
+# R3.14 [Rechazar] Un programa que realice una operación entre tipos 
+# incompatibles.
+function r314()
+    5 % "abc"
+
+    return.
+end
+

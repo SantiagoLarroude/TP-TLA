@@ -1,9 +1,9 @@
-#include <stdbool.h>            /* bool type */
-#include <stdlib.h>             /* malloc, calloc */
-#include <string.h>             /* strlen, strcpy */
+#include <stdbool.h>                /* bool type */
+#include <stdlib.h>                 /* malloc, calloc */
+#include <string.h>                 /* strlen, strcpy */
 
 /* Backend */
-#include "../../backend/logger.h"       /* LogDebug */
+#include "../../backend/logger.h"   /* LogDebug */
 
 /* Frontend */
 #include "../lexical-analysis/flex-actions.h"   /* enum TokenID; free_yylval */
@@ -12,39 +12,9 @@
 #include "bison-actions.h"
 
 
-/* Macros and constants */
-// Debug
-
-// Return "NULL" string when value is NULL. Ideal to use with log_* macros
-#define gen_null_str(value) ((value == NULL) ? "NULL" : value)
-
-// Log function call with prototype: function(char* val)
-#define log_debug_single_arg_char(val)                                      \
-        LogDebug("%s(%s)\n\tFile: %s", __func__, gen_null_str(val), __FILE__);
-
-// Log function call with prototype: function(any* val)
-#define log_debug_single_arg(type, ptr)                                     \
-        LogDebug("%s(%s: %p)\n\tFile: %s", __func__, type, ptr, __FILE__);
-
-// Log function call with prototype: function(any* val, any* val)
-#define log_debug_dual_arg(type1, ptr1, type2, ptr2)                        \
-        LogDebug("%s(%s: %p, %s: %p)\n\tFile: %s",                          \
-        __func__, type1, (void*) ptr1, type2, (void*) ptr2, __FILE__);
-
-// Log function call with prototype: function(any* val, any* val, any* val)
-#define log_debug_triple_arg(type1, ptr1, type2, ptr2, type3, ptr3)         \
-        LogDebug("%s(%s: %p, %s: %p, %s: %p)\n\tFile: %s",                  \
-        __func__, type1, (void*) ptr1, type2, (void*) ptr2,                 \
-        type3, (void*) ptr3, __FILE__);
-
-// Log function call with prototype: function(int op, char* lv, char* rv)
-#define log_debug_operator_lvalue_rvalue(op_pretty_name, op, lv, rv)        \
-        LogDebug("{%s} %s(%d, %s, %s)\n\tFile: %s",                         \
-                op_pretty_name, __func__, op, (void*) lv, (void*) rv,       \
-                __FILE__);
-
 /* Prototypes */
-static bool const_to_expr_cp(const char* value, node_expression* expression);
+// static bool const_to_expr_cp(const char* value, 
+//                              node_expression* expression);
 
 
 /**
@@ -68,444 +38,383 @@ void yyerror(const char* string)
         LogErrorRaw("\n\n");
 }
 
-
-void
-grammar_program(const node_function* value)
+void grammar_program(const node_function* value)
 {
-        // TODO: Implement
-
-        log_debug_single_arg("const node_function*", value);
+        LogDebug("%s(%p)\n", __func__, value);
 
         state.succeed = true;
-        state.result = 5;
+}
 
-        return;
+node_function* grammar_new_function(const node_expression* expr)
+{
+        LogDebug("%s(%p)\n", __func__, expr);
+
+        return NULL;
 }
 
 
-node_function* grammar_function_new(const node_identifier* id,
+node_expression*
+grammar_expression_from_funcall(const node_function_call* fun_list)
+{
+        LogDebug("%s(%p, %p)\n", __func__, fun_list);
+
+        return NULL;
+}
+
+node_function_call* grammar_function_call(const node_expression* fun_id,
+                                          const node_list* args)
+{
+        LogDebug("%s(%p, %p)\n", __func__, fun_id, args);
+
+        return NULL;
+}
+
+node_function_call* 
+grammar_concat_function_call(const node_function_call* fun_list,
+                             const node_function_call* fun_append)
+{
+        LogDebug("%s(%p, %p)\n", __func__, fun_list, fun_append);
+
+        return NULL;
+}
+
+node_function_call* 
+grammar_function_call_from_id(const node_expression* id,
+                              const node_function_call* fun)
+{
+        LogDebug("%s(%p, %p)\n", __func__, id, fun);
+
+        return NULL;
+}
+
+node_expression*
+grammar_expression_from_filehandler(const node_file_block* fhandler)
+{
+        LogDebug("%s(%p)\n", __func__, fhandler);
+
+        return NULL;
+}
+
+node_expression*
+grammar_concat_expressions_filehandler(const node_expression* exprs,
+                                       const node_file_block* fhandler)
+{
+        LogDebug("%s(%p, %p)\n", __func__, exprs, fhandler);
+
+        return NULL;
+}
+
+node_expression*
+grammar_expression_from_assignment(const node_expression* assignment)
+{
+        LogDebug("%s(%p)\n", __func__, assignment);
+
+        return NULL;
+}
+
+node_expression* grammar_new_declaration_file_node(const variable* fpath,
+                                                   const node_expression* id,
+                                                   const node_list* separators)
+{
+        LogDebug("%s(%p, %p, %p)\n", __func__, fpath, id, separators);
+
+        return NULL;
+}
+
+node_expression*
+grammar_new_declaration_stdout_node(const node_expression* id,
+                                    const node_list* separators)
+{
+        LogDebug("%s(%p, %p)\n", __func__, id, separators);
+
+        return NULL;
+}
+
+node_expression* grammar_new_assignment_expression(const node_expression* expr,
+                                                   const node_expression* id)
+{
+        LogDebug("%s(%p, %p)\n", __func__, expr, id);
+
+        return NULL;
+}
+
+
+node_expression* 
+grammar_new_assignment_identifier(const node_expression* from_id,
+                                  const node_expression* to_id)
+{
+        LogDebug("%s(%p, %p)\n", __func__, from_id, to_id);
+
+        return NULL;
+}
+
+node_file_block* grammar_using_file(const node_expression* id, 
                                     const node_expression* expr)
 {
-        // TODO: Implement
-
-        log_debug_dual_arg("const node_identifier*", id,
-                           "const node_expression*", expr);
+        LogDebug("%s(%p, %p)\n", __func__, id, expr);
 
         return NULL;
 }
 
-node_command*
-grammar_command_from_expression(const node_expression* expression)
+node_expression* grammar_new_variable(const node_expression* id,
+                                      const node_expression* expr)
 {
-        // TODO: Implement
-
-        log_debug_single_arg("const node_expression*", expression);
+        LogDebug("%s(%p, %p)\n", __func__, id, expr);
 
         return NULL;
 }
 
-node_expression* grammar_expression_assignment(const node_expression* lvalue,
-                                               const node_identifier* id)
+node_expression* grammar_new_conditional(const node_expression* condition,
+                                         const node_expression* expr_true,
+                                         const node_expression* expr_false)
 {
-        // TODO: Implement.
+        LogDebug("%s(%p, %p, %p)\n", __func__, condition, 
+                                     expr_true, expr_false);
 
-        log_debug_dual_arg("node_expression", lvalue, "node_identifier", id);
-
-        return (node_expression*) lvalue;
+        return NULL;
 }
+
+node_expression* grammar_new_loop(const node_expression* id,
+                                  const node_expression* iterable,
+                                  const node_expression* action)
+{
+        LogDebug("%s(%p, %p, %p)\n", __func__, id, iterable, action);
+
+        return NULL;
+}
+
+node_expression* grammar_expression_fom_list(const node_list* list)
+{
+        LogDebug("%s(%p)\n", __func__, list);
+
+        return NULL;
+}
+
+node_list* grammar_new_list(const node_expression* expr)
+{
+        LogDebug("%s(%p)\n", __func__, expr);
+
+        return NULL;
+}
+
+node_list* grammar_concat_list_expr(const node_list* list,
+                                    const node_expression* expr)
+{
+        LogDebug("%s(%p, %p)\n", __func__, list, expr);
+
+        return NULL;
+}
+
+
+node_list* grammar_concat_list_list(const node_list* head_list,
+                                    const node_list* tail_list)
+{
+        LogDebug("%s(%p, %p)\n", __func__, head_list, tail_list);
+
+        return NULL;
+}
+
+node_list* grammar_new_list_from_range(const variable* start,
+                                       const variable* end)
+{
+        LogDebug("%s(%p, %p)\n", __func__, start, end);
+
+        return NULL;
+}
+
+node_list* grammar_new_list_args(const node_expression* expr)
+{
+        LogDebug("%s(%p)\n", __func__, expr);
+
+        return NULL;
+}
+
+node_list* grammar_concat_list_args(const node_list* list,
+                                    const node_expression* expr)
+{
+        LogDebug("%s(%p, %p)\n", __func__, list, expr);
+
+        return NULL;
+}
+
 
 node_expression*
-grammar_expression_assignment_list(const node_expression* lvalue,
-                                   const node_expression* list)
-{
-        // TODO: Implement.
-
-        log_debug_dual_arg("node_expression", lvalue,
-                           "node_expression", list);
-
-        return (node_expression*) lvalue;
-}
-
-
-node_expression* grammar_expression_logic(const token_t operator,
-                                          const node_expression* lvalue,
-                                          const node_expression* rvalue)
-{
-        // TODO: Implement
-
-        switch (operator) {
-        case AND:
-                log_debug_operator_lvalue_rvalue("AND", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        case OR:
-                log_debug_operator_lvalue_rvalue("OR", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        case NOT:
-                log_debug_operator_lvalue_rvalue("NOT", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        default:
-                log_debug_operator_lvalue_rvalue("Invalid", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        }
-        return (node_expression*) lvalue;
-}
-
-node_expression* grammar_expression_comparison(const token_t operator,
-                                               const node_expression* lvalue,
-                                               const node_expression* rvalue)
-{
-        // TODO: Implement
-
-        switch (operator) {
-        case EQUALS:
-                log_debug_operator_lvalue_rvalue("EQUALS", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        case NOT_EQUALS:
-                log_debug_operator_lvalue_rvalue("NOT_EQUALS", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        case GREATER_THAN:
-                log_debug_operator_lvalue_rvalue("GREATER_THAN", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        case GREATER_EQUAL:
-                log_debug_operator_lvalue_rvalue("GREATER_EQUAL", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        case LESS_THAN:
-                log_debug_operator_lvalue_rvalue("LESS_THAN", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        case LESS_EQUAL:
-                log_debug_operator_lvalue_rvalue("LESS_EQUAL", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        default:
-                log_debug_operator_lvalue_rvalue("Invalid", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        }
-        return (node_expression*) lvalue;
-}
-
-node_expression*
-grammar_expression_arithmetic_numeric(const token_t operator,
-                                      const node_expression* lvalue,
+grammar_expression_arithmetic_num_add(const node_expression* lvalue,
                                       const node_expression* rvalue)
 {
-        // TODO: Implement
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        switch (operator) {
-        case ADD:
-                log_debug_operator_lvalue_rvalue("ADD", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        case SUB:
-                log_debug_operator_lvalue_rvalue("SUB", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        case MUL:
-                log_debug_operator_lvalue_rvalue("MUL", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        case DIV:
-                log_debug_operator_lvalue_rvalue("DIV", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        case MOD:
-                log_debug_operator_lvalue_rvalue("MOD", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        default:
-                log_debug_operator_lvalue_rvalue("Invalid", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        }
-
-        return (node_expression*) lvalue;
+        return NULL;
 }
 
 node_expression*
-grammar_expression_arithmetic_string(const token_t operator,
-                                     const node_expression* lvalue,
+grammar_expression_arithmetic_num_sub(const node_expression* lvalue,
+                                      const node_expression* rvalue)
+{
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
+
+        return NULL;
+}
+
+node_expression*
+grammar_expression_arithmetic_num_mul(const node_expression* lvalue,
+                                      const node_expression* rvalue)
+{
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
+
+        return NULL;
+}
+
+node_expression*
+grammar_expression_arithmetic_num_div(const node_expression* lvalue,
+                                      const node_expression* rvalue)
+{
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
+
+        return NULL;
+}
+
+node_expression*
+grammar_expression_arithmetic_num_mod(const node_expression* lvalue,
+                                      const node_expression* rvalue)
+{
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
+
+        return NULL;
+}
+
+node_expression*
+grammar_expression_arithmetic_str_add(const node_expression* lvalue,
+                                      const node_expression* rvalue)
+{
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
+
+        return NULL;
+}
+
+node_expression*
+grammar_expression_arithmetic_str_sub(const node_expression* lvalue,
+                                      const node_expression* rvalue)
+{
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
+
+        return NULL;
+}
+
+node_expression* grammar_expression_bool_and(const node_expression* lvalue,
+                                             const node_expression* rvalue)
+{
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
+
+        return NULL;
+}
+
+node_expression* grammar_expression_bool_or(const node_expression* lvalue,
+                                            const node_expression* rvalue)
+{
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
+
+        return NULL;
+}
+
+node_expression* grammar_expression_bool_not(const node_expression* value)
+{
+        LogDebug("%s(%p)\n", __func__, value);
+
+        return NULL;
+}
+
+
+node_expression* grammar_expression_cmp_equals(const node_expression* lvalue,
+                                               const node_expression* rvalue)
+{
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
+
+        return NULL;
+}
+
+node_expression*
+grammar_expression_cmp_not_equals(const node_expression* lvalue,
+                                  const node_expression* rvalue)
+{
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
+
+        return NULL;
+}
+
+node_expression*
+grammar_expression_cmp_greater_than(const node_expression* lvalue,
+                                    const node_expression* rvalue)
+{
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
+
+        return NULL;
+}
+
+node_expression*
+grammar_expression_cmp_greater_equal(const node_expression* lvalue,
                                      const node_expression* rvalue)
 {
-        // TODO: Implement
-
-        switch (operator) {
-        case STR_ADD:
-                log_debug_operator_lvalue_rvalue("STR_ADD", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        case STR_SUB:
-                log_debug_operator_lvalue_rvalue("STR_SUB", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        default:
-                log_debug_operator_lvalue_rvalue("Invalid", operator,
-                                                 &lvalue, &rvalue);
-                break;
-        }
-
-        return (node_expression*) lvalue;
-}
-
-node_expression* grammar_expression_from_identifier(const node_identifier* id)
-{
-        // TODO: Implement
-
-        log_debug_single_arg("const node_identifier*", id);
-
-        return (node_expression*) id;
-}
-
-node_expression*
-grammar_expression_if(const node_expression* condition,
-                      const node_expression* expr1,
-                      const node_expression* expr2)
-{
-        // TODO: Implement
-
-        log_debug_triple_arg("node_expression", condition,
-                             "node_expression", expr1,
-                             "node_expression", expr2);
-
-        return (node_expression*) expr1;
-}
-
-node_expression* grammar_expression_list_new(const node_expression* expression)
-{
-        // TODO: Implement
-
-        log_debug_single_arg("node_expression", expression);
-
-        return (node_expression*) expression;
-}
-
-node_expression* grammar_expression_list_append(const node_expression* list,
-                                                const node_expression* expr)
-{
-        // TODO: Implement
-
-        log_debug_dual_arg("node_expression", list,
-                           "node_expression", expr);
-
-        return (node_expression*) expr;
-}
-
-node_expression*
-grammar_identifier_list_new(const char* id)
-{
-        // TODO: Implement
-
-        log_debug_single_arg("char", id);
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
         return NULL;
 }
 
 node_expression*
-grammar_identifier_list_append(const node_expression* list,
-                               const char* id)
+grammar_expression_cmp_less_than(const node_expression* lvalue,
+                                 const node_expression* rvalue)
 {
-        // TODO: Implement
-
-        log_debug_dual_arg("node_expression", list,
-                           "char", id);
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
         return NULL;
 }
 
 node_expression*
-grammar_expression_file_overwrite(const node_identifier* src,
-                                  const node_identifier* dest)
+grammar_expression_cmp_less_equal(const node_expression* lvalue,
+                                  const node_expression* rvalue)
 {
-        // TODO: Implement
-
-        log_debug_dual_arg("const node_identifier*", src,
-                           "const node_identifier*", dest);
-
-        return (node_expression*) src;
-}
-
-node_expression* grammar_expression_apply_to_file(const node_identifier* id,
-                                                  const node_expression* expr)
-{
-        // TODO: Implement
-
-        log_debug_dual_arg("const node_identifier* id", id,
-                           "const node_expression*", expr);
-
-        return (node_expression*) expr;
-}
-
-node_expression* grammar_expression_from_file(const node_file* file)
-{
-        // TODO: Implement
-
-        log_debug_single_arg("const node_file*", file);
-
-        return (node_expression*) file;
-}
-
-node_expression*
-grammar_expression_get_column_row_constant(const token_t operator,
-                                           const node_expression* expr,
-                                           const char* value)
-{
-        // TODO: Implement
-
-        switch (operator) {
-        case TROW:
-                log_debug_operator_lvalue_rvalue("ROW", operator,
-                                                 expr, value);
-                break;
-        case TCOLUMN:
-                log_debug_operator_lvalue_rvalue("COLUMN", operator,
-                                                 expr, value);
-
-        default:
-                log_debug_operator_lvalue_rvalue("INVALID", operator,
-                                                 expr, value);
-                break;
-        }
-
-        return (node_expression*) expr;
-}
-
-node_expression*
-grammar_expression_get_column_row_list(const token_t operator,
-                                       const node_expression* expr,
-                                       const node_expression* list)
-{
-        // TODO: Implement
-
-        switch (operator) {
-        case TROW:
-                log_debug_operator_lvalue_rvalue("ROW", operator,
-                                                 expr, list);
-                break;
-        case TCOLUMN:
-                log_debug_operator_lvalue_rvalue("COLUMN", operator,
-                                                 expr, list);
-
-        default:
-                log_debug_operator_lvalue_rvalue("INVALID", operator,
-                                                 expr, list);
-                break;
-        }
-
-        return (node_expression*) expr;
-}
-
-node_expression*
-grammar_expression_get_column_row_id(const token_t operator,
-                                     const node_expression* expr,
-                                     const node_identifier* id)
-{
-        // TODO: Implement
-
-        switch (operator) {
-        case TROW:
-                log_debug_operator_lvalue_rvalue("ROW", operator,
-                                                 expr, id);
-                break;
-        case TCOLUMN:
-                log_debug_operator_lvalue_rvalue("COLUMN", operator,
-                                                 expr, id);
-
-        default:
-                log_debug_operator_lvalue_rvalue("INVALID", operator,
-                                                 expr, id);
-                break;
-        }
-
-        return (node_expression*) expr;
-}
-
-node_expression* grammar_expression_separator(const node_identifier* id,
-                                              const char* value)
-{
-        // TODO: Implement
-
-        log_debug_dual_arg("const node_identifier* id", id,
-                           "const node_expression*", value);
-
-        return (node_expression*) value;
-}
-
-node_expression*
-grammar_expression_separator_list(const node_identifier* id,
-                                  const node_expression* list)
-{
-        // TODO: Implement
-
-        log_debug_dual_arg("const node_identifier* id", id,
-                           "const node_expression*", list);
-
-        return (node_expression*) list;
-}
-
-node_file* grammar_file_new(const char* path, const node_identifier* id)
-{
-        // TODO: Implement
-
-        if (strcmp(path, "STDOUT") == 0) {
-                LogDebug("%s(%s, %s: %p)\n\tFile: %s", __func__,
-                         path, "const node_identifier*", (void*) id, __FILE__);
-        } else if (strcmp(path, "ANONYMOUS") == 0) {
-                LogDebug("%s(%s, %s: %p)\n\tFile: %s", __func__,
-                         path, "const node_identifier*", (void*) id, __FILE__);
-        } else {
-                log_debug_dual_arg("const char*", path,
-                                   "const node_identifier*", id);
-        }
-
-        return (node_file*) id;
-}
-
-node_identifier* grammar_identifier(const char* id)
-{
-        // TODO: Implement
-
-        log_debug_single_arg_char(id);
+        LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
         return NULL;
 }
 
-node_expression*
-grammar_constant_number(const char* value)
+node_expression* grammar_new_return_node(const node_expression* expr)
 {
-        // TODO: Implement
-
-        log_debug_single_arg_char(value);
+        LogDebug("%s(%p)\n", __func__, expr);
 
         return NULL;
 }
 
-node_expression* grammar_constant_char(const char* value)
+node_expression* grammar_identifier(const variable* id)
 {
-        // TODO: Implement
-
-        log_debug_single_arg_char(value);
+        LogDebug("%s(%p)\n", __func__, id);
 
         return NULL;
 }
 
-node_expression*
-grammar_constant_string(const char* value)
+node_expression* grammar_expression_cmp_by_type(const node_expression* expr,
+                                                const token_t type)
 {
-        // TODO: Implement
-
-        log_debug_single_arg_char(value);
+        LogDebug("%s(%p, %d)\n", __func__, expr, type);
 
         return NULL;
 }
 
+node_expression* grammar_constant_number(const variable* value)
+{
+        LogDebug("%s(%s)\n", __func__, value);
+
+        return NULL;
+}
+
+node_expression* grammar_constant_string(const variable* value)
+{
+        LogDebug("%s(%s)\n", __func__, value);
+
+        return NULL;
+}
+
+/*
 void
 free_programblock(struct node_block* program)
 {
@@ -532,3 +441,4 @@ static bool const_to_expr_cp(const char* value, node_expression* expression)
         strcpy(expression->value, value);
         return true;
 }
+*/

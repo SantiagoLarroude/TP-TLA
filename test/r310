@@ -1,0 +1,14 @@
+# R3.10 [Aceptar] Un programa que busque líneas que contengan “ERROR” en todos
+# los archivos de una carpeta.
+function r310()
+    File "folder_path/" with [","] as input.
+    File "new" as output.
+
+    with input: for line in lines() do
+                    line.filter("ERROR") -> output.
+                .
+    .
+
+    return.
+end
+

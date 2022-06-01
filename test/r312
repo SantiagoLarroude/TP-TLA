@@ -1,0 +1,20 @@
+# R3.12 [Rechazar] Un programa que aplique una transformación sobre una columna
+# que no existe en un CSV.
+function r311()
+    File "path.csv" with [","] as input.
+    File "new" as output.
+
+    let tmp be "".
+
+    with input: columns.byIndex(543214) -> tmp.
+    .
+
+    if tmp is Number then
+        tmp * 5 -> output.
+    else
+        tmp ++ " :(" -> output.
+    .
+
+    return.
+end
+

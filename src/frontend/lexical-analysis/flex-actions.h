@@ -11,31 +11,49 @@ typedef enum TokenID {
         // Por defecto, el valor "0" hace fallar el analizador sintáctico.
         UNKNOWN = 0,
 
-        // Código de error de Bison, que permite abortar el escaneo de lexemas cuando
-        // se presente un patrón desconocido. El número "257" coincide con el valor
-        // que Bison le otorga por defecto, pero además permite que el resto de
-        // tokens continúen desde el valor "258" lo que permite proteger los IDs
-        // internos que Bison reserva para crear "tokens literales":
+        // Código de error de Bison, que permite abortar el escaneo de lexemas 
+        // cuando se presente un patrón desconocido. El número "257" coincide
+        //  con el valor que Bison le otorga por defecto, pero además permite 
+        // que el resto de tokens continúen desde el valor "258" lo que 
+        // permite proteger los IDs internos que Bison reserva para crear 
+        // "tokens literales":
         YYUNDEF = 257,
 
         /* Identifier */
         ID,
 
-        /* Pipe operator */
-        PIPE,
+        /* Functions */
+        FUNCTION,
+        RETURN,
+        END,
+
+        /* Comma (,); Colon (:); Dot (.) */
+        COMMA,
+        COLON,
+        DOT,
+
+        /* Brackets */
+        OPEN_BRACKETS,
+        CLOSE_BRACKETS,
+
+        /* Parentheses */
+        OPEN_PARENTHESIS,
+        CLOSE_PARENTHESIS,
 
         /* Assignment */
         ASSIGN,
+        FSTREAM_OVERWRITE,
 
         /* Logic */
-        OR,
-        AND,
         NOT,
+        AND,
+        OR,
 
-        /* Relational*/
+        /* Comparison */
         EQUALS,
         NOT_EQUALS,
 
+        /* Relational*/
         GREATER_THAN,
         GREATER_EQUAL,
         LESS_EQUAL,
@@ -52,45 +70,44 @@ typedef enum TokenID {
         STR_SUB,
         STR_ADD,
 
+        /* Variables */
+        LET,
+        BE,
+
         /* Conditional */
         IF,
         THEN,
         ELSE,
 
         /* Loop */
-        EACH,
-        CONTAINS,
+        FOR,
+        IN,
+        DO,
 
-        /* Comma (,); Colon (:); Exclamation mark (!) */
-        COMMA,
-        COLON,
-        EXCLAMATION,
+        /* File management */
+        AS,
+        WITH,
 
-        /* Brackets */
-        OPEN_BRACKETS,
-        CLOSE_BRACKETS,
-
-        /* Parentheses */
-        OPEN_PARENTHESIS,
-        CLOSE_PARENTHESIS,
-
-        START_FN,
-        END_FN,
-
-        
-        /* File internals */
+        /* STDOUT keyword */
         FSTREAM_STDOUT,
-        FSTREAM_OVERWRITE,
 
-        TROW,
-        TCOLUMN,
-        TSEPARATOR,
+        /* Number and string constants*/
+        NUMBER,
+        STRING,
+
+        /* "True" and "False" keywords */
+        TTRUE,
+        TFALSE,
 
         /* Data types */
-        NUMBER,
-        CHARACTER,
-        STRING,
-        TFILE,
+        IS,
+        TYPE_FILE,
+        TYPE_NUMBER,
+        TYPE_STRING,
+        TYPE_BOOLEAN,
+
+        /* End of Line */
+        TEOL,
 } TokenID;
 
 /**

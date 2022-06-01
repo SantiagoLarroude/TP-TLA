@@ -9,6 +9,8 @@
 //Estado de la aplicación.
 CompilerState state;
 
+extern void free_yylval();
+
 // Punto de entrada principal del compilador.
 const int main(const int argumentCount, const char** arguments)
 {
@@ -33,6 +35,8 @@ const int main(const int argumentCount, const char** arguments)
                 }
                 else {
                         LogError("Se produjo un error en la aplicacion.");
+                        // free_programblock(programblock);
+                        free_yylval();
                         return -1;
                 }
                 break;
@@ -47,6 +51,8 @@ const int main(const int argumentCount, const char** arguments)
         }
         LogInfo("Fin.");
 
-        free_programblock(programblock);
-        return 0;
+        // free_programblock(programblock);
+        free_yylval();
+
+        return result;
 }

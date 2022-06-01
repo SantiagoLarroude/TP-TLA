@@ -41,7 +41,7 @@ TokenID pattern_char(const char* lexeme)
 
         // Two "'" and the character
         if (strlen(lexeme) <= 3 && save_token(lexeme))
-                return CHARACTER;
+                return STRING;
 
 
         return YYUNDEF;
@@ -102,18 +102,19 @@ TokenID pattern_unknown(const char* lexeme)
 
 void free_yylval()
 {
-        free(yylval.string);
+        free(yylval.value.string);
 }
 
 static bool save_token(const char* lexeme)
 {
-        yylval.string = realloc(yylval.string, sizeof(char) * strlen(lexeme));
-        if (yylval.string == NULL) {
+        yylval.value.string = realloc(yylval.value.string,
+                                      sizeof(char) * strlen(lexeme));
+        if (yylval.value.string == NULL) {
                 log_error_no_mem();
                 return false;
         }
 
-        strcpy(yylval.string, lexeme);
+        strcpy(yylval.value.string, lexeme);
 
         return true;
 }

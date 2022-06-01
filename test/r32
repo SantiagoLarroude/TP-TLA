@@ -1,7 +1,15 @@
-fn r32
-    file "nombre_del_archivo" -> input
+# R3.2 [Aceptar] Un programa que lea un archivo y se quede con una parte del
+# mismo.
+function r32()
+    File "path" as input.
+    File "" as output.
 
-    file -> output  # Anonymous file (must be returned)
+    # Líneas 1, 2 y 3 (el rango es inclusivo)
+    with input: for line in lines().byIndex([1..3]) do
+                    line -> output. # End assignment
+                . # End loop
+    . # End 'with'
 
-    input: row 2 -> output ! # Returns rows 2, 5 and 7 from input file
+    return output.
 end
+

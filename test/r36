@@ -1,0 +1,11 @@
+# R3.6 [Aceptar] Un programa que multiplique (copie) el contenido de un archivo
+# N veces.
+function r36(n)
+    File "path" as input.
+    File "new" as output.
+
+    input * n -> output.
+
+    return.
+end
+

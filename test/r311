@@ -1,0 +1,9 @@
+# R3.11 [Rechazar] Un programa que lea de un archivo que no existe.
+function r311()
+    File "path_to_nothing" with ["\n"] as input.
+    File "new" as output.
+
+    input -> output.
+
+    return.
+end

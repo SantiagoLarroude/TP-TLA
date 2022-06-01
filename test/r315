@@ -1,0 +1,20 @@
+# R3.15 [Rechazar] Un programa que acceda a una posición dentro de un string
+# fuera de rango.
+function r315()
+    File "path" as input.
+    File STDOUT as output.
+
+    let myString be "".
+    
+    with input: lines.byIndex(1) -> myString.
+    .
+
+    # Nos aseguramos que sea un string
+    myString.toString() -> myString.
+
+    myString.at(213125151) -> output.
+
+    return.
+end
+
+

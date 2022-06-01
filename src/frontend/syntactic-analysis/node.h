@@ -1,58 +1,39 @@
 #ifndef NODE_H
 #define NODE_H
 
-typedef struct node {
+#include <stdbool.h>
+
+typedef union variable_value {
+        bool boolean;
+        long long integer;
+        double floating;
+        char * string;
+} variable_value;
+
+typedef struct variable {
+        token_t type;
+        char * name;
+        variable_value value;
+} variable;
+
+typedef struct node_list {
         //
-} node;
+} node_list;
+
+typedef struct node_file_block {
+        //
+} node_file_block;
+
+typedef struct node_expression {
+        //
+} node_expression;
+
+typedef struct node_function_call {
+        //
+} node_function_call;
 
 typedef struct node_function {
         //
 } node_function;
-
-typedef struct node_command {
-        // 
-} node_command;
-
-typedef struct node_variable_declaration {
-        token_t type;
-        struct node_identifier* id;
-        struct node_expression* assignment_expr;
-} node_variable_declaration;
-
-
-typedef struct node_binary_operator {
-        //
-} node_binary_operator;
-
-typedef struct node_assignment {
-        struct node_identifier* rhs;
-        struct node_expression* lhs;
-} node_assignment;
-
-typedef struct node_identifier {
-        size_t length;
-        char* name;
-} node_identifier;
-
-typedef struct node_block {
-        // 
-        struct node_expression* exp;
-} node_block;
-
-typedef struct node_expression {
-        size_t length;
-        char* value;
-
-        union {
-                token_t token;
-                token_t type;
-        };
-} node_expression;
-
-typedef struct node_file {
-        char* path;
-} node_file;
-
-
 
 #endif  /* NODE_H */

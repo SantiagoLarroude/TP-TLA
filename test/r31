@@ -1,7 +1,10 @@
-fn r31
-    file "fname" -> input
-    
-    STDOUT -> output
+# R3.1 [Aceptar] Un programa que lea un archivo y lo imprima sin modificación.
+function r31()
+    File "path" as input.
+    File STDOUT as output.
 
-    input -> output
+    input -> output.
+
+    return.
 end
+

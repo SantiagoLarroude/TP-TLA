@@ -1,0 +1,11 @@
+# R3.7 [Aceptar] Un programa que separe cada columna de entrada de un CSV/TSV
+# en líneas individuales.
+function r37()
+    File "path.csv" with [",", "\t"] as input.
+    File "new" with ["\n"] as output.
+
+    input -> output.
+
+    return.
+end
+

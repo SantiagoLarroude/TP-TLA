@@ -1,17 +1,14 @@
-fn r33
-    file "nombre_del_archivo" -> input
+# R3.3 [Aceptar] Un programa que filtre ciertas líneas de un archivo según un
+# predicado.
+function r33()
+    File "path" as input.
+    File "new" as output.
 
-    STDOUT -> output
+    with input: for line in lines() do
+                    line.filter("palabra") -> output.
+                .
+    .
 
-    input: separator ',' !
-
-    input:  each row do -> fila
-                each column contains "string" do
-                    fila ->> output ! # Append
-
-    output: column [2, 3] -> [left, right]
-            if left eq right then
-                left + right -> left
-            else
-                [left, right] -> [right, left] !
+    return.
 end
+
