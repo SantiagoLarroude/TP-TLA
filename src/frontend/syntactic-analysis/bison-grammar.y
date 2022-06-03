@@ -57,7 +57,7 @@
 %token <token> FSTREAM_STDOUT
 
 %token <var> NUMBER STRING
-%token <token> TTRUE TFALSE
+%token <var> TTRUE TFALSE
 
 /* Data types */
 %token <token> IS
@@ -309,8 +309,10 @@ data_type   :   TYPE_FILE
             |   TYPE_BOOLEAN
             ;
 
-constant    :   NUMBER     { $$ = grammar_constant_number($1); }
-            |   STRING     { $$ = grammar_constant_string($1); }
+constant    :   NUMBER      { $$ = grammar_constant_number($1); }
+            |   STRING      { $$ = grammar_constant_string($1); }
+            |   TTRUE       { $$ = grammar_constant_bool($1); }
+            |   TFALSE      { $$ = grammar_constant_bool($1); }
             ;
 
 %%

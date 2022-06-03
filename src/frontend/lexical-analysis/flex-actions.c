@@ -62,6 +62,17 @@ TokenID pattern_number(const char *lexeme)
         return YYUNDEF;
 }
 
+TokenID pattern_bool(const bool lexeme)
+{
+        LogDebug("%s: '%d'\n\tFile: %s", __func__, lexeme, __FILE__);
+        if (lexeme == true)
+                return TTRUE;
+        else
+                return TFALSE;
+
+        return YYUNDEF;
+}
+
 void pattern_ignored(const char *lexeme)
 {
         /* Easier to read in the terminal */

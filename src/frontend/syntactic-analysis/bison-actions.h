@@ -159,6 +159,7 @@ node_expression *grammar_expression_cmp_by_type(const node_expression *expr,
 /* Constant */
 node_expression *grammar_constant_number(const variable *value);
 node_expression *grammar_constant_string(const variable *value);
+node_expression *grammar_constant_bool(const variable* value);
 
 // void free_programblock(struct node_block* program);
 

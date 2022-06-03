@@ -1,6 +1,21 @@
 # R3.0 Expresiones básicas
 function r30()
-    45
+    28
+    40 + 21
+    41 - 22
+    42 * 23
+    43 / 24
+    44 % 25
+
+    40.0 + 21
+    41 - 22.24
+    42.5 * 23.12
+    43 / 24
+    44 % 25
+
+    let abc be True.
+
+    False -> abc.
 
     return.
 end

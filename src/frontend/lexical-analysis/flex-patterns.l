@@ -107,8 +107,8 @@ character       \'(\\.|[^'\\])?\'
 
 "STDOUT"        { log_debug_token(yytext);  return FSTREAM_STDOUT; }
 
-"True"          { log_debug_token(yytext);  return TTRUE; }
-"False"         { log_debug_token(yytext);  return TFALSE; }
+"True"          { log_debug_token(yytext);  return pattern_bool(true); }
+"False"         { log_debug_token(yytext);  return pattern_bool(false); }
 
 "is"            { log_debug_token(yytext);  return IS; }
 "File"          { log_debug_token(yytext);  return TYPE_FILE; }

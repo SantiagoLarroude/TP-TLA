@@ -405,6 +405,13 @@ node_expression *grammar_constant_string(const variable *value)
         return NULL;
 }
 
+node_expression *grammar_constant_bool(const variable *value)
+{
+        LogDebug("%s(%s)\n", __func__, value);
+
+        return NULL;
+}
+
 /*
 void
 free_programblock(struct node_block* program)
