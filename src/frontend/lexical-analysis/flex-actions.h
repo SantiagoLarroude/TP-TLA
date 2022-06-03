@@ -11,11 +11,11 @@ typedef enum TokenID {
         // Por defecto, el valor "0" hace fallar el analizador sintáctico.
         UNKNOWN = 0,
 
-        // Código de error de Bison, que permite abortar el escaneo de lexemas 
+        // Código de error de Bison, que permite abortar el escaneo de lexemas
         // cuando se presente un patrón desconocido. El número "257" coincide
-        //  con el valor que Bison le otorga por defecto, pero además permite 
-        // que el resto de tokens continúen desde el valor "258" lo que 
-        // permite proteger los IDs internos que Bison reserva para crear 
+        //  con el valor que Bison le otorga por defecto, pero además permite
+        // que el resto de tokens continúen desde el valor "258" lo que
+        // permite proteger los IDs internos que Bison reserva para crear
         // "tokens literales":
         YYUNDEF = 257,
 
@@ -117,17 +117,17 @@ typedef enum TokenID {
  * (a.k.a. DFA), como mecanismo de escaneo y reconocimiento.
  */
 
-TokenID pattern_id(const char* lexeme);
+TokenID pattern_id(const char *lexeme);
 
-TokenID pattern_string(const char* lexeme);
+TokenID pattern_string(const char *lexeme);
 
-TokenID pattern_char(const char* lexeme);
+TokenID pattern_char(const char *lexeme);
 
-TokenID pattern_number(const char* lexeme);
+TokenID pattern_number(const char *lexeme);
 
-void pattern_ignored(const char* lexeme);
+void pattern_ignored(const char *lexeme);
 
-TokenID pattern_unknown(const char* lexeme);
+TokenID pattern_unknown(const char *lexeme);
 
 void free_yylval();
 
