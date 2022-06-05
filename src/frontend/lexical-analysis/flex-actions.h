@@ -121,8 +121,6 @@ TokenID pattern_id(const char *lexeme);
 
 TokenID pattern_string(const char *lexeme);
 
-TokenID pattern_char(const char *lexeme);
-
 TokenID pattern_number(const char *lexeme);
 
 TokenID pattern_bool(const bool lexeme);

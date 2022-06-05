@@ -75,11 +75,11 @@
                     conditional
                     loop
                     return
-                    num_arithm str_arithm
-                    bool_expr cmp_expr cmp_type
+                    num_arithm num_type str_arithm str_type
+                    bool_expr bool_type cmp_expr cmp_type
                     assign
                     identifier
-                    constant
+                    constant bool_constant
 %type <list>        list range
                     args_list
 %type <file_block>  file_handle
@@ -89,6 +89,8 @@
 // Associativity and precedence rules (from lower precedence to higher)
 %left   TLINES TCOLS
 %left   ASSIGN FSTREAM_OVERWRITE
+%left   THEN
+%left   ELSE
 %left   OR
 %left   AND
 %left   IS
@@ -110,8 +112,8 @@
  * 5.3.3 Specifying Precedence Only
  * from the Bison manual for a detailed explanation.
  */
-%precedence THEN
-%precedence ELSE
+/* %precedence THEN
+%precedence ELSE */
 
 /* Root node */
 %start program
@@ -138,6 +140,7 @@ expressions :   expression
 expression  :   file_decl
             |   identifier
             |   var_decl
+            |   bool_constant
             |   constant
             |   conditional
             |   loop
@@ -228,68 +231,90 @@ args_list   :   /* blank */ { $$ = grammar_new_list_args(NULL); }
                 }
             ;
 
-num_arithm  :   expression ADD expression {
+num_arithm  :   num_type ADD num_type {
                      $$ = grammar_expression_arithmetic_num_add($1, $3);
                 }
-            |   expression SUB expression {
+            |   num_type SUB num_type {
                      $$ = grammar_expression_arithmetic_num_sub($1, $3);
                 } 
-            |   expression MUL expression {
+            |   num_type MUL num_type {
                      $$ = grammar_expression_arithmetic_num_mul($1, $3);
                 }
-            |   expression DIV expression {
+            |   num_type DIV num_type {
                      $$ = grammar_expression_arithmetic_num_div($1, $3);
                 }
-            |   expression MOD expression {
+            |   num_type MOD num_type {
                      $$ = grammar_expression_arithmetic_num_mod($1, $3);
                 }
             ;
 
-str_arithm  :   expression STR_ADD expression {
+num_type    :   identifier
+            |   fn_calls { $$ = grammar_expression_from_funcall($1); }
+            |   constant
+            ;
+
+str_arithm  :   str_type STR_ADD str_type {
                      $$ = grammar_expression_arithmetic_str_add($1, $3);
                 }
-            |   expression STR_SUB expression {
+            |   str_type STR_SUB str_type {
                      $$ = grammar_expression_arithmetic_str_sub($1, $3);
                 }
             ;
+    
+str_type    :   identifier
+            |   fn_calls { $$ = grammar_expression_from_funcall($1); }
+            |   constant
+            ;
 
 
-bool_expr   :   expression AND expression {
+bool_expr   :   bool_type AND bool_type {
                     $$ = grammar_expression_bool_and($1, $3);
                 }
-            |   expression OR expression {
+            |   bool_type OR bool_type {
                     $$ = grammar_expression_bool_or($1, $3);
                 }
-            |   NOT expression {
+            |   NOT bool_type {
                     $$ = grammar_expression_bool_not($2);
                 }
-            |   cmp_expr
-            |   cmp_type
+            |   bool_type
+            |   OPEN_PARENTHESIS bool_expr CLOSE_PARENTHESIS { $$ = $2; }
             ;
 
-cmp_expr    :   expression EQUALS expression {
+bool_type   :   identifier
+            |   fn_calls { $$ = grammar_expression_from_funcall($1); }
+            |   cmp_expr
+            ;
+
+cmp_expr    :   cmp_type EQUALS cmp_type {
                     $$ = grammar_expression_cmp_equals($1, $3);
                 }
-            |   expression NOT_EQUALS expression {
+            |   cmp_type NOT_EQUALS cmp_type {
                     $$ = grammar_expression_cmp_not_equals($1, $3);
                 }
-            |   expression GREATER_THAN expression {
+            |   cmp_type GREATER_THAN cmp_type {
                     $$ = grammar_expression_cmp_greater_than($1, $3);
                 }
-            |   expression GREATER_EQUAL expression {
+            |   cmp_type GREATER_EQUAL cmp_type {
                     $$ = grammar_expression_cmp_greater_equal($1, $3);
                 }
-            |   expression LESS_THAN expression {
+            |   cmp_type LESS_THAN cmp_type {
                     $$ = grammar_expression_cmp_less_than($1, $3);
                 }
-            |   expression LESS_EQUAL expression {
+            |   cmp_type LESS_EQUAL cmp_type {
                     $$ = grammar_expression_cmp_less_equal($1, $3);
+                }
+            |   identifier IS data_type {
+                    $$ = grammar_expression_cmp_by_type($1, $3);
                 }
             ;
 
-cmp_type    :   identifier IS data_type {
-                    $$ = grammar_expression_cmp_by_type($1, $3);
-                }
+
+cmp_type    :   identifier
+            |   fn_calls { $$ = grammar_expression_from_funcall($1); }
+            |   bool_constant
+            |   constant
+            |   num_arithm
+            |   str_arithm
             ;
 
 return      :   RETURN identifier TEOL { $$ = grammar_new_return_node($2); }
@@ -309,11 +334,15 @@ data_type   :   TYPE_FILE
             |   TYPE_BOOLEAN
             ;
 
-constant    :   NUMBER      { $$ = grammar_constant_number($1); }
-            |   STRING      { $$ = grammar_constant_string($1); }
-            |   TTRUE       { $$ = grammar_constant_bool($1); }
+bool_constant 
+            :   TTRUE       { $$ = grammar_constant_bool($1); }
             |   TFALSE      { $$ = grammar_constant_bool($1); }
             ;
+
+constant    :   NUMBER      { $$ = grammar_constant_number($1); }
+            |   STRING      { $$ = grammar_constant_string($1); }
+            ;
+
 
 %%
 

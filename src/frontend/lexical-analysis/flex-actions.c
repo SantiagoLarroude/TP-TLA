@@ -32,17 +32,6 @@ TokenID pattern_id(const char *lexeme)
         return YYUNDEF;
 }
 
-TokenID pattern_char(const char *lexeme)
-{
-        log_debug_single_value(lexeme);
-
-        // Two "'" and the character
-        if (strlen(lexeme) <= 3 && save_token(lexeme))
-                return STRING;
-
-        return YYUNDEF;
-}
-
 TokenID pattern_string(const char *lexeme)
 {
         log_debug_single_value(lexeme);

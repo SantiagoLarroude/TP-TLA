@@ -43,13 +43,11 @@ number          ({digit}+|{digit}+[\.]?{digit}+)
 
 /* Source: https://stackoverflow.com/a/2039820 */
 string          \"(\\.|[^"\\])*\"
-character       \'(\\.|[^'\\])?\'
 
 %%
 
 {comment}       { pattern_ignored(yytext); }
 
-{character}     { return pattern_char(yytext); }
 {string}        { return pattern_string(yytext); }
 {number}        { return pattern_number(yytext); }
 
