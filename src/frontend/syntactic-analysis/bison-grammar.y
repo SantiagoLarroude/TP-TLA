@@ -112,8 +112,8 @@
  * 5.3.3 Specifying Precedence Only
  * from the Bison manual for a detailed explanation.
  */
-/* %precedence THEN
-%precedence ELSE */
+%precedence THEN
+%precedence ELSE
 
 /* Root node */
 %start program
