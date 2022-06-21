@@ -77,7 +77,7 @@ node_expression *grammar_new_loop(const node_expression *id,
                                   const node_expression *action);
 
 /* List */
-node_expression *grammar_expression_fom_list(const node_list *list);
+node_expression *grammar_expression_from_list(const node_list *list);
 
 node_list *grammar_new_list(const node_expression *expr);
 

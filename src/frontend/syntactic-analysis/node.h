@@ -9,7 +9,12 @@ typedef struct node_file_block node_file_block;
 typedef struct node_expression node_expression;
 typedef struct node_function_call node_function_call;
 typedef struct node_function node_function;
+typedef struct loop_node loop_node;
+typedef struct conditional_node conditional_node;
 
+typedef struct program {
+        node_function* value;
+} program;
 
 typedef union variable_value {
         bool boolean;
@@ -48,18 +53,18 @@ typedef enum GRAMMAR_BOOLEAN_TYPE{
         BOOL_TYPE_IN_PARENTHESIS,
 } GRAMMAR_BOOLEAN_TYPE;
 
-typedef enum GRAMMAR_STRING_ARITHMETIC {
+typedef enum GRAMMAR_STRING_ARITHMETIC_TYPE {
         ARITHMETIC_ADD,
         ARITHMETIC_SUB,
-} GRAMMAR_STRING_ARITHMETIC;
+} GRAMMAR_STRING_ARITHMETIC_TYPE;
 
-typedef enum GRAMMAR_NUMER_ARITHMETIC {
+typedef enum GRAMMAR_NUMBER_ARITHMETIC_TYPE {
         NUMBER_ARITHMETIC_ADD,
         NUMBER_ARITHMETIC_SUB,
         NUMBER_ARITHMETIC_MUL,
         NUMBER_ARITHMETIC_DIV,
         NUMBER_ARITHMETIC_MOD
-} GRAMMAR_NUMER_ARITHMETIC;
+} GRAMMAR_NUMBER_ARITHMETIC_TYPE;
 
 typedef enum ARGUMENTS_LIST_TYPE {
         BLANK_TYPE,
@@ -81,6 +86,19 @@ struct variable {
         variable_value value;
 } variable;
 
+struct node_expression {
+        variable * var;
+        list * exprList;
+        GRAMMAR_CONSTANT_TYPE g_constant_type;
+        GRAMMAR_EXPRESSION_CMP_TYPE g_expression_cmp_type;
+        GRAMMAR_BOOLEAN_TYPE g_boolean_type;
+        GRAMMAR_STRING_ARITHMETIC_TYPE g_string_arithmetic_type;
+        GRAMMAR_NUMBER_ARITHMETIC_TYPE g_number_arithmetic_type;
+        GRAMMAR_RETURN_TYPE g_return_type;
+        node_function_call * function_call_pointer;
+        token_t type;
+} node_expression;
+
 
 struct node_list {
         node_expression * elem;
@@ -94,20 +112,16 @@ struct list {
 } list;
 
 struct node_file_block {
-        //
+        node_expression *id;
+        node_expression *expr;
 } node_file_block;
-
-struct node_expression {
-        variable * var;
-        token_t type;
-} node_expression;
 
 struct node_function_call {
         //
 } node_function_call;
 
 struct node_function {
-        //
+        node_expression expr;
 } node_function;
 
 // las creo santi que de ultima las reemplazamos o
@@ -128,9 +142,6 @@ struct node_function {
 //         variable_value var;
 //         token_t type;
 // } expression;
-
-typedef struct loop_node loop_node;
-typedef struct conditional_node conditional_node;
 
 struct loop_node {
         node_expression* id;

@@ -7,8 +7,24 @@
 
 %}
 
-%define api.value.type {union YYSTYPE}
+/* descomentar la linea 11 */
+/* %define api.value.type {union YYSTYPE} */
 
+%union{
+    // No terminales
+    struct program* program;
+    struct node_function* fun;
+    struct node_function_call* fun_call;
+    struct node_expression* expr;
+    struct node_file_block* file_block;
+    struct node_list* list;
+    struct variable* var;
+
+    // Terminales
+    union variable_value value;
+    char* string;
+    token_t token;
+}
 
 // Flex tokens:
 
@@ -66,7 +82,8 @@
 /* End Of Line */
 %token <token> TEOL
 
-// Types
+// TYPES
+%type <program>         program
 %type <fun>         function
 %type <fun_call>    fn_calls fn_call
 %type <expr>        expressions expression
@@ -124,7 +141,7 @@
 program     :   function { grammar_program($1); }
             ;
 
-function    :   FUNCTION identifier
+function    :   FUNCTION identifier 
                 OPEN_PARENTHESIS args_list CLOSE_PARENTHESIS
                     expressions
                 return
@@ -145,7 +162,7 @@ expression  :   file_decl
             |   conditional
             |   loop
             |   OPEN_BRACKETS list CLOSE_BRACKETS {
-                    $$ = grammar_expression_fom_list($2);
+                    $$ = grammar_expression_from_list($2);
                 } 
             |   num_arithm
             |   str_arithm
@@ -174,7 +191,10 @@ fn_call    :   identifier OPEN_PARENTHESIS args_list CLOSE_PARENTHESIS {
                                                                       $3, $5));
                 }
             ;
-
+/*
+ Ejemplo:
+    File "path" as input.
+*/
 file_decl   :   TYPE_FILE STRING AS identifier TEOL {
                     $$ = grammar_new_declaration_file_node($2, $4, NULL);
                 }
@@ -342,7 +362,6 @@ bool_constant
 constant    :   NUMBER      { $$ = grammar_constant_number($1); }
             |   STRING      { $$ = grammar_constant_string($1); }
             ;
-
 
 %%
 
