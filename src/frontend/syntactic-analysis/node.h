@@ -40,6 +40,27 @@ typedef enum GRAMMAR_EXPRESSION_CMP_TYPE{
         CMP_EXP_IS,
 } GRAMMAR_EXPRESSION_CMP_TYPE;
 
+typedef enum GRAMMAR_BOOLEAN_TYPE{
+        BOOL_TYPE_AND,
+        BOOL_TYPE_OR,
+        BOOL_TYPE_NOT,
+        BOOL_TYPE_NORMAL,
+        BOOL_TYPE_IN_PARENTHESIS,
+} GRAMMAR_BOOLEAN_TYPE;
+
+typedef enum GRAMMAR_STRING_ARITHMETIC {
+        ARITHMETIC_ADD,
+        ARITHMETIC_SUB,
+} GRAMMAR_STRING_ARITHMETIC;
+
+typedef enum GRAMMAR_NUMER_ARITHMETIC {
+        NUMBER_ARITHMETIC_ADD,
+        NUMBER_ARITHMETIC_SUB,
+        NUMBER_ARITHMETIC_MUL,
+        NUMBER_ARITHMETIC_DIV,
+        NUMBER_ARITHMETIC_MOD
+} GRAMMAR_NUMER_ARITHMETIC;
+
 struct variable {
         token_t type;
         char * name;
@@ -64,7 +85,8 @@ struct node_expression {
         GRAMMAR_CONSTANT_TYPE g_constant_type;
         GRAMMAR_EXPRESSION_CMP_TYPE g_expression_cmp_type;
         GRAMMAR_RETURN_TYPE g_return_type;
-        variable * value;
+        GRAMMAR_BOOLEAN_TYPE g_boolean_type;
+        variable * var;
 } node_expression;
 
 struct node_function_call {
@@ -90,7 +112,7 @@ struct node_function {
 
 // struct expression {
 //         identifier* id;
-//         variable_value value;
+//         variable_value var;
 //         token_t type;
 // } expression;
 

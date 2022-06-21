@@ -57,12 +57,22 @@ node_expression *grammar_expression_fom_list(const node_list *list)
         return NULL;
 }
 
+// TERMINARRRRRRRRRRRRR
 node_expression *
 grammar_expression_from_funcall(const node_function_call *fun_list)
 {
         LogDebug("%s(%p, %p)\n", __func__, fun_list);
 
-        return NULL;
+        node_expression * node = malloc(sizeof(node_expression));
+        node->g_constant_type = NULL;
+        node->g_expression_cmp_type = NULL;
+        node->g_return_type = NULL;
+        node->g_boolean_type = NULL;
+        node->var = malloc(sizeof(variable));
+        
+        node->var->type = node->g_boolean_type;
+        
+        return node;
 }
 
 node_expression *
@@ -230,7 +240,12 @@ grammar_expression_arithmetic_num_add(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return lvalue->value + rvalue->value;
+        node_expression * node = malloc(sizeof(node_expression));
+        node->var->type = NUMBER_ARITHMETIC_ADD;
+        strcpy(node->var->name, "NUMBER_ARITHMETIC_ADD");
+        node->var->value = lvalue->var->value + rvalue->var->value;
+
+        return node;
 }
 
 node_expression *
@@ -239,7 +254,12 @@ grammar_expression_arithmetic_num_sub(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return lvalue->value - rvalue->value;
+        node_expression * node = malloc(sizeof(node_expression));
+        node->var->type = NUMBER_ARITHMETIC_SUB;
+        strcpy(node->var->name, "NUMBER_ARITHMETIC_SUB");
+        node->var->value = lvalue->var->value - rvalue->var->value;
+
+        return node;
 }
 
 node_expression *
@@ -248,7 +268,12 @@ grammar_expression_arithmetic_num_mul(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return lvalue->value * rvalue->value;
+        node_expression * node = malloc(sizeof(node_expression));
+        node->var->type = NUMBER_ARITHMETIC_MUL;
+        strcpy(node->var->name, "NUMBER_ARITHMETIC_MUL");
+        node->var->value = lvalue->var->value * rvalue->var->value;
+
+        return node;
 }
 
 node_expression *
@@ -257,7 +282,12 @@ grammar_expression_arithmetic_num_div(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return lvalue->value / rvalue->value;
+        node_expression * node = malloc(sizeof(node_expression));
+        node->var->type = NUMBER_ARITHMETIC_DIV;
+        strcpy(node->var->name, "NUMBER_ARITHMETIC_DIV");
+        node->var->value = lvalue->var->value / rvalue->var->value;
+
+        return node;
 }
 
 node_expression *
@@ -266,7 +296,12 @@ grammar_expression_arithmetic_num_mod(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return lvalue->value % rvalue->value;
+        node_expression * node = malloc(sizeof(node_expression));
+        node->var->type = NUMBER_ARITHMETIC_MOD;
+        strcpy(node->var->name, "NUMBER_ARITHMETIC_MOD");
+        node->var->value = lvalue->var->value % rvalue->var->value;
+
+        return node;
 }
 
 node_expression *
@@ -275,14 +310,16 @@ grammar_expression_arithmetic_str_add(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        const size_t a = strlen(lvalue->value);
-        const size_t b = strlen(rvalue->value);
+        const size_t a = strlen(lvalue->var->value);
+        const size_t b = strlen(rvalue->var->value);
         const size_t size_ab = a + b + 1;
 
         node_expression * concat = malloc(size_ab);
 
         memcpy(concat, lvalue->value, a);
         memcpy(concat + a, rvalue->value, b + 1);
+
+        concat->var->type = ARITHMETIC_ADD;
 
         return concat;
 }
@@ -294,8 +331,8 @@ grammar_expression_arithmetic_str_sub(const node_expression *lvalue,
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
         char *p, *q, *r;
-        char str = lvalue->value;
-        char sub = rvalue->value;
+        char str = lvalue->var->value;
+        char sub = rvalue->var->value;
         if (*sub && (q = r = strstr(str, sub)) != NULL) {
                 size_t len = strlen(sub);
                 while ((r = strstr(p = r + len, sub)) != NULL) {
@@ -304,30 +341,67 @@ grammar_expression_arithmetic_str_sub(const node_expression *lvalue,
                 }
                 memmove(q, p, strlen(p) + 1);
         }
+
+        lvalue->var->type = ARITHMETIC_SUB;
+
         return lvalue;
 }
 
-node_expression *grammar_expression_bool_and(const node_expression *lvalue,
-                                             const node_expression *rvalue)
+node_expression *
+grammar_expression_bool_and(const node_expression *lvalue,
+                            const node_expression *rvalue)
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return lvalue->value && rvalue->value;
+        node_expression * node = malloc(sizeof(node_expression));
+        node->g_constant_type = NULL;
+        node->g_expression_cmp_type = NULL;
+        node->g_return_type = NULL;
+        node->g_boolean_type = BOOL_TYPE_AND;
+        node->var = malloc(sizeof(variable));
+        node->var->value = (lvalue->var->value) && (rvalue->var->value);
+
+        node->var->type = node->g_boolean_type;
+
+        return node;
 }
 
-node_expression *grammar_expression_bool_or(const node_expression *lvalue,
-                                            const node_expression *rvalue)
+node_expression *
+grammar_expression_bool_or(const node_expression *lvalue,
+                        const node_expression *rvalue)
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return lvalue->value || rvalue->value;
+        node_expression * node = malloc(sizeof(node_expression));
+        node->g_constant_type = NULL;
+        node->g_expression_cmp_type = NULL;
+        node->g_return_type = NULL;
+        node->g_boolean_type = BOOL_TYPE_OR;
+        node->var = malloc(sizeof(variable));
+        node->var->value = (lvalue->var->value) || (rvalue->var->value);
+
+        node->var->type = node->g_boolean_type;
+
+        return node;
 }
 
-node_expression *grammar_expression_bool_not(const node_expression *value)
+node_expression *
+grammar_expression_bool_not(const node_expression *value)
 {
         LogDebug("%s(%p)\n", __func__, value);
 
-        return !value->value;
+        node_expression * node = malloc(sizeof(node_expression));
+        node->g_constant_type = NULL;
+        node->g_expression_cmp_type = NULL;
+        node->g_return_type = NULL;
+        node->g_boolean_type = BOOL_TYPE_AND;
+        node->var = malloc(sizeof(variable));
+        node->var->value = !(value->var->value);
+
+        node->var->type = node->g_boolean_type;
+
+        return node;
+
 }
 
 node_expression *
@@ -336,15 +410,21 @@ grammar_expression_cmp_equals(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        bool cmp = lvalue->value->type == rvalue->value->type
-        if(!cmp){
-                cmp = lvalue->value->value == lvalue->value->value;
-                if(!cmp){
-                        return lvalue->value->name == lvalue->value->name;
-                }
-        } else {
-                return cmp;
-        }
+        // hacer un chequeo de CMP_EXP_IS??
+        // if (grammar_expression_cmp_by_type(lvalue->))
+        // {
+        //         /* code */
+        // }
+        
+
+        node_expression * node = malloc(sizeof(node_expression));
+        node->g_expression_cmp_type = CMP_EXP_EQUALS;
+        node->var = malloc(sizeof(variable));
+        node->var->type = node->g_expression_cmp_type;
+        node->var->value = lvalue->var->value != lvalue->var->value;
+
+        // return CMP_EXP_EQUALS;
+        return node;
 }
 
 node_expression *
@@ -353,17 +433,22 @@ grammar_expression_cmp_not_equals(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        if (grammar_expression_cmp_by_type(lvalue->))
-        {
-                /* code */
-        }
+
+        // hacer un chequeo de CMP_EXP_IS??
+        // if (grammar_expression_cmp_by_type(lvalue->))
+        // {
+        //         /* code */
+        // }
         
 
         node_expression * node = malloc(sizeof(node_expression));
-        node->value = malloc(sizeof(variable));
-        node->value->value = lvalue->value->value != lvalue->value->value;
+        node->var = malloc(sizeof(variable));
+        node->g_expression_cmp_type = CMP_EXP_NOT_EQUALS;
+        node->var->type = node->g_expression_cmp_type;
+        node->var->value = lvalue->var->value != lvalue->var->value;
 
-        return CMP_EXP_NOT_EQUALS;
+        // return CMP_EXP_NOT_EQUALS;
+        return node;
 }
 
 node_expression *
@@ -372,11 +457,20 @@ grammar_expression_cmp_greater_than(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        node_expression * node = malloc(sizeof(node_expression));
-        node->value = malloc(sizeof(variable));
-        node->value->value = lvalue->value->value > lvalue->value->value;
+        // hacer un chequeo de CMP_EXP_IS??
+        // if (grammar_expression_cmp_by_type(lvalue->))
+        // {
+        //         /* code */
+        // }
 
-        return CMP_EXP_GREATER_THAN;
+        node_expression * node = malloc(sizeof(node_expression));
+        node->var = malloc(sizeof(variable));
+        node->g_expression_cmp_type = CMP_EXP_GREATER_THAN;
+        node->var->type = node->g_expression_cmp_type;
+        node->var->value = lvalue->var->value > lvalue->var->value;
+
+        // return CMP_EXP_GREATER_THAN;
+        return node;
 }
 
 node_expression *
@@ -385,11 +479,20 @@ grammar_expression_cmp_greater_equal(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        node_expression * node = malloc(sizeof(node_expression));
-        node->value = malloc(sizeof(variable));
-        node->value->value = lvalue->value->value >= lvalue->value->value;
+        // hacer un chequeo de CMP_EXP_IS??
+        // if (grammar_expression_cmp_by_type(lvalue->))
+        // {
+        //         /* code */
+        // }
 
-        return CMP_EXP_GREATER_EQUAL;
+        node_expression * node = malloc(sizeof(node_expression));
+        node->var = malloc(sizeof(variable));
+        node->g_expression_cmp_type = CMP_EXP_GREATER_EQUAL;
+        node->var->type = node->g_expression_cmp_type;
+        node->var->value = lvalue->var->value >= lvalue->var->value;
+
+        // return CMP_EXP_GREATER_EQUAL;
+        return node;
 }
 
 node_expression *
@@ -398,11 +501,20 @@ grammar_expression_cmp_less_than(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        node_expression * node = malloc(sizeof(node_expression));
-        node->value = malloc(sizeof(variable));
-        node->value->value = lvalue->value->value < lvalue->value->value;
+        // hacer un chequeo de CMP_EXP_IS??
+        // if (grammar_expression_cmp_by_type(lvalue->))
+        // {
+        //         /* code */
+        // }
 
-        return CMP_EXP_LESS_THAN;
+        node_expression * node = malloc(sizeof(node_expression));
+        node->var = malloc(sizeof(variable));
+        node->g_expression_cmp_type = CMP_EXP_LESS_THAN;
+        node->var->type = node->g_expression_cmp_type;
+        node->var->value = lvalue->var->value < lvalue->var->value;
+
+        // return CMP_EXP_LESS_THAN;
+        return node;
 }
 
 node_expression *
@@ -411,38 +523,57 @@ grammar_expression_cmp_less_equal(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        node_expression * node = malloc(sizeof(node_expression));
-        node->value = malloc(sizeof(variable));
-        node->value->value = lvalue->value->value <= lvalue->value->value;
+        // hacer un chequeo de CMP_EXP_IS??
+        // if (grammar_expression_cmp_by_type(lvalue->))
+        // {
+        //         /* code */
+        // }
 
-        return CMP_EXP_LESS_EQUAL;
+        node_expression * node = malloc(sizeof(node_expression));
+        node->var = malloc(sizeof(variable));
+        node->g_expression_cmp_type = CMP_EXP_LESS_EQUAL;
+        node->var->type = node->g_expression_cmp_type;
+        node->var->value = lvalue->var->value <= lvalue->var->value;
+
+        // return CMP_EXP_LESS_EQUAL;
+        return node;
 }
 
-node_expression * grammar_expression_cmp_by_type(const node_expression *expr,
-                                                const token_t type)
+node_expression *
+grammar_expression_cmp_by_type(const node_expression *expr,
+                                const token_t type)
 {
         LogDebug("%s(%p, %d)\n", __func__, expr, type);
 
         node_expression * node = malloc(sizeof(node_expression));
-        node->value = malloc(sizeof(variable));
-        node->value->value = expr->value->type == type;
+        node->var = malloc(sizeof(variable));
+        node->g_expression_cmp_type = CMP_EXP_IS;
+        node->var->type = node->g_expression_cmp_type;
+        node->var->value = expr->var->type == type;
 
-        return CMP_EXP_IS;
+        // return CMP_EXP_IS;
+        return node;
 }
 
-node_expression *grammar_new_return_node(const char *id)
+node_expression *
+grammar_new_return_node(const node_expression *id)
 {
         LogDebug("%s(%p)\n", __func__, id);
 
         node_expression * node = malloc(sizeof(node_expression));
         if(*id != NULL){
-                node->value = malloc(sizeof(variable));
-                strcpy(node->value->name, id);
+                node->var = malloc(sizeof(variable));
+                strcpy(node->var->name, id->var->name);
+                node->var->type = id->var->type;
                 // node->value->name = id;
         }
         // tendriamos que dejarlo asi?
+        
         // xq se me ocurre que tendria que devolver
-        // lo el node_expression que tiene ese id
+        // el node_expression que tiene ese id
+
+        // estilo ciclar y buscarlo pero no tiene mucho
+        // sentido
 
         return node;
 }
@@ -456,14 +587,15 @@ grammar_new_assignment_expression(const node_expression *expr,
 
         // node_expression * node = malloc(sizeof(node_expression));
         // variable * value = malloc(sizeof(variable));
-        expr->value->type = id->value->type;
+        expr->var->type = id->var->type;
+        strcpy(expr->var->name, id->var->name);
 
         return expr;
 }
 
 // CHEQUEAR
 // de que valor tiene que ser el parametro de entrada
-variable *
+node_expression *
 grammar_identifier(const char * id)
 {
         LogDebug("%s(%p)\n", __func__, id);
@@ -483,10 +615,13 @@ grammar_constant_bool(const variable_value *value)
         // var->name = NULL;
 
         node_expression * node = malloc(sizeof(node_expression));
-        node->value = var;
+        node->var = var;
         node->g_constant_type = BOOL_TYPE;
         node->g_expression_cmp_type = NULL;
         node->g_return_type = NULL;
+        node->g_boolean_type = NULL;
+
+        node->var->type = node->g_constant_type;
 
         return node;
 }
@@ -497,16 +632,19 @@ grammar_constant_number(const variable_value *value)
         LogDebug("%s(%s)\n", __func__, value);
         
         variable * var = malloc(sizeof(variable));
-        var->value = value;
+        var->value = atoi(value);
         // var->type = NUMBER_TYPE;
         strcpy(var->name, "NUMBER_TYPE");
         // var->name = NULL;
 
         node_expression * node = malloc(sizeof(node_expression));
-        node->value = var;
+        node->var = var;
         node->g_constant_type = NUMBER_TYPE;
         node->g_expression_cmp_type = NULL;
         node->g_return_type = NULL;
+        node->g_boolean_type = NULL;
+
+        node->var->type = node->g_constant_type;
 
         return node;
 }
@@ -517,16 +655,20 @@ grammar_constant_string(const variable_value *value)
         LogDebug("%s(%s)\n", __func__, value);
 
         variable * var = malloc(sizeof(variable));
-        var->value = value;
+        strcpy(var->value, value);
+        // var->value = value;
         // var->type = STRING_TYPE;
         strcpy(var->name, "STRING_TYPE");
         // var->name = NULL;
 
         node_expression * node = malloc(sizeof(node_expression));
-        node->value = var;
+        node->var = var;
         node->g_constant_type = STRING_TYPE;
         node->g_expression_cmp_type = NULL;
         node->g_return_type = NULL;
+        node->g_boolean_type = NULL;
+
+        node->var->type = node->g_constant_type;
 
         return node;
 }
