@@ -120,8 +120,8 @@ node_function_call *grammar_function_call_from_id(const node_expression *id,
 
 node_expression *
 grammar_new_declaration_file_node(const variable *fpath,
-                                                   const node_expression *id,
-                                                   const node_list *separators)
+                                const node_expression *id,
+                                const node_list *separators)
 {
         LogDebug("%s(%p, %p, %p)\n", __func__, fpath, id, separators);
 
@@ -148,11 +148,16 @@ grammar_using_file(const node_expression *id,
 
 node_expression *
 grammar_new_variable(const node_expression *id,
-                                      const node_expression *expr)
+                        const node_expression *expr)
 {
         LogDebug("%s(%p, %p)\n", __func__, id, expr);
 
-        return NULL;
+        node_expression* node = malloc(sizeof(node_expression));
+        node->var = malloc(sizeof(variable));
+        node->var = expr->var;
+        node->var->type = id->var->type;
+
+        return node;
 }
 
 conditional_node *
@@ -774,7 +779,14 @@ grammar_identifier(const char * id)
 {
         LogDebug("%s(%p)\n", __func__, id);
 
-        return id;
+        node_expression* node = malloc(sizeof(node_expression));
+        node->var = malloc(sizeof(variable));
+        node->var->type = id;
+        node->var->value = NULL;
+        strcpy(node->var->name, id);
+        // ver si usar del strcpy o el de type
+
+        return node;
 }
 
 node_expression *
