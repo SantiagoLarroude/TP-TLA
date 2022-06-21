@@ -118,7 +118,8 @@ node_function_call *grammar_function_call_from_id(const node_expression *id,
         return NULL;
 }
 
-node_expression *grammar_new_declaration_file_node(const variable *fpath,
+node_expression *
+grammar_new_declaration_file_node(const variable *fpath,
                                                    const node_expression *id,
                                                    const node_list *separators)
 {
@@ -136,7 +137,8 @@ grammar_new_declaration_stdout_node(const node_expression *id,
         return NULL;
 }
 
-node_file_block *grammar_using_file(const node_expression *id,
+node_file_block *
+grammar_using_file(const node_expression *id,
                                     const node_expression *expr)
 {
         LogDebug("%s(%p, %p)\n", __func__, id, expr);
@@ -144,7 +146,8 @@ node_file_block *grammar_using_file(const node_expression *id,
         return NULL;
 }
 
-node_expression *grammar_new_variable(const node_expression *id,
+node_expression *
+grammar_new_variable(const node_expression *id,
                                       const node_expression *expr)
 {
         LogDebug("%s(%p, %p)\n", __func__, id, expr);
@@ -152,86 +155,257 @@ node_expression *grammar_new_variable(const node_expression *id,
         return NULL;
 }
 
-node_expression *grammar_new_conditional(const node_expression *condition,
-                                         const node_expression *expr_true,
-                                         const node_expression *expr_false)
+conditional_node *
+grammar_new_conditional(const node_expression *condition,
+                        const node_expression *expr_true,
+                        const node_expression *expr_false)
 {
-        LogDebug("%s(%p, %p, %p)\n", __func__, condition, expr_true,
-                 expr_false);
-
-        return NULL;
+        LogDebug("%s(%p, %p, %p)\n", __func__, condition, 
+                expr_true, expr_false);
+        
+        conditional_node* node = malloc(sizeof(conditional_node));
+        node_expression* node->condition = malloc(sizeof(node_expression));
+        node_expression* node->expr_true = malloc(sizeof(node_expression));
+        node_expression* node->expr_false = malloc(sizeof(node_expression));
+        
+        node->condition = condition;
+        node->expr_true = expr_true;
+        node->expr_false = expr_false;
+        
+        return node;
 }
 
-node_expression *grammar_new_loop(const node_expression *id,
-                                  const node_expression *iterable,
-                                  const node_expression *action)
+loop_node *
+grammar_new_loop(const node_expression *id,
+                const node_expression *iterable,
+                const node_expression *action)
 {
         LogDebug("%s(%p, %p, %p)\n", __func__, id, iterable, action);
 
-        return NULL;
+        loop_node * loop = malloc(sizeof(loop_node));
+        loop->id = malloc(sizeof(node_expression));
+        loop->iterable = malloc(sizeof(node_expression));
+        loop->action = malloc(sizeof(node_expression));
+
+        return loop;
 }
 
-node_list *grammar_new_list(const node_expression *expr)
+list *
+grammar_new_list(const node_expression *expr)
 {
         LogDebug("%s(%p)\n", __func__, expr);
+        
+        list * list = malloc(sizeof(list));
+        list->head = malloc(sizeof(node_list));
+        list->head->elem = malloc(sizeof(node_expression));
 
-        return NULL;
+        list->head->elem = expr;
+        if(expr != NULL) {
+                list->head->elem->var->type = BLANK_TYPE;
+                list->head->next = NULL;
+        }
+        list->head->next = NULL;
+        return list; 
+        /*
+        Devuelve l->{elem (expr), next-> NULL}
+        */
 }
 
-node_list *grammar_concat_list_expr(const node_list *list,
-                                    const node_expression *expr)
+list *
+grammar_concat_list_expr(const node_list *list,
+                        const node_expression *expr)
 {
         LogDebug("%s(%p, %p)\n", __func__, list, expr);
 
-        list->next = expr;
-        list->next->next = NULL;
+        list* new_list = malloc(sizeof(node_list));
+        new_list->type = LIST_COMMA_EXPRESSION_TYPE;
+        new_list->head = malloc(sizeof(node_list));
+        new_list->head = list;
+        node_list* new_next = malloc(sizeof(node_list));
+        new_next->head = expr;
+        new_next->next = NULL;
 
-        return list;
+        return new_list;
+
+        // list->next = expr;
+        // list->type = LIST_COMMA_EXPRESSION_TYPE;
+        // list->next->next = NULL;
+
+        // return list;
 }
 
-node_list *grammar_concat_list_list(const node_list *head_list,
-                                    const node_list *tail_list)
+// node_list *
+// recursive_list_add_from_list(const node_list* new_node,
+//                         const node_list* first)
+// {
+//         if (first == NULL)
+//         {
+
+//                 node_list* new = malloc(sizeof(node_list));
+//                 new->type = LIST_COMMA_RANGE_TYPE;
+//                 new->next = NULL;
+//                 new->elem = malloc(sizeof(node_expression));
+//                 new->elem->var = malloc(sizeof(variable));
+//                 // new->elem->var->value = new_var;
+//                 // agragar bien los types mas abajo en los nodes
+//                 return new;
+//         }
+//         first->next = recursive_list_add_from_list(new_var, first->next);
+//         return first;
+        
+// }
+
+node_list *
+recursive_list_add(const variable_value new_var,
+                const node_list* first)
+{
+        if (first == NULL)
+        {
+                node_list* new = malloc(sizeof(node_list));
+                new->type = LIST_RANGE_TYPE;
+                new->next = NULL;
+                new->elem = malloc(sizeof(node_expression));
+                new->elem->var = malloc(sizeof(variable));
+                new->elem->var->value = new_var;
+                // agragar bien los types mas abajo en los nodes
+                return new;
+        }
+        first->next = recursive_list_add(new_var, first->next);
+        return first;
+        
+}
+
+
+list *
+grammar_concat_list_list(const list *head_list,
+                        const list *tail_list)
 {
         LogDebug("%s(%p, %p)\n", __func__, head_list, tail_list);
 
-        return grammar_new_list_from_range(head_list, tail_list);
+        list* new_list = malloc(sizeof(list));
+        new_list->type = LIST_COMMA_RANGE_TYPE;
+        // new_list->head = head_list->head;
+        node_list* j = head_list->head;
+
+        while (j->next != NULL) {
+                new_list->head = recursive_list_add(j->elem->var->value, new_list->head);
+                j->next = j->next->next;
+        }
+
+        j->next = tail_list->head
+        while (j->next != NULL) {
+                new_list->head = recursive_list_add(j->elem->var->value, new_list->head);
+                j->next = j->next->next;
+        }
+
+        // node_list* i = tail_list->head;
+        // while (i->next != NULL) {
+        //         i->next = i->next->next;
+        // }
+
+        return new_list;
+        // return grammar_new_list_from_range(head_list, tail_list);
 }
 
-node_list *grammar_new_list_from_range(const variable *start,
-                                       const variable *end)
+list *
+grammar_new_list_from_range(const variable *start,
+                        const variable *end)
 {
         LogDebug("%s(%p, %p)\n", __func__, start, end);
 
-        node_list * list = malloc(sizeof(node_list));
-        list->head = start;
-        list->head->next = end;
-        tail_list->next = NULL;
+        // node_expression* first = malloc(sizeof(node_expression));
+        // first->var = malloc(sizeof(variable));
+        // first->var = *start;
 
-        return list;
+        list * to_return = malloc(sizeof(list));
+        variable * i = *start;
+        // to_return->head = recursive_list_add(i->value, to_return->head);
+        while (i->value < end->value) {
+                to_return->head = recursive_list_add(i->value, to_return->head);
+                (i->value)++;
+        }
+        
+        to_return->type = LIST_RANGE_TYPE;
+        // node_list* aux = NULL;
+        // node_list* first = to_return->head;
+        // to_return->head->next = aux;
 
-        return NULL;
+        // node_list * list = malloc(sizeof(node_list));
+        // list->head = malloc(sizeof(node_expression));
+
+
+        // list->head->var->type = i->type;
+        // list->head->var->value = i->value;
+        // i->value++;
+        
+        // while (i->value < end->value) {
+        //         node_expression* new_elem = malloc(sizeof(node_expression));
+        //         new_elem->var = malloc(sizeof(variable));
+        //         new_elem->var = i;
+
+        //         node_list* next = malloc(sizeof(node_list));
+        //         next->elem = new_elem;
+        //         first = next;
+        //         aux = first;
+
+                // next->next = aux;
+                // next->head = grammar_new_list(new_elem);
+                // next->type = LIST_RANGE_TYPE;
+                // aux = next;
+
+
+                // i->value += 1;
+
+        //         node_expression * head_next = malloc(sizeof(node_expression));
+        //         head_next->var = malloc(sizeof(variable));
+        //         head_next->var->type = i->type;
+        //         head_next->var->value = i->value;
+        //         list->next = head_next;
+
+        //         list->head = list->next;
+        //         i->value++;  
+        // }
+        
+        // list->head->var = start;
+        // list->head->next->var = end;
+        // // tail_list->next = NULL;
+
+        return to_return;
 }
 
-node_list *grammar_new_list_args(const node_expression *expr)
+node_list *
+grammar_new_list_args(const node_expression *expr)
 {
         LogDebug("%s(%p)\n", __func__, expr);
 
         node_list * list = malloc(sizeof(node_list));
-        list->head = expr;
-        list->head->next = NULL;
+        if (expr == NULL) {
+                list->elem = malloc(sizeof(node_expression));
+                // list->head->var = malloc(sizeof(variable));
+                list->type = BLANK_TYPE;
+                // list->head->var = expr;
+        } else {
+                list->type = EXPRESSION_TYPE;
+        }
+        list->elem = expr;
+        list->next = NULL;
 
         return list;
 }
 
-node_list *grammar_concat_list_args(const node_list *list,
-                                    const node_expression *expr)
+node_list *
+grammar_concat_list_args(const node_list *list,
+                        const node_expression *expr)
 {
         LogDebug("%s(%p, %p)\n", __func__, list, expr);
 
-        list->head->next = expr;
+        node_list * new_list = malloc(sizeof(node_list));
+        new_list->head = list;
+        new_list->head->var->type = COMMA_TYPE;
+        new_list->head->next = expr;
         list->head->next->next = NULL;
 
-        return list;
+        return new_list;
 }
 
 node_expression *
@@ -406,7 +580,7 @@ grammar_expression_bool_not(const node_expression *value)
 
 node_expression *
 grammar_expression_cmp_equals(const node_expression *lvalue,
-                                               const node_expression *rvalue)
+                                const node_expression *rvalue)
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
@@ -610,18 +784,12 @@ grammar_constant_bool(const variable_value *value)
 
         variable * var = malloc(sizeof(variable));
         var->value = value;
-        // var->type = BOOL_TYPE;
-        strcpy(var->name, "BOOL_TYPE");
-        // var->name = NULL;
+        var->type = BOOL_TYPE;
+        strcpy(var->name, "BOOL_TYPE"); // ?
 
-        node_expression * node = malloc(sizeof(node_expression));
-        node->var = var;
-        node->g_constant_type = BOOL_TYPE;
-        node->g_expression_cmp_type = NULL;
-        node->g_return_type = NULL;
-        node->g_boolean_type = NULL;
-
-        node->var->type = node->g_constant_type;
+        node_expression * newNode = malloc(sizeof(node_expression));
+        newNode->var = var;
+        // newNode->type = ?
 
         return node;
 }
@@ -633,18 +801,12 @@ grammar_constant_number(const variable_value *value)
         
         variable * var = malloc(sizeof(variable));
         var->value = atoi(value);
-        // var->type = NUMBER_TYPE;
-        strcpy(var->name, "NUMBER_TYPE");
-        // var->name = NULL;
+        var->type = NUMBER_TYPE;
+        strcpy(var->name, "NUMBER_TYPE"); // ?
 
-        node_expression * node = malloc(sizeof(node_expression));
-        node->var = var;
-        node->g_constant_type = NUMBER_TYPE;
-        node->g_expression_cmp_type = NULL;
-        node->g_return_type = NULL;
-        node->g_boolean_type = NULL;
-
-        node->var->type = node->g_constant_type;
+        node_expression * newNode = malloc(sizeof(node_expression));
+        newNode->var = var;
+        // newNode->type = ?
 
         return node;
 }
@@ -656,19 +818,12 @@ grammar_constant_string(const variable_value *value)
 
         variable * var = malloc(sizeof(variable));
         strcpy(var->value, value);
-        // var->value = value;
-        // var->type = STRING_TYPE;
-        strcpy(var->name, "STRING_TYPE");
-        // var->name = NULL;
+        var->type = STRING_TYPE;
+        strcpy(var->name, "STRING_TYPE"); // ?
 
-        node_expression * node = malloc(sizeof(node_expression));
-        node->var = var;
-        node->g_constant_type = STRING_TYPE;
-        node->g_expression_cmp_type = NULL;
-        node->g_return_type = NULL;
-        node->g_boolean_type = NULL;
-
-        node->var->type = node->g_constant_type;
+        node_expression * newNode = malloc(sizeof(node_expression));
+        newNode->var = var;
+        // newNode->type = ?
 
         return node;
 }

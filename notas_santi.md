@@ -14,6 +14,6 @@
         node->g_expression_cmp_type = NULL;
         node->g_return_type = NULL;
         node->g_boolean_type = BOOL_TYPE_AND;
-- [ ] 
+- [ ] cambiar el bison-actions.h a como lo tenemos en el .c
 - [ ] 
 - [ ] 

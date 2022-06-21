@@ -14,7 +14,7 @@ typedef struct node_function node_function;
 typedef union variable_value {
         bool boolean;
         long long integer;
-        double floating;
+        double dFloat;
         char * string;
 } variable_value;
 
@@ -61,6 +61,20 @@ typedef enum GRAMMAR_NUMER_ARITHMETIC {
         NUMBER_ARITHMETIC_MOD
 } GRAMMAR_NUMER_ARITHMETIC;
 
+typedef enum ARGUMENTS_LIST_TYPE {
+        BLANK_TYPE,
+        EXPRESSION_TYPE,
+        COMMA_TYPE
+} ARGUMENTS_LIST_TYPE;
+
+typedef enum LIST_TYPE {
+        LIST_BLANK_TYPE,
+        LIST_EXPRESSION_TYPE,
+        LIST_RANGE_TYPE,
+        LIST_COMMA_EXPRESSION_TYPE,
+        LIST_COMMA_RANGE_TYPE,
+} LIST_TYPE;
+
 struct variable {
         token_t type;
         char * name;
@@ -69,12 +83,14 @@ struct variable {
 
 
 struct node_list {
-        node_expression * expr;
-        node_expression * next;
+        node_expression * elem;
+        node_list * next;
+        token_t type;
 } node_list;
 
 struct list {
         node_list * head;
+        token_t type;
 } list;
 
 struct node_file_block {
@@ -82,11 +98,8 @@ struct node_file_block {
 } node_file_block;
 
 struct node_expression {
-        GRAMMAR_CONSTANT_TYPE g_constant_type;
-        GRAMMAR_EXPRESSION_CMP_TYPE g_expression_cmp_type;
-        GRAMMAR_RETURN_TYPE g_return_type;
-        GRAMMAR_BOOLEAN_TYPE g_boolean_type;
         variable * var;
+        token_t type;
 } node_expression;
 
 struct node_function_call {
@@ -115,6 +128,22 @@ struct node_function {
 //         variable_value var;
 //         token_t type;
 // } expression;
+
+typedef struct loop_node loop_node;
+typedef struct conditional_node conditional_node;
+
+struct loop_node {
+        node_expression* id;
+        node_expression* iterable;
+        node_expression* action;
+} loop_node;
+
+struct conditional_node {
+        node_expression* condition;
+        node_expression* expr_true;
+        node_expression* expr_false;
+} conditional_node;
+
 
 
 #endif  /* NODE_H */
