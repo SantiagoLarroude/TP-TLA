@@ -25,7 +25,10 @@ union YYSTYPE {
     struct node_function_call* fun_call;
     struct node_expression* expr;
     struct node_file_block* file_block;
-    struct node_list* list;
+    struct node_list* node_list;
+    struct list* list;
+    struct loop_node* loop;
+    struct conditional_node* conditional;
 
     struct variable* var;
     union variable_value value;

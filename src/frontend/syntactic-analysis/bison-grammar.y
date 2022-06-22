@@ -20,9 +20,17 @@
     struct node_list* list;
     struct variable* var;
 
+    /*
+        typedef union variable_value {
+                bool boolean;
+                long long integer;
+                double dFloat;
+                char * string;
+        } variable_value;
+    */
+
     // Terminales
     union variable_value value;
-    char* string;
     token_t token;
 }
 
