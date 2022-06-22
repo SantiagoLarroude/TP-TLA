@@ -24,19 +24,19 @@ typedef union variable_value {
 } variable_value;
 
 typedef enum GRAMMAR_CONSTANT_TYPE{
-        NUMBER_TYPE,
+        NUMBER_TYPE = 1,
         STRING_TYPE,
         BOOL_TYPE,
         LIST_TYPE
 } GRAMMAR_CONSTANT_TYPE;
 
 typedef enum GRAMMAR_RETURN_TYPE{
-        RETURN__ID,
+        RETURN__ID = 1,
         RETURN_NO_ID
 } GRAMMAR_RETURN;
 
 typedef enum GRAMMAR_EXPRESSION_CMP_TYPE{
-        CMP_EXP_EQUALS,
+        CMP_EXP_EQUALS = 1,
         CMP_EXP_NOT_EQUALS,        
         CMP_EXP_GREATER_THAN,
         CMP_EXP_GREATER_EQUAL,
@@ -46,7 +46,7 @@ typedef enum GRAMMAR_EXPRESSION_CMP_TYPE{
 } GRAMMAR_EXPRESSION_CMP_TYPE;
 
 typedef enum GRAMMAR_BOOLEAN_TYPE{
-        BOOL_TYPE_AND,
+        BOOL_TYPE_AND = 1,
         BOOL_TYPE_OR,
         BOOL_TYPE_NOT,
         BOOL_TYPE_NORMAL,
@@ -54,12 +54,12 @@ typedef enum GRAMMAR_BOOLEAN_TYPE{
 } GRAMMAR_BOOLEAN_TYPE;
 
 typedef enum GRAMMAR_STRING_ARITHMETIC_TYPE {
-        ARITHMETIC_ADD,
+        ARITHMETIC_ADD = 1,
         ARITHMETIC_SUB,
 } GRAMMAR_STRING_ARITHMETIC_TYPE;
 
 typedef enum GRAMMAR_NUMBER_ARITHMETIC_TYPE {
-        NUMBER_ARITHMETIC_ADD,
+        NUMBER_ARITHMETIC_ADD = 1,
         NUMBER_ARITHMETIC_SUB,
         NUMBER_ARITHMETIC_MUL,
         NUMBER_ARITHMETIC_DIV,
@@ -67,18 +67,26 @@ typedef enum GRAMMAR_NUMBER_ARITHMETIC_TYPE {
 } GRAMMAR_NUMBER_ARITHMETIC_TYPE;
 
 typedef enum ARGUMENTS_LIST_TYPE {
-        BLANK_TYPE,
+        BLANK_TYPE = 1,
         EXPRESSION_TYPE,
         COMMA_TYPE
 } ARGUMENTS_LIST_TYPE;
 
 typedef enum LIST_TYPE {
-        LIST_BLANK_TYPE,
+        LIST_BLANK_TYPE = 1,
         LIST_EXPRESSION_TYPE,
         LIST_RANGE_TYPE,
         LIST_COMMA_EXPRESSION_TYPE,
         LIST_COMMA_RANGE_TYPE,
 } LIST_TYPE;
+
+typedef enum FILE_DECLARATION_TYPE {
+        FILE_STRING_TYPE = 1,
+        STDOUT_STRING_TYPE,
+        FILE_FSTREAM_STDOUT_TYPE,
+        STDOUT_FSTREAM_STDOUT_TYPE
+
+} FILE_DECLARATION_TYPE;
 
 struct variable {
         token_t type;
@@ -89,12 +97,15 @@ struct variable {
 struct node_expression {
         variable * var;
         list * exprList;
+        node_file_block * fileHandler;
+        node_list* node_list;
         GRAMMAR_CONSTANT_TYPE g_constant_type;
         GRAMMAR_EXPRESSION_CMP_TYPE g_expression_cmp_type;
         GRAMMAR_BOOLEAN_TYPE g_boolean_type;
         GRAMMAR_STRING_ARITHMETIC_TYPE g_string_arithmetic_type;
         GRAMMAR_NUMBER_ARITHMETIC_TYPE g_number_arithmetic_type;
         GRAMMAR_RETURN_TYPE g_return_type;
+        FILE_DECLARATION_TYPE f_declaration_type;
         node_function_call * function_call_pointer;
         token_t type;
 } node_expression;
@@ -117,12 +128,17 @@ struct node_file_block {
 } node_file_block;
 
 struct node_function_call {
-        //
+        node_expression* id;
+        node_function_call* function_call;
+        node_function_call* function_append;
+        node_list* node_list;
 } node_function_call;
 
 struct node_function {
-        node_expression expr;
+        node_expression* expr;
 } node_function;
+
+
 
 // las creo santi que de ultima las reemplazamos o
 // eliminamos pero asi entiendo mejor
