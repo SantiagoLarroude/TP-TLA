@@ -19,7 +19,7 @@ program* grammar_program(const node_function *value);
 node_function *grammar_new_function(const node_expression *expr);
 
 node_expression *
-grammar_expression_from_funcall(const node_function_call *fun_list);
+grammar_expression_from_funcall(const node_function_call* fn_calls);
 
 node_function_call *grammar_function_call(const node_expression *fun_id,
                                           const node_list *args);
@@ -67,7 +67,7 @@ node_expression *grammar_new_variable(const node_expression *id,
                                       const node_expression *expr);
 
 /* Conditional */
-node_expression *grammar_new_conditional(const node_expression *condition,
+conditional_node *grammar_new_conditional(const node_expression *condition,
                                          const node_expression *expr_true,
                                          const node_expression *expr_false);
 
@@ -151,15 +151,15 @@ grammar_expression_cmp_less_equal(const node_expression *lvalue,
                                   const node_expression *rvalue);
 
 /* Identifier */
-node_expression *grammar_identifier(const variable *id);
+node_expression *grammar_identifier(const variable_value *id);
 
 node_expression *grammar_expression_cmp_by_type(const node_expression *expr,
                                                 const token_t type);
 
 /* Constant */
-node_expression *grammar_constant_number(const variable *value);
-node_expression *grammar_constant_string(const variable *value);
-node_expression *grammar_constant_bool(const variable* value);
+node_expression *grammar_constant_number(const variable_value *value);
+node_expression *grammar_constant_string(const variable_value *value);
+node_expression *grammar_constant_bool(const variable_value* value);
 
 // void free_programblock(struct node_block* program);
 

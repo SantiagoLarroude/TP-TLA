@@ -61,8 +61,7 @@ node_function *grammar_new_function(const node_expression *expr)
 node_expression *grammar_expression_from_list(const list *list)
 {
         LogDebug("%s(%p)\n", __func__, list);
-
-        /* node_expression * newExprList = calloc(1, sizeof(node_expression));
+        node_expression * newExprList = calloc(1, sizeof(node_expression));
         if(list != NULL){
                 node_list *iter = list->head;
                 newExprList->listExpr = calloc(1, sizeof(list));
@@ -80,14 +79,22 @@ node_expression *grammar_expression_from_list(const list *list)
                 retIter->next = NULL;
         } else {
                 return NULL;
-        } */
+        }
 
-        node_expression * expr = (node_expression*) malloc(sizeof(node_expression));
+        return newExprList;
+}
 
-        expr->listExpr = list;
-        expr->type = EXPRESSION_LIST;
+node_expression *
+grammar_expression_from_funcall(const node_function_call *fun_list)
+{
+        LogDebug("%s(%p, %p)\n", __func__, fun_list);
 
-        return expr;
+        node_expression * node = calloc(1,sizeof(node_expression));
+        node->var = calloc(1,sizeof(variable));
+        
+        node->var->type = node->g_boolean_type;
+        
+        return node;
 }
 
 node_expression *
@@ -359,7 +366,7 @@ grammar_concat_list_list(const node_list *head_list,
 
         node_list * concat = realloc(head_list, head_list->len + tail_list->len);
 
-        for (size_t i = 0, last_head = head_list->len; i < tail_list->len; i++) {
+        for (size_t i = 0, size_t last_head = head_list->len; i < tail_list->len; i++) {
                 concat->exprs[last_head + i] = tail_list->exprs[i];
         }
 
@@ -374,6 +381,21 @@ grammar_new_list_from_range(const variable *start,
                         const variable *end)
 {
         LogDebug("%s(%p, %p)\n", __func__, start, end);
+
+        /* // node_expression* first = calloc(1,sizeof(node_expression));
+        // first->var = calloc(1,sizeof(variable));
+        // first->var = *start;
+
+        list * to_return = (list*) calloc(1,sizeof(list));
+        variable * i = start;
+        variable * until = end;
+        // to_return->head = recursive_list_add(i->value, to_return->head);
+        while (i->value < until->value) {
+                to_return->head = recursive_list_add(i->value, to_return->head);
+                (i->value)++;
+        }
+        
+        to_return->type = LIST_RANGE_TYPE; */
 
         if (start->type != TYPE_NUMBER || end->type != TYPE_NUMBER) {
                 LogError("Invalid type for range.\n");
@@ -403,7 +425,7 @@ grammar_new_list_from_range(const variable *start,
         list->type = LIST_RANGE_TYPE;
         list->len = diff;
 
-        return lst;
+        return to_return;
 }
 
 node_list *
@@ -454,6 +476,15 @@ grammar_concat_list_args(const node_list *list,
         list->exprs[list->len] = expr;
         list->len += 1;
         list->type = EXPRESSION_TYPE;
+
+
+        /*
+        node_list * new_list = (node_list *) calloc(1,sizeof(node_list));
+        new_list->head = list;
+        new_list->head->var->type = COMMA_TYPE;
+        new_list->head->next = expr;
+        list->head->next->next = NULL;
+        */
 
         return list;
 }
@@ -523,7 +554,7 @@ grammar_expression_arithmetic_num_mod(const node_expression *lvalue,
         node_expression * node = (node_expression *) calloc(1,sizeof(node_expression));
         node->var->type = NUMBER_ARITHMETIC_MOD;
         strcpy(node->var->name, "NUMBER_ARITHMETIC_MOD");
-        node->var->value.number = (double) (((long long) lvalue->var->value.number) % ((long long) rvalue->var->value.number));
+        node->var->value.number = (double) ((long long) lvalue->var->value.number) % ((long long) rvalue->var->value.number);
  
         return node;
 }
@@ -538,8 +569,8 @@ grammar_expression_arithmetic_str_add(const node_expression *lvalue,
         
         node_expression * concat = (node_expression *) malloc(sizeof(char*) * size_ab);
 
-        memcpy(concat, lvalue->var->value.string, a);
-        memcpy(concat + a, rvalue->var->value.string, b + 1);
+        memcpy(concat, lvalue->value.string, a);
+        memcpy(concat + a, rvalue->value.string, b + 1);
 
         concat->var->type = ARITHMETIC_ADD;
 
@@ -552,7 +583,7 @@ grammar_expression_arithmetic_str_sub(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        char *p, *q, *r;
+        char* *p, *q, *r;
         char* str = lvalue->var->value.string;
         char* sub = rvalue->var->value.string;
         if (*sub && (q = r = strstr(str, sub)) != NULL) {
@@ -610,7 +641,7 @@ grammar_expression_bool_not(const node_expression *value)
 
         node_expression * node = calloc(1,sizeof(node_expression));
         node->g_boolean_type = BOOL_TYPE_NOT;
-        node->var = (variable *) calloc(1, sizeof(variable));
+        node->var = (variable *) calloc(sizeof(variable));
         
         node->var->value.boolean = ! value->var->value.boolean;
 
@@ -810,7 +841,7 @@ grammar_expression_cmp_by_type(const node_expression *expr,
 }
 
 node_expression *
-grammar_expression_from_funcall(const node_function_call* fn_calls) {
+grammar_expression_from_funcall(node_function_call* fn_calls) {
         
         LogDebug("%s(%p)\n", __func__, fn_calls);
         
@@ -840,6 +871,7 @@ grammar_new_return_node(const node_expression *id)
                 char * name = "RETURN_NO_ID";
                 node->var->name = calloc(1,strlen(name)+1);
                 strcpy(node->var->name, name);
+
                 node->type = RETURN_NO_ID;
         }
 
@@ -852,12 +884,11 @@ grammar_new_assignment_expression(const node_expression *expr,
                                   const node_expression *id)
 {
         LogDebug("%s(%p, %p)\n", __func__, expr, id);
-        node_expression* node = (node_expression) calloc(1, sizeof(node_expression));
-        node->var = expr->var;
-        node->type = id->type;
-        strcpy(node->var->name, id->var->name);
+        expr->var->type = id->var->type;
+        expr->type = id->type;
+        strcpy(expr->var->name, id->var->name);
 
-        return node;
+        return expr;
 }
 
 node_expression *
@@ -871,13 +902,13 @@ grammar_identifier(const variable_value * id)
         node->var->name = calloc(1,strlen(id)+1);
         strcpy(node->var->name, id);
 
-        node->type = ID_TYPE;
+        node->type = -1;
 
         return node;
 }
 
 node_expression *
-grammar_constant_bool(const variable_value *value)
+grammar_constant_bool(const char *value)
 {
         LogDebug("%s(%s)\n", __func__, value);
 
@@ -899,7 +930,7 @@ grammar_constant_bool(const variable_value *value)
 }
 
 node_expression *
-grammar_constant_number(const variable_value *value)
+grammar_constant_number(const char *value)
 {
         LogDebug("%s(%s)\n", __func__, value);
 
@@ -917,7 +948,7 @@ grammar_constant_number(const variable_value *value)
 }
 
 node_expression *
-grammar_constant_string(const variable_value *value)
+grammar_constant_string(const char *value)
 {
         LogDebug("%s(%s)\n", __func__, value);
         
@@ -927,7 +958,7 @@ grammar_constant_string(const variable_value *value)
         char * name = "STRING_TYPE";
         newNode->var->name = calloc(1,strlen(name)+1);
         strcpy(newNode->var->name, name);
-        newNode->var->value = malloc(strlen(value)+1);
+        newNode->var->value = (variable_value) malloc(strlen(value)+1);
         strcpy(newNode->var->value.string, value);
 
         newNode->type = STRING_TYPE;
