@@ -67,12 +67,12 @@ node_expression *grammar_new_variable(const node_expression *id,
                                       const node_expression *expr);
 
 /* Conditional */
-conditional_node *grammar_new_conditional(const node_expression *condition,
+node_expression *grammar_new_conditional(const node_expression *condition,
                                          const node_expression *expr_true,
                                          const node_expression *expr_false);
 
 /* Loop */
-loop_node *grammar_new_loop(const node_expression *id,
+node_expression *grammar_new_loop(const node_expression *id,
                                   const node_expression *iterable,
                                   const node_expression *action);
 
@@ -151,15 +151,15 @@ grammar_expression_cmp_less_equal(const node_expression *lvalue,
                                   const node_expression *rvalue);
 
 /* Identifier */
-node_expression *grammar_identifier(const variable_value *id);
+node_expression *grammar_identifier(const variable *id);
 
 node_expression *grammar_expression_cmp_by_type(const node_expression *expr,
                                                 const token_t type);
 
 /* Constant */
-node_expression *grammar_constant_number(const variable_value *value);
-node_expression *grammar_constant_string(const variable_value *value);
-node_expression *grammar_constant_bool(const variable_value* value);
+node_expression *grammar_constant_number(const variable *value);
+node_expression *grammar_constant_string(const variable *value);
+node_expression *grammar_constant_bool(const variable* value);
 
 // void free_programblock(struct node_block* program);
 

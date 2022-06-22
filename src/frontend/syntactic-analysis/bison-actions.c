@@ -61,26 +61,6 @@ node_expression *grammar_expression_from_list(const node_list *list)
 {
         LogDebug("%s(%p)\n", __func__, list);
 
-        /* node_expression * newExprList = calloc(1, sizeof(node_expression));
-        if(list != NULL){
-                node_list *iter = list->head;
-                newExprList->listExpr = calloc(1, sizeof(list));
-                node_list *retIter = newExprList->listExpr->head;
-                newExprList->listExpr->head = iter->elem;
-                newExprList->listExpr->type = iter->type;
-                while(iter!=NULL){
-                        if(iter!=COMMA){
-                                retIter->next->elem = iter->elem;
-                                retIter->next->type = iter->type;
-                                iter = list->head->next;
-                        }
-                        retIter->next = newExprList->listExpr->next->next;
-                }
-                retIter->next = NULL;
-        } else {
-                return NULL;
-        } */
-
         node_expression * expr = (node_expression*) malloc(sizeof(node_expression));
 
         expr->listExpr = (node_list*) list;
@@ -216,13 +196,16 @@ grammar_new_variable(const node_expression *id,
         return node;
 }
 
-conditional_node *
+node_expression *
 grammar_new_conditional(const node_expression *condition,
                         const node_expression *expr_true,
                         const node_expression *expr_false)
 {
         LogDebug("%s(%p, %p, %p)\n", __func__, condition, expr_true, expr_false);
         
+        node_expression* expr = malloc(sizeof(node_expression));
+        expr->type = EXPRESSION_CONDITIONAL;
+
         conditional_node* node = calloc(1, sizeof(conditional_node));
         node->condition = calloc(1,sizeof(node_expression));
         node->condition = (node_expression *) condition;
@@ -231,39 +214,35 @@ grammar_new_conditional(const node_expression *condition,
         node->expr_false = calloc(1,sizeof(node_expression));
         node->expr_false = (node_expression *) expr_false;
         
-        return node;
+        expr->conditional = node;
+
+        return expr;
 }
 
-loop_node *
+node_expression *
 grammar_new_loop(const node_expression *id,
                 const node_expression *iterable,
                 const node_expression *action)
 {
         LogDebug("%s(%p, %p, %p)\n", __func__, id, iterable, action);
 
+        node_expression* expr = malloc(sizeof(node_expression));
+        expr->type = EXPRESSION_LOOP;
+
         loop_node * loop = calloc(1,sizeof(loop_node));
         loop->id = calloc(1,sizeof(node_expression));
         loop->iterable = calloc(1,sizeof(node_expression));
         loop->action = calloc(1,sizeof(node_expression));
 
-        return loop;
+        expr->loop = loop;
+
+        return expr;
 }
 
 node_list *
 grammar_new_list(const node_expression *expr)
 {
         LogDebug("%s(%p)\n", __func__, expr);
-        /* 
-        list * list = calloc(1,sizeof(list));
-        list->head = calloc(1,sizeof(node_list));
-        list->head->elem = calloc(1,sizeof(node_expression));
-
-        list->head->elem = expr;
-        if(expr != NULL) {
-                list->head->elem->var->type = BLANK_TYPE;
-                list->head->next = NULL;
-        }
-        list->head->next = NULL; */
 
         node_list* lst = (node_list*) malloc(sizeof(node_list));
 
@@ -291,43 +270,14 @@ grammar_concat_list_expr(node_list *list,
 {
         LogDebug("%s(%p, %p)\n", __func__, list, expr);
 
-        /* list* new_list = calloc(1,sizeof(node_list));
-        new_list->type = LIST_COMMA_EXPRESSION_TYPE;
-        new_list->head = calloc(1,sizeof(node_list));
-        new_list->head = list;
-        node_list* new_next = calloc(1,sizeof(node_list));
-        new_next->head = expr;
-        new_next->next = NULL; */
-        
         node_expression ** expanded = (node_expression **) realloc(list->exprs, (list->len + 1) * sizeof(node_expression*));
         expanded[list->len] = (node_expression *) expr;
 
         list->exprs[(list->len)++] = (node_expression *) expanded;
-        // list->len += 1;
 
         return list;
 
 }
-
-/* node_list *
-recursive_list_add(const variable_value new_var,
-                const node_list* first)
-{
-        if (first == NULL)
-        {
-                node_list* new = calloc(1,sizeof(node_list));
-                new->type = LIST_RANGE_TYPE;
-                new->elem = calloc(1,sizeof(node_expression));
-                new->elem->var = calloc(1,sizeof(variable));
-                new->elem->var->value = new_var;
-                // agragar bien los types mas abajo en los nodes
-                return new;
-        }
-        first->next = recursive_list_add(new_var, first->next);
-        return first;
-
-} */
-
 
 node_list *
 grammar_concat_list_list(node_list *head_list,
@@ -335,26 +285,8 @@ grammar_concat_list_list(node_list *head_list,
 {
         LogDebug("%s(%p, %p)\n", __func__, head_list, tail_list);
 
-        /* list* new_list = calloc(1,sizeof(list));
-        new_list->type = LIST_COMMA_RANGE_TYPE;
-        // new_list->head = head_list->head;
-        node_list* j = head_list->head;
 
-        while (j->next != NULL) {
-                new_list->head = recursive_list_add(j->elem->var->value, new_list->head);
-                j->next = j->next->next;
-        }
 
-        j->next = tail_list->head;
-        while (j->next != NULL) {
-                new_list->head = recursive_list_add(j->elem->var->value, new_list->head);
-                j->next = j->next->next;
-        }
-
-        // node_list* i = tail_list->head;
-        // while (i->next != NULL) {
-        //         i->next = i->next->next;
-        // } */
 
         node_list * concat = realloc(head_list, head_list->len + tail_list->len);
 
@@ -365,7 +297,6 @@ grammar_concat_list_list(node_list *head_list,
         head_list->len += tail_list->len;
         head_list = concat;
         return concat;
-        // return grammar_new_list_from_range(head_list, tail_list);
 }
 
 node_list *
@@ -409,19 +340,6 @@ node_list *
 grammar_new_list_args(const node_expression *expr)
 {
         LogDebug("%s(%p)\n", __func__, expr);
-
-        /*node_list * list = (node_list *) calloc(1,sizeof(node_list));
-        if (expr == NULL) {
-                list->elem = calloc(1,sizeof(node_expression));
-                // list->head->var = calloc(1,sizeof(variable));
-
-              list->type = BLANK_TYPE;
-                // list->head->var = expr;
-        } else {
-                list->type = EXPRESSION_TYPE;
-        }
-        list->elem = expr;
-        list->next = NULL;*/
 
         node_list * lst = (node_list*) malloc(sizeof(node_list));
         
@@ -876,15 +794,15 @@ grammar_new_assignment_expression(const node_expression *expr,
 }
 
 node_expression *
-grammar_identifier(const variable_value * id)
+grammar_identifier(const variable* id)
 {
         LogDebug("%s(%p)\n", __func__, id);
 
         node_expression* node = calloc(1,sizeof(node_expression));
         node->var = calloc(1,sizeof(variable));
         node->var->type = ID_TYPE;
-        node->var->name = calloc(1,strlen(id->string)+1);
-        strcpy(node->var->name, id->string);
+        node->var->name = calloc(1,strlen(id->value.string)+1);
+        strcpy(node->var->name, id->value.string);
 
         node->type = ID_TYPE;
 
@@ -892,14 +810,14 @@ grammar_identifier(const variable_value * id)
 }
 
 node_expression *
-grammar_constant_bool(const variable_value *value)
+grammar_constant_bool(const variable *rval)
 {
-        LogDebug("%s(%s)\n", __func__, value);
+        LogDebug("%s(%s)\n", __func__, rval);
 
         node_expression * newNode = calloc(1,sizeof(node_expression));
         newNode->var = calloc(1, sizeof(variable));
         newNode->var->type = BOOL_TYPE;
-        if(strcmp(value->string, "TRUE") == 0) {
+        if(strcmp(rval->value.string, "TRUE") == 0) {
                 newNode->var->value.boolean = true;
         } else {
                 newNode->var->value.boolean = false;
@@ -914,14 +832,14 @@ grammar_constant_bool(const variable_value *value)
 }
 
 node_expression *
-grammar_constant_number(const variable_value *value)
+grammar_constant_number(const variable *rval)
 {
-        LogDebug("%s(%s)\n", __func__, value);
+        LogDebug("%s(%s)\n", __func__, rval);
 
         node_expression* node = calloc(1,sizeof(node_expression));
 
-        node->var = calloc(1,sizeof(variable));
-        node->var->value.number = atoi(value->string);
+        node->var = calloc(1,sizeof(variable*));
+        node->var->value.number = atoi(rval->value.string);
         node->var->type = NUMBER_TYPE;
 
         char * name = "NUMBER_TYPE";
@@ -934,9 +852,9 @@ grammar_constant_number(const variable_value *value)
 }
 
 node_expression *
-grammar_constant_string(const variable_value *value)
+grammar_constant_string(const variable *rval)
 {
-        LogDebug("%s(%s)\n", __func__, value);
+        LogDebug("%s(%s)\n", __func__, rval);
         
         node_expression * newNode = calloc(1,sizeof(node_expression));
         newNode->var = calloc(1,sizeof(variable));
@@ -946,30 +864,12 @@ grammar_constant_string(const variable_value *value)
         newNode->var->name = calloc(1,strlen(name)+1);
         strcpy(newNode->var->name, name);
 
-        newNode->var->value.string = (char*) malloc(strlen(value->string)+1);
-        strcpy(newNode->var->value.string, value->string);
+        newNode->var->value.string = (char*) malloc(strlen(rval->value.string)+1);
+        strcpy(newNode->var->value.string, rval->value.string);
 
         newNode->type = STRING_TYPE;
 
         return newNode;
-}
-
-node_expression *
-grammar_concat_expressions_filehandler(const node_expression *exprs,
-                                       const node_file_block *fhandler)
-{
-        LogDebug("%s(%p, %p)\n", __func__, exprs, fhandler);
-
-        return NULL;
-}
-
-node_expression *
-grammar_new_assignment_identifier(const node_expression *from_id,
-                                  const node_expression *to_id)
-{
-        LogDebug("%s(%p, %p)\n", __func__, from_id, to_id);
-
-        return NULL;
 }
 
 /*

@@ -116,7 +116,7 @@ string          \"(\\.|[^"\\])*\"
 
 {id}            { return pattern_id(yytext); }
 
-{endline}       { return pattern(yytext); return TEOL; }
+{endline}       { return pattern(yytext, TEOL); }
 
 {whitespace}    { pattern_ignored(yytext); }
 

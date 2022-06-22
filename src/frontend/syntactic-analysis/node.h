@@ -90,6 +90,8 @@ typedef enum FILE_DECLARATION_TYPE {
 
 typedef enum NODE_EXPRESSION_TYPE {
         EXPRESSION_VARIABLE,
+        EXPRESSION_LOOP,
+        EXPRESSION_CONDITIONAL,
         EXPRESSION_LIST,
         EXPRESSION_FILE_BLOCK,
         EXPRESSION_GRAMMAR_CONSTANT_TYPE,
@@ -112,6 +114,9 @@ struct node_expression {
         variable * var;
         node_file_block * fileHandler;
         node_list* listExpr;
+        conditional_node* conditional;
+        loop_node* loop;
+
         GRAMMAR_CONSTANT_TYPE g_constant_type;
         GRAMMAR_EXPRESSION_CMP_TYPE g_expression_cmp_type;
         GRAMMAR_BOOLEAN_TYPE g_boolean_type;
@@ -120,6 +125,7 @@ struct node_expression {
         GRAMMAR_RETURN_TYPE g_return_type;
         FILE_DECLARATION_TYPE f_declaration_type;
         node_function_call * function_call_pointer;
+        
         token_t type;
 } ;
 

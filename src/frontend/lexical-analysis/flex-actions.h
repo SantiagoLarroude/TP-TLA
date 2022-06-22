@@ -119,6 +119,8 @@ typedef enum TokenID {
 
 TokenID pattern_id(const char *lexeme);
 
+TokenID pattern(const char *lexeme, TokenID token);
+
 TokenID pattern_string(const char *lexeme);
 
 TokenID pattern_number(const char *lexeme);
