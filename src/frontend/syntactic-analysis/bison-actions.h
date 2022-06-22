@@ -77,14 +77,14 @@ loop_node *grammar_new_loop(const node_expression *id,
                                   const node_expression *action);
 
 /* List */
-node_expression *grammar_expression_from_list(const list *list);
+node_expression *grammar_expression_from_list(const node_list *list);
 
 node_list *grammar_new_list(const node_expression *expr);
 
-node_list *grammar_concat_list_expr(const node_list *list,
+node_list *grammar_concat_list_expr(node_list *list,
                                     const node_expression *expr);
 
-node_list *grammar_concat_list_list(const node_list *head_list,
+node_list *grammar_concat_list_list(node_list *head_list,
                                     const node_list *tail_list);
 
 node_list *grammar_new_list_from_range(const variable *start,
@@ -92,7 +92,7 @@ node_list *grammar_new_list_from_range(const variable *start,
 
 node_list *grammar_new_list_args(const node_expression *expr);
 
-node_list *grammar_concat_list_args(const node_list *list,
+node_list *grammar_concat_list_args(node_list *list,
                                     const node_expression *expr);
 
 /* Arithmetic */

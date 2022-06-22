@@ -110,9 +110,8 @@ struct variable {
 
 struct node_expression {
         variable * var;
-        list * listExpr;
         node_file_block * fileHandler;
-        node_list* node_list;
+        node_list* listExpr;
         GRAMMAR_CONSTANT_TYPE g_constant_type;
         GRAMMAR_EXPRESSION_CMP_TYPE g_expression_cmp_type;
         GRAMMAR_BOOLEAN_TYPE g_boolean_type;
@@ -126,11 +125,6 @@ struct node_expression {
 
 struct node_list {
         node_expression ** exprs;
-        size_t len;
-        token_t type;
-};
-
-struct list {
         size_t len;
         token_t type;
 };
