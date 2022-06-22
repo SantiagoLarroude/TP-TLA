@@ -17,6 +17,9 @@
 
 /* Prototypes */
 static bool save_token(const char *lexeme);
+static bool save_token_id(const char *lexeme);
+static bool save_token_string(const char *lexeme);
+static bool save_token_number(const char *lexeme);
 
 /**
  * "flex-rules.h" implementation
@@ -45,16 +48,7 @@ TokenID pattern_id(const char *lexeme)
 
 static bool save_token_id(const char *lexeme)
 {
-        yylval.id =
-                realloc(yylval.id, sizeof(char) * strlen(lexeme));
-        if (yylval.id == NULL) {
-                log_error_no_mem();
-                return false;
-        }
-
-        strcpy(yylval.id, lexeme);
-
-        return true;
+        return save_token_string(lexeme);
 }
 
 TokenID pattern_string(const char *lexeme)
@@ -69,14 +63,14 @@ TokenID pattern_string(const char *lexeme)
 
 static bool save_token_string(const char *lexeme)
 {
-        yylval.string =
-                realloc(yylval.string, sizeof(char) * strlen(lexeme));
-        if (yylval.string == NULL) {
+        yylval.value.string = (char*)
+                realloc(yylval.value.string, sizeof(char) * strlen(lexeme));
+        if (yylval.value.string == NULL) {
                 log_error_no_mem();
                 return false;
         }
 
-        strcpy(yylval.string, lexeme);
+        strcpy(yylval.value.string, lexeme);
 
         return true;
 }
@@ -92,14 +86,7 @@ TokenID pattern_number(const char *lexeme)
 
 static bool save_token_number(const char *lexeme)
 {
-        yylval.number =
-                realloc(yylval.number, sizeof(char) * strlen(lexeme));
-        if (yylval.number == NULL) {
-                log_error_no_mem();
-                return false;
-        }
-
-        strcpy(yylval.number, lexeme);
+        yylval.value.number = strtod(lexeme, NULL);
 
         return true;
 }
@@ -154,14 +141,7 @@ void free_yylval()
 
 static bool save_token(const char *lexeme)
 {
-        yylval.token =
-                realloc(yylval.token, sizeof(char) * strlen(lexeme));
-        if (yylval.token == NULL) {
-                log_error_no_mem();
-                return false;
-        }
-
-        strcpy(yylval.token, lexeme);
+        yylval.token = (token_t) atoi(lexeme);
 
         return true;
 }

@@ -21,20 +21,17 @@ typedef unsigned int token_t;  // Must be before including node.h
 /* Structures and types */
 
 union YYSTYPE {
+    // No terminales
+    struct program* program;
     struct node_function* fun;
     struct node_function_call* fun_call;
     struct node_expression* expr;
     struct node_file_block* file_block;
-    struct node_list* node_list;
-    struct list* list;
-    struct loop_node* loop;
-    struct conditional_node* conditional;
-
+    struct node_list* list;
     struct variable* var;
+
+    // Terminales
     union variable_value value;
-
-    char* string;
-
     token_t token;
 };
 

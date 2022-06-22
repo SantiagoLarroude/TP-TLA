@@ -41,7 +41,7 @@ typedef enum TokenID {
         CLOSE_PARENTHESIS,
 
         /* Assignment */
-        ASSIGN,
+        ASSING,
         FSTREAM_OVERWRITE,
 
         /* Logic */

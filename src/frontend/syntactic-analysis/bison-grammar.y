@@ -8,31 +8,8 @@
 %}
 
 /* descomentar la linea 11 */
-/* %define api.value.type {union YYSTYPE} */
+%define api.value.type {union YYSTYPE}
 
-%union{
-    // No terminales
-    struct program* program;
-    struct node_function* fun;
-    struct node_function_call* fun_call;
-    struct node_expression* expr;
-    struct node_file_block* file_block;
-    struct node_list* list;
-    struct variable* var;
-
-    /*
-        typedef union variable_value {
-                bool boolean;
-                long long integer;
-                double dFloat;
-                char * string;
-        } variable_value;
-    */
-
-    // Terminales
-    union variable_value value;
-    token_t token;
-}
 
 // Flex tokens:
 
@@ -51,7 +28,7 @@
 %token <token> OPEN_PARENTHESIS CLOSE_PARENTHESIS
 
 /* Assignment */
-%token <token> ASSIGN FSTREAM_OVERWRITE
+%token <token> ASSING FSTREAM_OVERWRITE
 
 /* Logic */
 %token <token> NOT AND OR
@@ -113,7 +90,7 @@
 
 // Associativity and precedence rules (from lower precedence to higher)
 %left   TLINES TCOLS
-%left   ASSIGN FSTREAM_OVERWRITE
+%left   ASSING FSTREAM_OVERWRITE
 %left   THEN
 %left   ELSE
 %left   OR
@@ -137,8 +114,8 @@
  * 5.3.3 Specifying Precedence Only
  * from the Bison manual for a detailed explanation.
  */
-%precedence THEN
-%precedence ELSE
+// %precedence THEN
+// %precedence ELSE
 
 /* Root node */
 %start program
@@ -346,7 +323,7 @@ cmp_type    :   identifier
 return      :   RETURN identifier TEOL { $$ = grammar_new_return_node($2); }
             |   RETURN TEOL { $$ = grammar_new_return_node(NULL); }
 
-assign      :   expression ASSIGN identifier TEOL {
+assign      :   expression ASSING identifier TEOL {
                     $$ = grammar_new_assignment_expression($1, $3);
                 }
             ;

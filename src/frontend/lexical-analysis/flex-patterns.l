@@ -59,7 +59,7 @@ string          \"(\\.|[^"\\])*\"
 ":"             { return pattern(yytext, COLON); }
 "."             { return pattern(yytext,DOT); }
 
-"["             { return pattern(yytext, OPEN_BRACK); }
+"["             { return pattern(yytext, OPEN_BRACKETS); }
 "]"             { return pattern(yytext, CLOSE_BRACKETS); }
 
 "("             { return pattern(yytext, OPEN_PARENTHESIS); }

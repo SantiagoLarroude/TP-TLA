@@ -13,7 +13,7 @@
  */
 
 /* Program */
-void grammar_program(const node_function *value);
+program* grammar_program(const node_function *value);
 
 /* Functions */
 node_function *grammar_new_function(const node_expression *expr);
@@ -72,12 +72,12 @@ node_expression *grammar_new_conditional(const node_expression *condition,
                                          const node_expression *expr_false);
 
 /* Loop */
-node_expression *grammar_new_loop(const node_expression *id,
+loop_node *grammar_new_loop(const node_expression *id,
                                   const node_expression *iterable,
                                   const node_expression *action);
 
 /* List */
-node_expression *grammar_expression_from_list(const node_list *list);
+node_expression *grammar_expression_from_list(const list *list);
 
 node_list *grammar_new_list(const node_expression *expr);
 
