@@ -178,9 +178,7 @@ expression  :   file_decl
             |   file_handle {
                     $$ = grammar_expression_from_filehandler($1);
                 }
-            |   assign {
-                    $$ = grammar_expression_from_assignment($1);
-                }
+            |   assign
             ;
 
 fn_calls    :   fn_call
