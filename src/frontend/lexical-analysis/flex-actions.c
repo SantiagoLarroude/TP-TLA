@@ -16,27 +16,27 @@
         LogDebug("%s: '%s'\n\tFile: %s", __func__, val, __FILE__);
 
 /* Prototypes */
-static bool save_token(const char *lexeme);
-static bool save_token_id(const char *lexeme);
-static bool save_token_string(const char *lexeme);
-static bool save_token_number(const char *lexeme);
+static bool save_token(const char* lexeme);
+static bool save_token_id(const char* lexeme);
+static bool save_token_string(const char* lexeme);
+static bool save_token_number(const char* lexeme);
 
 /**
  * "flex-rules.h" implementation
  */
 
-TokenID all_type_of_pattern(const char *lexeme, TokenID token)
+TokenID all_type_of_pattern(const char* lexeme, TokenID token)
 {
         log_debug_single_value(lexeme);
 
-         if (save_token(lexeme))
+        if (save_token(lexeme))
                 return token;
 
         return YYUNDEF;
 }
 
 
-TokenID pattern_id(const char *lexeme)
+TokenID pattern_id(const char* lexeme)
 {
         log_debug_single_value(lexeme);
 
@@ -46,12 +46,12 @@ TokenID pattern_id(const char *lexeme)
         return YYUNDEF;
 }
 
-static bool save_token_id(const char *lexeme)
+static bool save_token_id(const char* lexeme)
 {
         return save_token_string(lexeme);
 }
 
-TokenID pattern_string(const char *lexeme)
+TokenID pattern_string(const char* lexeme)
 {
         log_debug_single_value(lexeme);
 
@@ -61,30 +61,29 @@ TokenID pattern_string(const char *lexeme)
         return YYUNDEF;
 }
 
-static bool save_token_string(const char *lexeme)
+static bool save_token_string(const char* lexeme)
 {
         yylval.value.string = strdup(lexeme);
 
         return true;
 }
 
-TokenID pattern_number(const char *lexeme)
+TokenID pattern_number(const char* lexeme)
 {
-        printf(" hola_1 ");
         log_debug_single_value(lexeme);
-        printf(" hola_1_2 ");
+
         if (save_token_string(lexeme)) {
                 return NUMBER;
         }
-                
+
         return YYUNDEF;
 }
 
-static bool save_token_number(const char *lexeme)
+static bool save_token_number(const char* lexeme)
 {
         // printf(lexeme);
         yylval.value.number = atoi(lexeme);
-        printf(" save_token_number_2 f: %f\n",yylval.value.number);
+        printf(" save_token_number_2 f: %f\n", yylval.value.number);
         return true;
 }
 
@@ -92,13 +91,12 @@ TokenID pattern_bool(const bool lexeme)
 {
         LogDebug("%s: '%d'\n\tFile: %s", __func__, lexeme, __FILE__);
 
-        
+
 
         if (lexeme == true) {
                 save_token_string("True");
                 return TTRUE;
-        }
-        else {
+        } else {
                 save_token_string("False");
                 return TFALSE;
         }
@@ -106,7 +104,7 @@ TokenID pattern_bool(const bool lexeme)
         return YYUNDEF;
 }
 
-void pattern_ignored(const char *lexeme)
+void pattern_ignored(const char* lexeme)
 {
         /* Easier to read in the terminal */
         switch (lexeme[0]) {
@@ -131,7 +129,7 @@ void pattern_ignored(const char *lexeme)
         }
 }
 
-TokenID pattern_unknown(const char *lexeme)
+TokenID pattern_unknown(const char* lexeme)
 {
         log_debug_single_value(lexeme);
 
@@ -143,7 +141,7 @@ void free_yylval()
         free(yylval.value.string);
 }
 
-static bool save_token(const char *lexeme)
+static bool save_token(const char* lexeme)
 {
         yylval.token = (token_t) atoi(lexeme);
 

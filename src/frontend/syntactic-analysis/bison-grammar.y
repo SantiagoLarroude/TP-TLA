@@ -353,8 +353,8 @@ data_type   :   TYPE_FILE
             ;
 
 bool_constant 
-            :   TTRUE       { $$ = grammar_constant_bool($1); }
-            |   TFALSE      { $$ = grammar_constant_bool($1); }
+            :   TTRUE       { $$ = grammar_constant_bool("True"); }
+            |   TFALSE      { $$ = grammar_constant_bool("False"); }
             ;
 
 constant    :   NUMBER      { $$ = grammar_constant_number($1); }

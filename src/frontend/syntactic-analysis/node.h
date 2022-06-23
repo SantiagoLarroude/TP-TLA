@@ -20,24 +20,24 @@ typedef struct program {
 typedef union variable_value {
         bool boolean;
         double number;
-        char * string;
+        char* string;
 } variable_value;
 
-typedef enum GRAMMAR_CONSTANT_TYPE{
+typedef enum GRAMMAR_CONSTANT_TYPE {
         NUMBER_TYPE = 1,
         STRING_TYPE,
         BOOL_TYPE,
         ID_TYPE
 } GRAMMAR_CONSTANT_TYPE;
 
-typedef enum GRAMMAR_RETURN_TYPE{
+typedef enum GRAMMAR_RETURN_TYPE {
         RETURN__ID = 1,
         RETURN_NO_ID
 } GRAMMAR_RETURN_TYPE;
 
-typedef enum GRAMMAR_EXPRESSION_CMP_TYPE{
+typedef enum GRAMMAR_EXPRESSION_CMP_TYPE {
         CMP_EXP_EQUALS = 1,
-        CMP_EXP_NOT_EQUALS,        
+        CMP_EXP_NOT_EQUALS,
         CMP_EXP_GREATER_THAN,
         CMP_EXP_GREATER_EQUAL,
         CMP_EXP_LESS_THAN,
@@ -45,7 +45,7 @@ typedef enum GRAMMAR_EXPRESSION_CMP_TYPE{
         CMP_EXP_IS,
 } GRAMMAR_EXPRESSION_CMP_TYPE;
 
-typedef enum GRAMMAR_BOOLEAN_TYPE{
+typedef enum GRAMMAR_BOOLEAN_TYPE {
         BOOL_TYPE_AND = 1,
         BOOL_TYPE_OR,
         BOOL_TYPE_NOT,
@@ -106,13 +106,13 @@ typedef enum NODE_EXPRESSION_TYPE {
 
 struct variable {
         token_t type;
-        char * name;
+        char* name;
         variable_value value;
 };
 
 struct node_expression {
-        variable * var;
-        node_file_block * fileHandler;
+        variable* var;
+        node_file_block* fileHandler;
         node_list* listExpr;
         conditional_node* conditional;
         loop_node* loop;
@@ -126,32 +126,32 @@ struct node_expression {
         GRAMMAR_RETURN_TYPE g_return_type;
         FILE_DECLARATION_TYPE f_declaration_type;
 
-        node_function_call * function_call_pointer;
-        
+        node_function_call* function_call_pointer;
+
         token_t type;
-} ;
+};
 
 struct node_list {
-        node_expression ** exprs;
+        node_expression** exprs;
         size_t len;
         token_t type;
 };
 
 struct node_file_block {
-        node_expression *id;
-        node_expression *expr;
-} ;
+        node_expression* id;
+        node_expression* expr;
+};
 
 struct node_function_call {
         node_expression* id;
         node_function_call* function_call;
         node_function_call* function_append;
         node_list* node_list;
-} ;
+};
 
 struct node_function {
         node_expression* expr;
-} ;
+};
 
 
 
@@ -178,13 +178,13 @@ struct loop_node {
         node_expression* id;
         node_expression* iterable;
         node_expression* action;
-} ;
+};
 
 struct conditional_node {
         node_expression* condition;
         node_expression* expr_true;
         node_expression* expr_false;
-} ;
+};
 
 
 
