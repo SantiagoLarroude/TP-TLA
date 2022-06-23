@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "symbols.h"
 
 #define BLOCKSIZE       64
@@ -20,11 +23,12 @@ typedef struct node {
 
 node** table;
 
+hash_t hash(char* name);
 variable* lookup_variable_in_scope(char* name, unsigned scope);
-void prev_scope();
 void next_scope();
+void prev_scope();
 
-void initialize_table()
+bool initialize_table()
 {
         current_scope = 0;
         num_blocks = 1;
@@ -43,9 +47,9 @@ hash_t hash(char* name)
 
         if (name == NULL)
                 return hash;
-        
-        for (unsigned i = 0; name[i] != '\0' && name[i] != NULL; i++)
-                hash[i] = hash[i - 1] * 33 ^ name[i]; /* hash * 33 + c */
+
+        for (unsigned i = 0; name[i] != '\0'; i++)
+                hash = ((hash << 5) + hash) + name[i]; /* hash * 33 + c */
 
         return hash;
 }
@@ -64,10 +68,8 @@ void prev_scope()
                         continue;
 
                 current = table[i];
-                while (current != NULL && current->scope == current_scope) {
+                while (current != NULL && current->scope == current_scope)
                         current = current->next;
-                        free(previous);
-                }
 
                 table[i] = current;
         }
@@ -76,10 +78,10 @@ void prev_scope()
                 current_scope--;
 }
 
-int insert(variable* var)
+int insert_variable(variable* var)
 {
         hash_t prehash = hash(var->name);
-        unsigned key_index = pre % (num_blocks * BLOCKSIZE);
+        unsigned key_index = prehash % (num_blocks * BLOCKSIZE);
         node* table_node = table[key_index];
 
         while (table_node != NULL && table_node->prehash != prehash)
@@ -99,10 +101,12 @@ int insert(variable* var)
                 return MULTIPLE_DECLARATION;
         }
 
-        if ((table_size * 1.0) / (num_blocks * BLOCK_SIZE) >= THRESHOLD) {
+        if ((table_size * 1.0) / (num_blocks * BLOCKSIZE) >= THRESHOLD) {
                 num_blocks++;
-                table = realloc(table, sizeof(node*) * num_blocks * BLOCK_SIZE);
-                memset(table + table_size, 0, (num_blocks * BLOCK_SIZE - table_size) * sizeof(node*));
+                table = realloc(table, sizeof(node*) * num_blocks * BLOCKSIZE);
+                memset(table + table_size,
+                       0,
+                       (num_blocks * BLOCKSIZE - table_size) * sizeof(node*));
         }
 
         return SUCCESS;
@@ -124,7 +128,7 @@ variable* lookup_variable_in_scope(char* name, unsigned scope)
         unsigned key_index = pre % (num_blocks * BLOCKSIZE);
         node* node = table[key_index];
 
-        while (node != NULL && (node->prehash != pre || node->scope != scope)) 
+        while (node != NULL && (node->prehash != pre || node->scope != scope))
                 node = node->next;
 
         if (node == NULL)
@@ -132,4 +136,10 @@ variable* lookup_variable_in_scope(char* name, unsigned scope)
 
 
         return node->var;
+}
+
+void free_table()
+{
+        if (table != NULL)
+                free(table);
 }

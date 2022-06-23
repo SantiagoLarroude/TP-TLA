@@ -30,6 +30,7 @@ add_custom_command(
                 ${CMAKE_SOURCE_DIR}/src/frontend/syntactic-analysis/bison-parser.h
         COMMAND bison   -d ${CMAKE_SOURCE_DIR}/src/frontend/syntactic-analysis/bison-grammar.y
                         -o ${CMAKE_SOURCE_DIR}/src/frontend/syntactic-analysis/bison-parser.c
+                        -Wcounterexamples
         )
 
 message(STATUS "Bison built.")
@@ -89,7 +90,9 @@ add_executable(${PROJECT_NAME}
         frontend/lexical-analysis/flex-scanner.c
         frontend/syntactic-analysis/bison-actions.c
         frontend/syntactic-analysis/bison-parser.c
+        frontend/syntactic-analysis/node.h
         backend/logger.c
+        backend/symbols.c
 )
 
 target_link_libraries(${PROJECT_NAME})

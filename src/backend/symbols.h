@@ -12,9 +12,9 @@ typedef enum SYMBOLS_STATUS {
 } SYMBOLS_STATUS;
 
 
-bool init_table();
+bool initialize_table();
 
-int insert_variable();
+int insert_variable(variable* var);
 variable* lookup_variable(char* name);
 
 void free_table();

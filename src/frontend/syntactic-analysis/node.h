@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+typedef unsigned int token_t;
+
 typedef struct variable variable;
 typedef struct node_list node_list;
 typedef struct node_file_block node_file_block;

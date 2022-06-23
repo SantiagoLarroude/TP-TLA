@@ -117,19 +117,19 @@ typedef enum TokenID {
  * (a.k.a. DFA), como mecanismo de escaneo y reconocimiento.
  */
 
-TokenID pattern_id(const char *lexeme);
+TokenID pattern_id(const char* lexeme);
 
-TokenID all_type_of_pattern(const char *lexeme, TokenID token);
+TokenID all_type_of_pattern(const char* lexeme, TokenID token);
 
-TokenID pattern_string(const char *lexeme);
+TokenID pattern_string(const char* lexeme);
 
-TokenID pattern_number(const char *lexeme);
+TokenID pattern_number(const char* lexeme);
 
 TokenID pattern_bool(const bool lexeme);
 
-void pattern_ignored(const char *lexeme);
+void pattern_ignored(const char* lexeme);
 
-TokenID pattern_unknown(const char *lexeme);
+TokenID pattern_unknown(const char* lexeme);
 
 void free_yylval();
 

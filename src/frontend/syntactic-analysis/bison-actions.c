@@ -44,7 +44,6 @@ program* grammar_program(const node_function* value)
         program* p = (program*) calloc(1, sizeof(program));
         p->value = (node_function*) value;
         state.succeed = true;
-        initialize_table();
 
         return p;
 }

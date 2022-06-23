@@ -4,8 +4,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-typedef unsigned int token_t;  // Must be before including node.h
-
 #include "../frontend/syntactic-analysis/node.h"        /* node_* types */
 #include "../backend/logger.h"                          /* LogError */
 
@@ -21,19 +19,19 @@ typedef unsigned int token_t;  // Must be before including node.h
 /* Structures and types */
 
 union YYSTYPE {
-    // No terminales
-    struct program* program;
-    struct node_function* fun;
-    struct node_function_call* fun_call;
-    struct node_expression* expr;
-    struct node_file_block* file_block;
-    struct node_list* list;
-    struct variable* var;
+        // No terminales
+        struct program* program;
+        struct node_function* fun;
+        struct node_function_call* fun_call;
+        struct node_expression* expr;
+        struct node_file_block* file_block;
+        struct node_list* list;
+        struct variable* var;
 
-    // Terminales
-    union variable_value value;
-    char* string;
-    token_t token;
+        // Terminales
+        union variable_value value;
+        char* string;
+        token_t token;
 };
 
 // Descriptor del archivo de entrada que utiliza Bison.

@@ -1,10 +1,12 @@
 // #include "backend/code-generation/generator.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "backend/logger.h"
 #include "backend/shared.h"
 
 #include "frontend/syntactic-analysis/bison-parser.h"
+#include "backend/symbols.h"
 
 //Estado de la aplicación.
 CompilerState state;
@@ -23,18 +25,23 @@ const int main(const int argumentCount, const char** arguments)
                 LogInfo("Argumento %d: '%s'", i, arguments[i]);
         }
 
+        // Hash table for variables
+        if (initialize_table() == false) {
+                LogError("Could not initialize variables table. Aborting.");
+                exit(1);
+        }
+
         // Compilar el programa de entrada.
         LogInfo("Compilando...\n");
         const int result = yyparse();
-        
+
         switch (result) {
         case 0:
                 if (state.succeed) {
-                        
+
                         LogInfo("La compilación fue exitosa.");
                         // Generator(state.result);
-                }
-                else {
+                } else {
                         LogError("Se produjo un error en la aplicacion.");
                         // free_programblock(programblock);
                         free_yylval();
