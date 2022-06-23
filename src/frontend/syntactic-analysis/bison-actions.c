@@ -11,6 +11,8 @@
 /* This file */
 #include "bison-actions.h"
 
+#include "../../backend/symbols.h"
+
 /* Prototypes */
 // static bool const_to_expr_cp(const char* value,
 //                              node_expression* expression);
@@ -42,6 +44,7 @@ program* grammar_program(const node_function* value)
         program* p = (program*) calloc(1, sizeof(program));
         p->value = (node_function*) value;
         state.succeed = true;
+        initialize_table();
 
         return p;
 }
