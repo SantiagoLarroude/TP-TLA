@@ -29,7 +29,7 @@ TokenID all_type_of_pattern(const char *lexeme, TokenID token)
 {
         log_debug_single_value(lexeme);
 
-        if (save_token(lexeme))
+         if (save_token(lexeme))
                 return token;
 
         return YYUNDEF;

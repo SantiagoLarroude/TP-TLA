@@ -46,13 +46,16 @@ program* grammar_program(const node_function *value)
         return p;
 }
 
-node_function *grammar_new_function(const node_expression *expr)
+node_function *
+grammar_new_function(const node_expression *expr)
 {
         LogDebug("%s(%p)\n", __func__, expr);
 
         node_function * newFuncNode = calloc(1,sizeof(node_function));
         newFuncNode->expr = calloc(1,sizeof(node_expression));
         newFuncNode->expr = (node_expression *) expr;
+
+        state.succeed = true;
 
         return newFuncNode;
 }
@@ -833,6 +836,8 @@ grammar_constant_bool(const token_t rval)
 {
         LogDebug("%s(%s)\n", __func__, rval);
 
+        printf("\n\nrval en grammar_constant_bool: %d\n\n", rval);
+
         node_expression * newNode = calloc(1,sizeof(node_expression));
         newNode->var = calloc(1, sizeof(variable));
         newNode->var->type = BOOL_TYPE;
@@ -863,7 +868,6 @@ grammar_constant_number(const char *rval)
         // double rvalBis = strtod(*rval, NULL);
         double rvalBis = atof(rval);
         int rvalBisBis = atoi(rval);
-
         printf("\nf: %f", rvalBis);
         printf("\nd: %d", rvalBisBis);
         printf("\nrval: %s", rval);

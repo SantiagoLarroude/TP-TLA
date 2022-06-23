@@ -84,7 +84,7 @@
 %token <token> TEOL
 
 // TYPES
-%type <program>         program
+%type <program>      program
 %type <fun>         function
 %type <fun_call>    fn_calls fn_call
 %type <expr>        expressions expression
@@ -137,7 +137,6 @@
 %start program
 
 %%
-
 
 program     :   function { grammar_program($1); }
             ;
