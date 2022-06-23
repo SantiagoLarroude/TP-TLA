@@ -117,6 +117,7 @@ struct node_expression {
         conditional_node* conditional;
         loop_node* loop;
 
+        // calculo que vuelan todos estos enums
         GRAMMAR_CONSTANT_TYPE g_constant_type;
         GRAMMAR_EXPRESSION_CMP_TYPE g_expression_cmp_type;
         GRAMMAR_BOOLEAN_TYPE g_boolean_type;
@@ -124,6 +125,7 @@ struct node_expression {
         GRAMMAR_NUMBER_ARITHMETIC_TYPE g_number_arithmetic_type;
         GRAMMAR_RETURN_TYPE g_return_type;
         FILE_DECLARATION_TYPE f_declaration_type;
+
         node_function_call * function_call_pointer;
         
         token_t type;

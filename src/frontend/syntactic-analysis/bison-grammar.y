@@ -1,20 +1,36 @@
-%{
+%code requires{
 
 #include "bison-actions.h"
 
 /* Top level root node in the AST */
 // node_block* programblock = NULL;
 
-%}
+}
 
 /* descomentar la linea 11 */
 %define api.value.type {union YYSTYPE}
+
+/* %union{
+    // No terminales
+    struct program* program;
+    struct node_function* fun;
+    struct node_function_call* fun_call;
+    struct node_expression* expr;
+    struct node_file_block* file_block;
+    struct node_list* list;
+    struct variable* var;
+
+    // Terminales
+    union variable_value value;
+    char* string;
+    token_t token;
+} */
 
 
 // Flex tokens:
 
 /* Identifier */
-%token <var> ID
+%token <string> ID
 
 %token <token> FUNCTION RETURN END
 
@@ -57,8 +73,8 @@
 /* Files */
 %token <token> FSTREAM_STDOUT
 
-%token <var> NUMBER STRING
-%token <var> TTRUE TFALSE
+%token <string> NUMBER STRING
+%token <token> TTRUE TFALSE
 
 /* Data types */
 %token <token> IS
@@ -328,7 +344,7 @@ assign      :   expression ASSING identifier TEOL {
                 }
             ;
 
-identifier  :   ID { $$ = grammar_identifier($1); }
+identifier  :   ID { $$ = grammar_identifier((char*) $1); }
             ;
 
 data_type   :   TYPE_FILE

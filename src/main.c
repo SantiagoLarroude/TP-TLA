@@ -30,6 +30,7 @@ const int main(const int argumentCount, const char** arguments)
         switch (result) {
         case 0:
                 if (state.succeed) {
+                        
                         LogInfo("La compilación fue exitosa.");
                         // Generator(state.result);
                 }

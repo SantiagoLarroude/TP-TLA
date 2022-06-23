@@ -32,6 +32,7 @@ union YYSTYPE {
 
     // Terminales
     union variable_value value;
+    char* string;
     token_t token;
 };
 

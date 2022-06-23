@@ -151,15 +151,15 @@ grammar_expression_cmp_less_equal(const node_expression *lvalue,
                                   const node_expression *rvalue);
 
 /* Identifier */
-node_expression *grammar_identifier(const variable *id);
+node_expression *grammar_identifier(const char *id);
 
 node_expression *grammar_expression_cmp_by_type(const node_expression *expr,
                                                 const token_t type);
 
 /* Constant */
-node_expression *grammar_constant_number(const variable *value);
-node_expression *grammar_constant_string(const variable *value);
-node_expression *grammar_constant_bool(const variable* value);
+node_expression *grammar_constant_number(const char *value);
+node_expression *grammar_constant_string(const char *value);
+node_expression *grammar_constant_bool(const token_t value);
 
 // void free_programblock(struct node_block* program);
 

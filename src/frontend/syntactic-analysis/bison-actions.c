@@ -133,7 +133,7 @@ grammar_new_declaration_file_node(const variable *fpath,
                                 const node_expression *id,
                                 const node_list *separators)
 {
-        LogDebug("%s(%p, %p, %p)callocfunc__, fpath, id, separators");
+        LogDebug("%s(%p, %p, %p)", __func__, fpath, id, separators);
 
         node_expression* node = calloc(1,sizeof(node_expression));
         if (separators == NULL)
@@ -382,8 +382,11 @@ grammar_expression_arithmetic_num_add(const node_expression *lvalue,
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
         node_expression * node = (node_expression *) calloc(1,sizeof(node_expression));
+        node->var = (variable *) calloc(1, sizeof(variable));
         node->var->type = NUMBER_ARITHMETIC_ADD;
-        strcpy(node->var->name, "NUMBER_ARITHMETIC_ADD");
+        char * name = "NUMBER_ARITHMETIC_ADD";
+        node->var->name = calloc(1,strlen(name));
+        strcpy(node->var->name, name);
         node->var->value.number = lvalue->var->value.number + rvalue->var->value.number;
 
         return (node_expression *) node;
@@ -398,9 +401,13 @@ grammar_expression_arithmetic_num_sub(const node_expression *lvalue,
         node_expression * node = (node_expression *) calloc(1,sizeof(node_expression));
 
         node->type = EXPRESSION_VARIABLE;
+
+        node->var = (variable *) calloc(1, sizeof(variable));
         node->var->type = NUMBER_ARITHMETIC_SUB;
 
-        strcpy(node->var->name, "NUMBER_ARITHMETIC_SUB");
+        char * name = "NUMBER_ARITHMETIC_SUB";
+        node->var->name = calloc(1,strlen(name));
+        strcpy(node->var->name, name);
 
         node->var->value.number = lvalue->var->value.number - rvalue->var->value.number;
 
@@ -416,9 +423,13 @@ grammar_expression_arithmetic_num_mul(const node_expression *lvalue,
         node_expression * node = (node_expression *) calloc(1,sizeof(node_expression));
         
         node->type = EXPRESSION_VARIABLE;
+
+        node->var = (variable *) calloc(1, sizeof(variable));
         node->var->type = NUMBER_ARITHMETIC_MUL;
 
-        strcpy(node->var->name, "NUMBER_ARITHMETIC_MUL");
+        char * name = "NUMBER_ARITHMETIC_MUL";
+        node->var->name = calloc(1,strlen(name));
+        strcpy(node->var->name, name);
 
         node->var->value.number = lvalue->var->value.number * rvalue->var->value.number;
  
@@ -434,9 +445,13 @@ grammar_expression_arithmetic_num_div(const node_expression *lvalue,
         node_expression * node = (node_expression *) calloc(1,sizeof(node_expression));
         
         node->type = EXPRESSION_VARIABLE;
+        node->var = (variable *) calloc(1, sizeof(variable));
         node->var->type = NUMBER_ARITHMETIC_DIV;
 
-        strcpy(node->var->name, "NUMBER_ARITHMETIC_DIV");
+        char * name = "NUMBER_ARITHMETIC_DIV";
+        node->var->name = calloc(1,strlen(name));
+        strcpy(node->var->name, name);
+        // strcpy(node->var->name, "NUMBER_ARITHMETIC_DIV");
         
         node->var->value.number = lvalue->var->value.number / rvalue->var->value.number;
 
@@ -452,9 +467,13 @@ grammar_expression_arithmetic_num_mod(const node_expression *lvalue,
         node_expression * node = (node_expression *) calloc(1,sizeof(node_expression));
         
         node->type = EXPRESSION_VARIABLE;
+        node->var = (variable *) calloc(1, sizeof(variable));
         node->var->type = NUMBER_ARITHMETIC_MOD;
 
-        strcpy(node->var->name, "NUMBER_ARITHMETIC_MOD");
+        char * name = "NUMBER_ARITHMETIC_MOD";
+        node->var->name = calloc(1,strlen(name));
+        strcpy(node->var->name, name);
+        // strcpy(node->var->name, "NUMBER_ARITHMETIC_MOD");
         
         node->var->value.number = (double) (((long long) lvalue->var->value.number) % ((long long) rvalue->var->value.number));
  
@@ -560,9 +579,9 @@ grammar_expression_cmp_equals(const node_expression *lvalue,
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
 
-        node_expression * node = calloc(1,sizeof(node_expression));
+        node_expression * node = (node_expression*)calloc(1,sizeof(node_expression));
         node->g_expression_cmp_type = CMP_EXP_EQUALS;
-        node->var = calloc(1,sizeof(variable));
+        node->var = (variable*)calloc(1,sizeof(variable));
         node->var->type = node->g_expression_cmp_type;
         switch(node->var->type) {
                 case TYPE_NUMBER:
@@ -593,8 +612,8 @@ grammar_expression_cmp_not_equals(const node_expression *lvalue,
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
         
 
-        node_expression * node = calloc(1,sizeof(node_expression));
-        node->var = calloc(1,sizeof(variable));
+        node_expression * node = (node_expression*)calloc(1,sizeof(node_expression));
+        node->var = (variable*)calloc(1,sizeof(variable));
         node->g_expression_cmp_type = CMP_EXP_NOT_EQUALS;
         node->var->type = node->g_expression_cmp_type;
 
@@ -626,8 +645,8 @@ grammar_expression_cmp_greater_than(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        node_expression * node = calloc(1,sizeof(node_expression));
-        node->var = calloc(1,sizeof(variable));
+        node_expression * node = (node_expression*)calloc(1,sizeof(node_expression));
+        node->var = (variable*)calloc(1,sizeof(variable));
         node->g_expression_cmp_type = CMP_EXP_GREATER_THAN;
         node->var->type = node->g_expression_cmp_type;
         switch(node->var->type) {
@@ -657,8 +676,8 @@ grammar_expression_cmp_greater_equal(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        node_expression * node = calloc(1,sizeof(node_expression));
-        node->var = calloc(1,sizeof(variable));
+        node_expression * node = (node_expression*)calloc(1,sizeof(node_expression));
+        node->var = (variable*)calloc(1,sizeof(variable));
         node->g_expression_cmp_type = CMP_EXP_GREATER_EQUAL;
         node->var->type = node->g_expression_cmp_type;
         switch(node->var->type) {
@@ -688,8 +707,8 @@ grammar_expression_cmp_less_than(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        node_expression * node = calloc(1,sizeof(node_expression));
-        node->var = calloc(1,sizeof(variable));
+        node_expression * node = (node_expression*)calloc(1,sizeof(node_expression));
+        node->var = (variable*)calloc(1,sizeof(variable));
         node->g_expression_cmp_type = CMP_EXP_LESS_THAN;
         node->var->type = node->g_expression_cmp_type;
         
@@ -702,8 +721,8 @@ grammar_expression_cmp_less_equal(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        node_expression * node = calloc(1,sizeof(node_expression));
-        node->var = calloc(1,sizeof(variable_value));
+        node_expression * node = (node_expression*)calloc(1,sizeof(node_expression));
+        node->var = (variable*)calloc(1,sizeof(variable_value));
         node->g_expression_cmp_type = CMP_EXP_LESS_EQUAL;
         node->var->type = node->g_expression_cmp_type;
         switch(node->var->type) {
@@ -748,7 +767,7 @@ grammar_expression_from_funcall(const node_function_call* fn_calls) {
         LogDebug("%s(%p)\n", __func__, fn_calls);
         
         node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
-        node->var = calloc(1,sizeof(variable));
+        node->var = (variable*)calloc(1,sizeof(variable));
         node->function_call_pointer = (node_function_call *) fn_calls;
         
         return node;
@@ -794,15 +813,15 @@ grammar_new_assignment_expression(const node_expression *expr,
 }
 
 node_expression *
-grammar_identifier(const variable* id)
+grammar_identifier(const char* id)
 {
         LogDebug("%s(%p)\n", __func__, id);
 
         node_expression* node = calloc(1,sizeof(node_expression));
         node->var = calloc(1,sizeof(variable));
         node->var->type = ID_TYPE;
-        node->var->name = calloc(1,strlen(id->value.string)+1);
-        strcpy(node->var->name, id->value.string);
+        node->var->name = calloc(1,strlen(id));
+        strcpy(node->var->name, id);
 
         node->type = ID_TYPE;
 
@@ -810,14 +829,14 @@ grammar_identifier(const variable* id)
 }
 
 node_expression *
-grammar_constant_bool(const variable *rval)
+grammar_constant_bool(const token_t rval)
 {
         LogDebug("%s(%s)\n", __func__, rval);
 
         node_expression * newNode = calloc(1,sizeof(node_expression));
         newNode->var = calloc(1, sizeof(variable));
         newNode->var->type = BOOL_TYPE;
-        if(strcmp(rval->value.string, "TRUE") == 0) {
+        if(rval == TTRUE) {
                 newNode->var->value.boolean = true;
         } else {
                 newNode->var->value.boolean = false;
@@ -832,14 +851,23 @@ grammar_constant_bool(const variable *rval)
 }
 
 node_expression *
-grammar_constant_number(const variable *rval)
+grammar_constant_number(const char *rval)
 {
-        LogDebug("%s(%s)\n", __func__, rval);
+        printf("\nEntro a grammar\n");
+        
+        // LogDebug("%s(%s)\n", __func__, rval);
 
         node_expression* node = calloc(1,sizeof(node_expression));
 
         node->var = calloc(1,sizeof(variable*));
-        node->var->value.number = atoi(rval->value.string);
+        // double rvalBis = strtod(*rval, NULL);
+        double rvalBis = atof(rval);
+        int rvalBisBis = atoi(rval);
+
+        printf("\nf: %f", rvalBis);
+        printf("\nd: %d", rvalBisBis);
+        printf("\nrval: %s", rval);
+        node->var->value.number = rvalBis;
         node->var->type = NUMBER_TYPE;
 
         char * name = "NUMBER_TYPE";
@@ -847,12 +875,12 @@ grammar_constant_number(const variable *rval)
         strcpy(node->var->name, name);
 
         node->type = NUMBER_TYPE;
-
+        printf("\nSalio a grammar\n\n");
         return node;
 }
 
 node_expression *
-grammar_constant_string(const variable *rval)
+grammar_constant_string(const char *rval)
 {
         LogDebug("%s(%s)\n", __func__, rval);
         
@@ -864,8 +892,8 @@ grammar_constant_string(const variable *rval)
         newNode->var->name = calloc(1,strlen(name)+1);
         strcpy(newNode->var->name, name);
 
-        newNode->var->value.string = (char*) malloc(strlen(rval->value.string)+1);
-        strcpy(newNode->var->value.string, rval->value.string);
+        newNode->var->value.string = (char*) malloc(strlen(rval)+1);
+        strcpy(newNode->var->value.string, rval);
 
         newNode->type = STRING_TYPE;
 

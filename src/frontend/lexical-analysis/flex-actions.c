@@ -25,7 +25,7 @@ static bool save_token_number(const char *lexeme);
  * "flex-rules.h" implementation
  */
 
-TokenID pattern(const char *lexeme, TokenID token)
+TokenID all_type_of_pattern(const char *lexeme, TokenID token)
 {
         log_debug_single_value(lexeme);
 
@@ -63,31 +63,28 @@ TokenID pattern_string(const char *lexeme)
 
 static bool save_token_string(const char *lexeme)
 {
-        yylval.value.string = (char*)
-                realloc(yylval.value.string, sizeof(char) * strlen(lexeme));
-        if (yylval.value.string == NULL) {
-                log_error_no_mem();
-                return false;
-        }
-
-        strcpy(yylval.value.string, lexeme);
+        yylval.value.string = strdup(lexeme);
 
         return true;
 }
 
 TokenID pattern_number(const char *lexeme)
 {
+        printf(" hola_1 ");
         log_debug_single_value(lexeme);
-        if (save_token_number(lexeme))
+        printf(" hola_1_2 ");
+        if (save_token_string(lexeme)) {
                 return NUMBER;
-
+        }
+                
         return YYUNDEF;
 }
 
 static bool save_token_number(const char *lexeme)
 {
-        yylval.value.number = strtod(lexeme, NULL);
-
+        // printf(lexeme);
+        yylval.value.number = atoi(lexeme);
+        printf(" save_token_number_2 f: %f\n",yylval.value.number);
         return true;
 }
 
