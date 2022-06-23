@@ -832,16 +832,17 @@ grammar_identifier(const char* id)
 }
 
 node_expression *
-grammar_constant_bool(const token_t rval)
+grammar_constant_bool(const char* rval)
 {
-        LogDebug("%s(%s)\n", __func__, rval);
+        // LogDebug("%s(%s)\n", __func__, rval);
 
         printf("\n\nrval en grammar_constant_bool: %d\n\n", rval);
 
         node_expression * newNode = calloc(1,sizeof(node_expression));
         newNode->var = calloc(1, sizeof(variable));
         newNode->var->type = BOOL_TYPE;
-        if(rval == TTRUE) {
+        
+        if(strcmp(rval, "True") == 0) {
                 newNode->var->value.boolean = true;
         } else {
                 newNode->var->value.boolean = false;

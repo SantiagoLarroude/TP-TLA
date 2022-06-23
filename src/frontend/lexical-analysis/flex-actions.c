@@ -91,10 +91,17 @@ static bool save_token_number(const char *lexeme)
 TokenID pattern_bool(const bool lexeme)
 {
         LogDebug("%s: '%d'\n\tFile: %s", __func__, lexeme, __FILE__);
-        if (lexeme == true)
+
+        
+
+        if (lexeme == true) {
+                save_token_string("True");
                 return TTRUE;
-        else
+        }
+        else {
+                save_token_string("False");
                 return TFALSE;
+        }
 
         return YYUNDEF;
 }
