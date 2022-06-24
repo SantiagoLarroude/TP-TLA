@@ -133,11 +133,11 @@ grammar_concat_expressions(node_expression_list* list,
         new_list_node->next = NULL;
         new_list_node->expr = (node_expression*) expr;
 
-        node_expression_list* tmp = NULL;
-        while(list->next != NULL)
-                tmp = list->next;
+        node_expression_list* tmp = list;
+        while (tmp->next != NULL)
+                tmp = tmp->next;
 
-        tmp = new_list_node;
+        tmp->next = new_list_node;
 
         return list;
 }
@@ -248,7 +248,7 @@ grammar_new_declaration_file_node(const char* fpath,
 
         node->var->type = FILE_PATH_TYPE;
         node->var->name = strdup(id);
-        
+
         if (insert_variable(node->var) < SUCCESS) {
                 error_multiple_declaration(id);
                 exit(1);
@@ -1073,6 +1073,31 @@ grammar_new_assignment_expression(const node_expression* expr,
         // strcpy(node->var->name, id->var->name);
 
         // return node;
+}
+
+node_expression*
+grammar_new_assignment_from_id(const char* from, const char* to)
+{
+        LogDebug("%s(%s, %s)\n", __func__, from, to);
+
+        variable* var = lookup_variable(from);
+        if (var == NULL) {
+                error_variable_not_found(from);
+                exit(1);
+        }
+
+        node_expression* node = (node_expression*)
+                calloc(1, sizeof(node_expression));
+        if (node == NULL) {
+                error_no_memory();
+                exit(1);
+        }
+
+        node->type = VARIABLE_TYPE;
+
+        node->var = var;
+
+        return grammar_new_assignment_expression(node, to);
 }
 
 node_expression*

@@ -32,6 +32,8 @@ typedef enum NODE_T {
         NUMBER_TYPE = 1,
         BOOL_TYPE,
         STRING_TYPE,
+        FILE_PATH_TYPE,
+        VARIABLE_TYPE,
         EXPRESSION_TYPE,
         FILE_PATH_TYPE,
         LIST_ARGS_TYPE,
