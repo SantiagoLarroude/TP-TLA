@@ -70,6 +70,7 @@ int grammar_program(program_t* root, node_function* fun)
 
 node_function*
 grammar_new_function(const char* name,
+                     const node_list* args,
                      const node_expression_list* list,
                      const variable* return_variable)
 {
@@ -82,6 +83,7 @@ grammar_new_function(const char* name,
         }
 
         fun->name = strdup(name);
+        fun->args = (node_list*) args;
         fun->expressions = (node_expression_list*) list;
         fun->return_variable = (variable*) return_variable;
 
@@ -118,7 +120,7 @@ node_expression_list*
 grammar_concat_expressions(node_expression_list* list,
                            const node_expression* expr)
 {
-        LogDebug("%s(%p %p)\n", __func__, list, expr);
+        LogDebug("%s(%p, %p)\n", __func__, list, expr);
 
         node_expression_list* new_list_node = (node_expression_list*)
                 calloc(1, sizeof(node_expression_list));
@@ -130,7 +132,12 @@ grammar_concat_expressions(node_expression_list* list,
 
         new_list_node->next = NULL;
         new_list_node->expr = (node_expression*) expr;
-        list->next = new_list_node;
+
+        node_expression_list* tmp = NULL;
+        while(list->next != NULL)
+                tmp = list->next;
+
+        tmp = new_list_node;
 
         return list;
 }
@@ -223,18 +230,33 @@ grammar_new_declaration_file_node(const char* fpath,
 {
         LogDebug("%s(%s, %p, %p)", __func__, fpath, id, separators);
 
-        return NULL;
-        // node_expression* node = calloc(1, sizeof(node_expression));
-        // if (separators == NULL) {
-        //         node->f_declaration_type = FILE_STRING_TYPE;
-        // } else {
-        //         node->f_declaration_type = FILE_FSTREAM_STDOUT_TYPE;
-        // }
+        node_expression* node = (node_expression*)
+                calloc(1, sizeof(node_expression));
+        if (node == NULL) {
+                error_no_memory();
+                exit(1);
+        }
 
-        // node->listExpr = (node_list*) separators;
-        // node->var = (variable*) fpath;
+        node->type = EXPRESSION_FILE_DECLARATION;
+        node->listExpr = (node_list*) separators;  // Could be NULL
 
-        // return node;
+        node->var = (variable*) calloc(1, sizeof(variable));
+        if (node->var == NULL) {
+                error_no_memory();
+                exit(1);
+        }
+
+        node->var->type = FILE_PATH_TYPE;
+        node->var->name = strdup(id);
+        
+        if (insert_variable(node->var) < SUCCESS) {
+                error_multiple_declaration(id);
+                exit(1);
+        }
+
+        node->var->value.string = strdup(fpath);
+
+        return node;
 }
 
 node_expression*
@@ -243,16 +265,7 @@ grammar_new_declaration_stdout_node(const char* id,
 {
         LogDebug("%s(%p, %p)\n", __func__, id, separators);
 
-        return NULL;
-        // node_expression* node = calloc(1, sizeof(node_expression));
-        // if (separators == NULL) {
-        //         node->f_declaration_type = STDOUT_STRING_TYPE;
-        // } else {
-        //  node->f_declaration_type = STDOUT_FSTREAM_STDOUT_TYPE;
-        // }
-        // node->listExpr = (node_list*) separators;
-
-        // return node;
+        return grammar_new_declaration_file_node("STDOUT", id, separators);
 }
 
 node_file_block*

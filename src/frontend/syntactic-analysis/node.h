@@ -31,6 +31,7 @@ typedef enum NODE_T {
         NUMBER_TYPE = 1,
         BOOL_TYPE,
         STRING_TYPE,
+        FILE_PATH_TYPE,
         EXPRESSION_TYPE,
         LIST_ARGS_TYPE,
         LIST_EXPRESSION_TYPE,
@@ -38,6 +39,7 @@ typedef enum NODE_T {
         EXPRESSION_GRAMMAR_CONSTANT_TYPE,
         EXPRESSION_VARIABLE_ASSIGNMENT,
         EXPRESSION_VARIABLE_DECLARATION,
+        EXPRESSION_FILE_DECLARATION,
 } NODE_T;
 
 struct variable {
@@ -83,6 +85,7 @@ struct node_expression_list {
 
 struct node_function {
         char* name;
+        node_list* args;
         node_expression_list* expressions;
         variable* return_variable;
 };

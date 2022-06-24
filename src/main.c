@@ -54,5 +54,7 @@ const int main(const int argumentCount, const char** arguments)
         }
         LogInfo("Fin.");
 
+        free_table();
+
         return result;
 }

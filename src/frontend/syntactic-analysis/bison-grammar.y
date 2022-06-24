@@ -148,7 +148,7 @@ function    :   FUNCTION ID
                     expressions
                 ret
                 END {
-                    $$ = grammar_new_function($2, $6, $7);
+                    $$ = grammar_new_function($2, $4, $6, $7);
                 }
             ;
 

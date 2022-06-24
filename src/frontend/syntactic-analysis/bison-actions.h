@@ -20,6 +20,7 @@ int grammar_program(program_t* root_node, node_function* fun);
 /* Functions */
 node_function*
 grammar_new_function(const char* name,
+                     const node_list* args,
                      const node_expression_list* list,
                      const variable* return_value);
 
@@ -49,9 +50,9 @@ variable* grammar_new_return_node(const char* id);
 node_expression*
 grammar_expression_from_assignment(const node_expression* assignment);
 
-node_expression* 
+node_expression*
 grammar_new_assignment_expression(const node_expression* expr,
-                                const char* id);
+                                  const char* id);
 node_expression*
 grammar_new_assignment_identifier(const node_expression* from_id,
                                   const node_expression* to_id);
