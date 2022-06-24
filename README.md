@@ -48,7 +48,6 @@ chmod +x runTest.sh
 
 - [Checklist basado en las correcciones de la cátedra](CORRECCIONES.md)
 - [Estructura del código](STRUCTURE.md)
-- [TODO](TODO.md)
 
 ## Recursos utilizados
 
