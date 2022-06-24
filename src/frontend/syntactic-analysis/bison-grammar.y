@@ -345,6 +345,9 @@ ret         :   RETURN ID TEOL { $$ = grammar_new_return_node($2); }
 assign      :   expression ASSIGN ID TEOL {
                     $$ = grammar_new_assignment_expression($1, $3);
                 }
+            |   ID ASSIGN ID TEOL {
+                    $$ = grammar_new_assignment_from_id($1, $3);
+                }
             ;
 
 data_type   :   TYPE_FILE

@@ -53,6 +53,10 @@ grammar_expression_from_assignment(const node_expression* assignment);
 node_expression*
 grammar_new_assignment_expression(const node_expression* expr,
                                   const char* id);
+
+node_expression*
+grammar_new_assignment_from_id(const char* from, const char* to);
+
 node_expression*
 grammar_new_assignment_identifier(const node_expression* from_id,
                                   const node_expression* to_id);
