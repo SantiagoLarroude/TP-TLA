@@ -136,11 +136,6 @@ TokenID pattern_unknown(const char* lexeme)
         return YYUNDEF;
 }
 
-void free_yylval()
-{
-        free(yylval.value.string);
-}
-
 static bool save_token(const char* lexeme)
 {
         yylval.token = (token_t) atoi(lexeme);
