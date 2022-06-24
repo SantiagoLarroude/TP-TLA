@@ -3,8 +3,8 @@
 
 #include "node.h"
 
-void generate_code(root_node_t * tree);
+void generate_code(program_t * ast);
 
-void generate_initial_setup();
+void generate_header();
 
 #endif

@@ -7,6 +7,7 @@ typedef unsigned int token_t;
 
 typedef struct variable variable;
 typedef struct node_list node_list;
+
 typedef struct node_file_block node_file_block;
 typedef struct node_expression node_expression;
 typedef struct node_function_call node_function_call;
@@ -31,8 +32,8 @@ typedef enum NODE_T {
         NUMBER_TYPE = 1,
         BOOL_TYPE,
         STRING_TYPE,
-        FILE_PATH_TYPE,
         EXPRESSION_TYPE,
+        FILE_PATH_TYPE,
         LIST_ARGS_TYPE,
         LIST_EXPRESSION_TYPE,
         LIST_BLANK_TYPE,
