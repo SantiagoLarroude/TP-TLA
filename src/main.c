@@ -40,8 +40,6 @@ const int main(const int argumentCount, const char** arguments)
                         // Generator(state.result);
                 } else {
                         LogError("Se produjo un error en la aplicacion.");
-                        // free_programblock(programblock);
-                        free_yylval();
                         return -1;
                 }
                 break;
