@@ -38,7 +38,7 @@ const int main(const int argumentCount, const char** arguments)
                 if (state.succeed) {
 
                         LogInfo("La compilación fue exitosa.");
-                        generate_code(root);
+                        // generate_code(root);
                 } else {
                         LogError("Se produjo un error en la aplicacion.");
                         return -1;

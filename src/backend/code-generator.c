@@ -1,7 +1,8 @@
-#include "code-generator.h"
-#include "ast.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "code-generator.h"
+
 
 //utils with functions to deal with code generation for each specific node type
 
@@ -21,7 +22,7 @@ void generate_expression(node_expression* expr){
   return;
 }
 
-void generate_code(program_t* ast)
+void generate_code(program_t * ast)
 {
     generate_header();
     generate_function(ast->main_function);

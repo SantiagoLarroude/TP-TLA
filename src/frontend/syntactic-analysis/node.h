@@ -35,7 +35,6 @@ typedef enum NODE_T {
         FILE_PATH_TYPE,
         VARIABLE_TYPE,
         EXPRESSION_TYPE,
-        FILE_PATH_TYPE,
         LIST_ARGS_TYPE,
         LIST_EXPRESSION_TYPE,
         LIST_BLANK_TYPE,
