@@ -65,7 +65,7 @@ string          \"(\\.|[^"\\])*\"
 "("             { return all_type_of_pattern(yytext, OPEN_PARENTHESIS); }
 ")"             { return all_type_of_pattern(yytext, CLOSE_PARENTHESIS); }
 
-"->"            { return all_type_of_pattern(yytext, ASSING); }
+"->"            { return all_type_of_pattern(yytext, ASSIGN); }
 "->!"           { return all_type_of_pattern(yytext, FSTREAM_OVERWRITE); }
 
 "not"           { return all_type_of_pattern(yytext, NOT); }

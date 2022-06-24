@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "logger.h"
+
 #include "symbols.h"
 
 #define BLOCKSIZE       64
@@ -23,8 +26,8 @@ typedef struct node {
 
 node** table;
 
-hash_t hash(char* name);
-variable* lookup_variable_in_scope(char* name, unsigned scope);
+hash_t hash(const char* name);
+variable* lookup_variable_in_scope(const char* name, unsigned scope);
 void next_scope();
 void prev_scope();
 
@@ -39,7 +42,7 @@ bool initialize_table()
         return true;
 }
 
-hash_t hash(char* name)
+hash_t hash(const char* name)
 {
         // djb2
         // http://www.cse.yorku.ca/~oz/hash.html
@@ -97,7 +100,6 @@ int insert_variable(variable* var)
 
                 table_size++;
         } else {
-                printf("Multiple declaration of variable %s", var->name);
                 return MULTIPLE_DECLARATION;
         }
 
@@ -112,7 +114,7 @@ int insert_variable(variable* var)
         return SUCCESS;
 }
 
-variable* lookup_variable(char* name)
+variable* lookup_variable(const char* name)
 {
         variable* aux = NULL;
 
@@ -122,7 +124,7 @@ variable* lookup_variable(char* name)
         return aux;
 }
 
-variable* lookup_variable_in_scope(char* name, unsigned scope)
+variable* lookup_variable_in_scope(const char* name, unsigned scope)
 {
         unsigned long long pre = hash(name);
         unsigned key_index = pre % (num_blocks * BLOCKSIZE);

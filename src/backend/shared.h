@@ -21,11 +21,16 @@
 union YYSTYPE {
         // No terminales
         struct program* program;
+        
         struct node_function* fun;
         struct node_function_call* fun_call;
+        
         struct node_expression* expr;
+        struct node_expression_list* expression_list;
+
         struct node_file_block* file_block;
         struct node_list* list;
+
         struct variable* var;
 
         // Terminales
@@ -50,13 +55,13 @@ extern int yylineno;
 extern char* yytext;
 
 // Función global de manejo de errores en Bison.
-extern void yyerror(const char* string);
+extern void yyerror(program_t* root_node, const char* string);
 
 // Función global del analizador léxico Flex.
 extern int yylex(void);
 
 // Función global del analizador sintáctico Bison.
-extern int yyparse(void);
+extern int yyparse(program_t* root_node);
 
 // Estado global de toda la aplicación.
 typedef struct {
@@ -76,9 +81,5 @@ typedef struct {
 
 // El estado se define e inicializa en el archivo "main.c":
 extern CompilerState state;
-
-extern struct node_block* programblock;
-
-// extern void free_programblock(struct node_block* program);
 
 #endif

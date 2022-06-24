@@ -1,4 +1,0 @@
-- [ ] Completar funciones de Flex (`pattern_bool`, `pattern_string`, etc)
-- [ ] Completar funciones de Bison (`grammar_constant_bool`, `grammar_expression_from_funcall`, etc)
-- [ ] Completar nodos (en `frontend/syntactic-analysis/node.h`)
-- [ ] Generar AST

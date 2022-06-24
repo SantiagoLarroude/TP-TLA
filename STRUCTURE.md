@@ -6,6 +6,8 @@ src/
 ├── backend
 │   ├── logger.c
 │   ├── logger.h
+│   ├── symbols.c
+│   ├── symbols.h
 │   └── shared.h
 ├── frontend
 │   ├── lexical-analysis

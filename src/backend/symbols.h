@@ -11,11 +11,12 @@ typedef enum SYMBOLS_STATUS {
     SUCCESS,
 } SYMBOLS_STATUS;
 
+// (1 + 2) -> abc
 
 bool initialize_table();
 
 int insert_variable(variable* var);
-variable* lookup_variable(char* name);
+variable* lookup_variable(const char* name);
 
 void free_table();
 

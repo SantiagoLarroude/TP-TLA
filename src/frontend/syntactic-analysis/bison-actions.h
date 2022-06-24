@@ -13,32 +13,45 @@
  */
 
  /* Program */
-program* grammar_program(const node_function* value);
+program_t* new_program();
+
+int grammar_program(program_t* root_node, node_function* fun);
 
 /* Functions */
-node_function* grammar_new_function(const node_expression* expr);
+node_function*
+grammar_new_function(const char* name,
+                     const node_expression_list* list,
+                     const variable* return_value);
 
-node_expression*
-grammar_expression_from_funcall(const node_function_call* fn_calls);
+node_expression_list*
+grammar_new_expression_list(const node_expression* expr);
 
-node_function_call* grammar_function_call(const node_expression* fun_id,
+node_expression_list*
+grammar_concat_expressions(node_expression_list* list,
+                           const node_expression* expr);
+
+node_function_call* grammar_function_call(const char* fun_id,
                                           const node_list* args);
 node_function_call*
 grammar_concat_function_call(const node_function_call* fun_list,
                              const node_function_call* fun_append);
 
 node_function_call*
-grammar_function_call_from_id(const node_expression* id,
+grammar_function_call_from_id(const char* id,
                               const node_function_call* fun);
 
-node_expression* grammar_new_return_node(const node_expression* expr);
+node_expression*
+grammar_expression_from_funcall(const node_function_call* fn_calls);
+
+variable* grammar_new_return_node(const char* id);
 
 /* Assignment */
 node_expression*
 grammar_expression_from_assignment(const node_expression* assignment);
 
-node_expression* grammar_new_assignment_expression(const node_expression* expr,
-                                                   const node_expression* id);
+node_expression* 
+grammar_new_assignment_expression(const node_expression* expr,
+                                const char* id);
 node_expression*
 grammar_new_assignment_identifier(const node_expression* from_id,
                                   const node_expression* to_id);
@@ -51,19 +64,19 @@ node_expression*
 grammar_concat_expressions_filehandler(const node_expression* exprs,
                                        const node_file_block* fhandler);
 
-node_expression* grammar_new_declaration_file_node(const variable* fpath,
-                                                   const node_expression* id,
+node_expression* grammar_new_declaration_file_node(const char* fpath,
+                                                   const char* id,
                                                    const node_list* separators);
 
 node_expression*
-grammar_new_declaration_stdout_node(const node_expression* id,
+grammar_new_declaration_stdout_node(const char* id,
                                     const node_list* separators);
 
-node_file_block* grammar_using_file(const node_expression* id,
-                                    const node_expression* expr);
+node_file_block* grammar_using_file(const char* id,
+                                    const node_expression_list* expr);
 
 /* Variable declaration */
-node_expression* grammar_new_variable(const node_expression* id,
+node_expression* grammar_new_variable(const char* id,
                                       const node_expression* expr);
 
 /* Conditional */
@@ -72,7 +85,7 @@ node_expression* grammar_new_conditional(const node_expression* condition,
                                          const node_expression* expr_false);
 
 /* Loop */
-node_expression* grammar_new_loop(const node_expression* id,
+node_expression* grammar_new_loop(const char* id,
                                   const node_expression* iterable,
                                   const node_expression* action);
 
@@ -87,8 +100,8 @@ node_list* grammar_concat_list_expr(node_list* list,
 node_list* grammar_concat_list_list(node_list* head_list,
                                     const node_list* tail_list);
 
-node_list* grammar_new_list_from_range(const variable* start,
-                                       const variable* end);
+node_list* grammar_new_list_from_range(const char* start,
+                                       const char* end);
 
 node_list* grammar_new_list_args(const node_expression* expr);
 
@@ -150,16 +163,13 @@ node_expression*
 grammar_expression_cmp_less_equal(const node_expression* lvalue,
                                   const node_expression* rvalue);
 
-/* Identifier */
-node_expression* grammar_identifier(const char* id);
-
-node_expression* grammar_expression_cmp_by_type(const node_expression* expr,
+node_expression* grammar_expression_cmp_by_type(const char* id,
                                                 const token_t type);
 
 /* Constant */
-node_expression* grammar_constant_number(const char* value);
-node_expression* grammar_constant_string(const char* value);
-node_expression* grammar_constant_bool(const char* value);
+node_expression* grammar_constant_number(const char* rval);
+node_expression* grammar_constant_string(const char* rval);
+node_expression* grammar_constant_bool(const char* rval);
 
 // void free_programblock(struct node_block* program);
 

@@ -5,6 +5,7 @@
 #include "backend/logger.h"
 #include "backend/shared.h"
 
+#include "frontend/syntactic-analysis/bison-actions.h"
 #include "frontend/syntactic-analysis/bison-parser.h"
 #include "backend/symbols.h"
 
@@ -25,15 +26,11 @@ const int main(const int argumentCount, const char** arguments)
                 LogInfo("Argumento %d: '%s'", i, arguments[i]);
         }
 
-        // Hash table for variables
-        if (initialize_table() == false) {
-                LogError("Could not initialize variables table. Aborting.");
-                exit(1);
-        }
+        program_t * root = new_program();
 
         // Compilar el programa de entrada.
         LogInfo("Compilando...\n");
-        const int result = yyparse();
+        const int result = yyparse(root);
 
         switch (result) {
         case 0:
@@ -58,9 +55,6 @@ const int main(const int argumentCount, const char** arguments)
                 LogError("Error desconocido mientras se ejecutaba el analizador Bison (codigo %d).", result);
         }
         LogInfo("Fin.");
-
-        // free_programblock(programblock);
-        free_yylval();
 
         return result;
 }

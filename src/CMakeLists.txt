@@ -91,6 +91,7 @@ add_executable(${PROJECT_NAME}
         frontend/syntactic-analysis/bison-actions.c
         frontend/syntactic-analysis/bison-parser.c
         frontend/syntactic-analysis/node.h
+        backend/error.c
         backend/logger.c
         backend/symbols.c
 )

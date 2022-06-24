@@ -10,6 +10,8 @@
 /* descomentar la linea 11 */
 %define api.value.type {union YYSTYPE}
 
+%parse-param {program_t * root}
+
 /* %union{
     // No terminales
     struct program* program;
@@ -44,7 +46,7 @@
 %token <token> OPEN_PARENTHESIS CLOSE_PARENTHESIS
 
 /* Assignment */
-%token <token> ASSING FSTREAM_OVERWRITE
+%token <token> ASSIGN FSTREAM_OVERWRITE
 
 /* Logic */
 %token <token> NOT AND OR
@@ -84,19 +86,19 @@
 %token <token> TEOL
 
 // TYPES
-%type <program>      program
+%type <program>     program
 %type <fun>         function
+%type <var>         ret
 %type <fun_call>    fn_calls fn_call
-%type <expr>        expressions expression
+%type <expression_list> expressions
+%type <expr>        expression
                     file_decl
                     var_decl
                     conditional
                     loop
-                    return
                     num_arithm num_type str_arithm str_type
                     bool_expr bool_type cmp_expr cmp_type
                     assign
-                    identifier
                     constant bool_constant
 %type <list>        list range
                     args_list
@@ -106,7 +108,7 @@
 
 // Associativity and precedence rules (from lower precedence to higher)
 %left   TLINES TCOLS
-%left   ASSING FSTREAM_OVERWRITE
+%left   ASSIGN FSTREAM_OVERWRITE
 %left   THEN
 %left   ELSE
 %left   OR
@@ -138,24 +140,25 @@
 
 %%
 
-program     :   function { grammar_program($1); }
+program     :   function { return grammar_program(root, $1); }
             ;
 
-function    :   FUNCTION identifier 
+function    :   FUNCTION ID 
                 OPEN_PARENTHESIS args_list CLOSE_PARENTHESIS
                     expressions
-                return
+                ret
                 END {
-                    $$ = grammar_new_function($6);
+                    $$ = grammar_new_function($2, $6, $7);
                 }
             ;
 
-expressions :   expression
-            |   expressions expression
+expressions :   expression { $$ = grammar_new_expression_list($1); }
+            |   expressions expression { 
+                    $$ = grammar_concat_expressions($1, $2); 
+                }
             ;
 
 expression  :   file_decl
-            |   identifier
             |   var_decl
             |   bool_constant
             |   constant
@@ -179,10 +182,10 @@ fn_calls    :   fn_call
                 }
             ;
 
-fn_call    :   identifier OPEN_PARENTHESIS args_list CLOSE_PARENTHESIS {
+fn_call    :   ID OPEN_PARENTHESIS args_list CLOSE_PARENTHESIS {
                     $$ = grammar_function_call($1, $3);
                 }
-            |   identifier DOT identifier
+            |   ID DOT ID
                 OPEN_PARENTHESIS args_list CLOSE_PARENTHESIS {
                     $$ = grammar_function_call_from_id($1,
                                                        grammar_function_call(
@@ -193,26 +196,26 @@ fn_call    :   identifier OPEN_PARENTHESIS args_list CLOSE_PARENTHESIS {
  Ejemplo:
     File "path" as input.
 */
-file_decl   :   TYPE_FILE STRING AS identifier TEOL {
+file_decl   :   TYPE_FILE STRING AS ID TEOL {
                     $$ = grammar_new_declaration_file_node($2, $4, NULL);
                 }
-            |   TYPE_FILE FSTREAM_STDOUT AS identifier TEOL {
+            |   TYPE_FILE FSTREAM_STDOUT AS ID TEOL {
                     $$ = grammar_new_declaration_stdout_node($4, NULL);
                 }
-            |   TYPE_FILE STRING WITH list AS identifier TEOL {
+            |   TYPE_FILE STRING WITH list AS ID TEOL {
                     $$ = grammar_new_declaration_file_node($2, $6, $4);
                 }
-            |   TYPE_FILE FSTREAM_STDOUT WITH list AS identifier TEOL {
+            |   TYPE_FILE FSTREAM_STDOUT WITH list AS ID TEOL {
                     $$ = grammar_new_declaration_stdout_node($6, $4);
                 }
             ;
 
-file_handle :   WITH identifier COLON expressions TEOL {
+file_handle :   WITH ID COLON expressions TEOL {
                     $$ = grammar_using_file($2, $4);
                 }
             ;
 
-var_decl    :   LET identifier BE expression TEOL {
+var_decl    :   LET ID BE expression TEOL {
                     $$ = grammar_new_variable($2, $4);
                 }
             ;
@@ -222,7 +225,7 @@ conditional :   IF bool_expr THEN expression ELSE expression TEOL {
                 }
             ;
 
-loop        :    FOR identifier IN expression DO expression TEOL {
+loop        :    FOR ID IN expression DO expression TEOL {
                       $$ = grammar_new_loop($2, $4, $6);
                   }
 
@@ -266,7 +269,7 @@ num_arithm  :   num_type ADD num_type {
                 }
             ;
 
-num_type    :   identifier
+num_type    :   ID
             |   fn_calls { $$ = grammar_expression_from_funcall($1); }
             |   constant
             ;
@@ -279,7 +282,7 @@ str_arithm  :   str_type STR_ADD str_type {
                 }
             ;
     
-str_type    :   identifier
+str_type    :   ID
             |   fn_calls { $$ = grammar_expression_from_funcall($1); }
             |   constant
             ;
@@ -298,7 +301,7 @@ bool_expr   :   bool_type AND bool_type {
             |   OPEN_PARENTHESIS bool_expr CLOSE_PARENTHESIS { $$ = $2; }
             ;
 
-bool_type   :   identifier
+bool_type   :   ID
             |   fn_calls { $$ = grammar_expression_from_funcall($1); }
             |   cmp_expr
             ;
@@ -321,13 +324,13 @@ cmp_expr    :   cmp_type EQUALS cmp_type {
             |   cmp_type LESS_EQUAL cmp_type {
                     $$ = grammar_expression_cmp_less_equal($1, $3);
                 }
-            |   identifier IS data_type {
+            |   ID IS data_type {
                     $$ = grammar_expression_cmp_by_type($1, $3);
                 }
             ;
 
 
-cmp_type    :   identifier
+cmp_type    :   ID
             |   fn_calls { $$ = grammar_expression_from_funcall($1); }
             |   bool_constant
             |   constant
@@ -335,15 +338,13 @@ cmp_type    :   identifier
             |   str_arithm
             ;
 
-return      :   RETURN identifier TEOL { $$ = grammar_new_return_node($2); }
+ret         :   RETURN ID TEOL { $$ = grammar_new_return_node($2); }
             |   RETURN TEOL { $$ = grammar_new_return_node(NULL); }
-
-assign      :   expression ASSING identifier TEOL {
-                    $$ = grammar_new_assignment_expression($1, $3);
-                }
             ;
 
-identifier  :   ID { $$ = grammar_identifier((char*) $1); }
+assign      :   expression ASSIGN ID TEOL {
+                    $$ = grammar_new_assignment_expression($1, $3);
+                }
             ;
 
 data_type   :   TYPE_FILE
