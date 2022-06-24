@@ -162,13 +162,13 @@ void generate_function(node_function* nf)
 void generate_variable(variable * var)
 {
     switch (var->type) {
-    case bool:
+    case BOOL_TYPE:
         printf("%d", var->boolean);
         break;
-    case double:
+    case NUMBER_TYPE:
         printf("%f", var->number);
         break;
-    case tTEXT:
+    case STRING_TYPE:
         printf("%s", var->string);
         break;
     }
