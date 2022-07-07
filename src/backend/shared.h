@@ -7,17 +7,7 @@
 #include "../frontend/syntactic-analysis/node.h"        /* node_* types */
 #include "../backend/logger.h"                          /* LogError */
 
-/* Macros and constants */
-// Error
-
-// Log "out of memory error".
-#define log_error_no_mem()                                                  \
-        LogError("Could not allocate memory.\n\tFunction: %s\n\tFile: %s\n\tLine: %s",  \
-                __func__, __FILE__, __LINE__);
-
-
 /* Structures and types */
-
 union YYSTYPE {
         // No terminales
         struct program* program;
