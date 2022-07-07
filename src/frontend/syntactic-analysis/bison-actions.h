@@ -172,6 +172,7 @@ node_expression* grammar_expression_cmp_by_type(const char* id,
                                                 const token_t type);
 
 /* Constant */
+node_expression* grammar_expression_type_from_id(const char* id);
 node_expression* grammar_constant_number(const char* rval);
 node_expression* grammar_constant_string(const char* rval);
 node_expression* grammar_constant_bool(const char* rval);

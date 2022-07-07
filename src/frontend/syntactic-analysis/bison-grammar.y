@@ -269,7 +269,7 @@ num_arithm  :   num_type ADD num_type {
                 }
             ;
 
-num_type    :   ID
+num_type    :   ID { $$ = grammar_expression_type_from_id($1); }
             |   fn_calls { $$ = grammar_expression_from_funcall($1); }
             |   constant
             ;
@@ -282,7 +282,7 @@ str_arithm  :   str_type STR_ADD str_type {
                 }
             ;
     
-str_type    :   ID
+str_type    :   ID { $$ = grammar_expression_type_from_id($1); }
             |   fn_calls { $$ = grammar_expression_from_funcall($1); }
             |   constant
             ;
@@ -301,7 +301,7 @@ bool_expr   :   bool_type AND bool_type {
             |   OPEN_PARENTHESIS bool_expr CLOSE_PARENTHESIS { $$ = $2; }
             ;
 
-bool_type   :   ID
+bool_type   :   ID { $$ = grammar_expression_type_from_id($1); }
             |   fn_calls { $$ = grammar_expression_from_funcall($1); }
             |   cmp_expr
             ;
@@ -330,7 +330,7 @@ cmp_expr    :   cmp_type EQUALS cmp_type {
             ;
 
 
-cmp_type    :   ID
+cmp_type    :   ID { $$ = grammar_expression_type_from_id($1); }
             |   fn_calls { $$ = grammar_expression_from_funcall($1); }
             |   bool_constant
             |   constant
