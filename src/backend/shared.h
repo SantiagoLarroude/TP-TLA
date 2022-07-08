@@ -69,6 +69,14 @@ typedef struct {
 
 } CompilerState;
 
+typedef enum COMPILER_STATE_RESULTS {
+        COMPILER_STATE_RESULTS_FINISHED = 0,
+        COMPILER_STATE_RESULTS_SYNTAX_ERROR,
+        COMPILER_STATE_RESULTS_DANGLING_VARIABLES,
+        COMPILER_STATE_RESULTS_OUT_OF_MEMORY,
+        N_COMPILER_STATE_RESULTS
+} COMPILER_STATE_RESULTS;
+
 // El estado se define e inicializa en el archivo "main.c":
 extern CompilerState state;
 

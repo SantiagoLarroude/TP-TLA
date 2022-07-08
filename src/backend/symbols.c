@@ -6,43 +6,42 @@
 
 #include "symbols.h"
 
-#define BLOCKSIZE       64
-#define THRESHOLD       0.75
+#define BLOCKSIZE 64
+#define THRESHOLD 0.75
+#define SCOPE_DANGLING -1
 
 typedef unsigned long long hash_t;
 
-
-unsigned current_scope;
-unsigned num_blocks;
-unsigned table_size;
-
 typedef struct node {
-        struct node* next;
+        struct node *next;
         hash_t prehash;
-        variable* var;
-        unsigned scope;
+        variable *var;
+        long scope;
 } node;
 
+static unsigned current_scope;
+static unsigned num_blocks;
+static unsigned num_dangling;
+static unsigned table_size;
 
-node** table;
+static node **table;
 
-hash_t hash(const char* name);
-variable* lookup_variable_in_scope(const char* name, unsigned scope);
-void next_scope();
-void prev_scope();
+static hash_t hash(const char *name);
+static variable *lookup_variable_in_scope(const char *name, long scope);
+static node *lookup_node_in_scope(const char *variable_name, long scope);
 
 bool initialize_table()
 {
         current_scope = 0;
         num_blocks = 1;
-        table = calloc(BLOCKSIZE, sizeof(node*));
+        table = calloc(BLOCKSIZE, sizeof(node *));
         if (table == NULL)
                 return false;
 
         return true;
 }
 
-hash_t hash(const char* name)
+static hash_t hash(const char *name)
 {
         // djb2
         // http://www.cse.yorku.ca/~oz/hash.html
@@ -59,12 +58,14 @@ hash_t hash(const char* name)
 
 void next_scope()
 {
+        LogDebug("%s()\nCurrent scope: %d.", __func__, current_scope);
         current_scope++;
 }
 
 void prev_scope()
 {
-        node* current;
+        LogDebug("%s()\nCurrent scope: %d.", __func__, current_scope);
+        node *current;
 
         for (int i = 0; i < table_size; i++) {
                 if (table[i] == NULL)
@@ -81,17 +82,48 @@ void prev_scope()
                 current_scope--;
 }
 
-int insert_variable(variable* var)
+bool is_dangling(variable *var)
 {
+        LogDebug("%s(%p)", __func__, var);
+        if (lookup_variable_in_scope(var->name, SCOPE_DANGLING) == NULL)
+                return false;
+
+        return true;
+}
+
+bool assign_scope_to_dangling_variable(variable *var)
+{
+        LogDebug("%s(%p)", __func__, var);
+        if (is_dangling(var) == false)
+                return true;
+
+        node *table_node = lookup_node_in_scope(var->name, SCOPE_DANGLING);
+        if (table_node == NULL)
+                return false;
+
+        table_node->scope = current_scope;
+        num_dangling--;
+
+        return true;
+}
+unsigned count_dangling()
+{
+        LogDebug("%s()", __func__);
+        return num_dangling;
+}
+
+int insert_variable(variable *var)
+{
+        LogDebug("%s(%p)\nCurrent scope: %d.", __func__, var, current_scope);
         hash_t prehash = hash(var->name);
         unsigned key_index = prehash % (num_blocks * BLOCKSIZE);
-        node* table_node = table[key_index];
+        node *table_node = table[key_index];
 
         while (table_node != NULL && table_node->prehash != prehash)
                 table_node = table_node->next;
 
         if (table_node == NULL || table_node->scope != current_scope) {
-                table_node = (node*) calloc(1, sizeof(node));
+                table_node = (node *)calloc(1, sizeof(node));
                 table_node->next = table[key_index];
                 table_node->prehash = prehash;
                 table_node->var = var;
@@ -105,30 +137,65 @@ int insert_variable(variable* var)
 
         if ((table_size * 1.0) / (num_blocks * BLOCKSIZE) >= THRESHOLD) {
                 num_blocks++;
-                table = realloc(table, sizeof(node*) * num_blocks * BLOCKSIZE);
-                memset(table + table_size,
-                       0,
-                       (num_blocks * BLOCKSIZE - table_size) * sizeof(node*));
+                table = realloc(table, sizeof(node *) * num_blocks * BLOCKSIZE);
+                memset(table + table_size, 0,
+                       (num_blocks * BLOCKSIZE - table_size) * sizeof(node *));
         }
 
         return SUCCESS;
 }
 
-variable* lookup_variable(const char* name)
+int insert_dangling_variable(variable *var)
 {
-        variable* aux = NULL;
+        LogDebug("%s(%p)\nCurrent scope: %d.", __func__, var, current_scope);
+        int ret_val = insert_variable(var);
+        if (ret_val == SUCCESS) {
+                node *table_node =
+                        lookup_node_in_scope(var->name, current_scope);
+                table_node->scope = SCOPE_DANGLING;
+                num_dangling++;
+        }
 
-        for (unsigned scope = current_scope; scope >= 0 && aux == NULL; scope--)
+        return ret_val;
+}
+
+variable *lookup_variable(const char *name)
+{
+        LogDebug("%s(%s)\nCurrent scope: %d.", __func__, name, current_scope);
+        variable *aux = NULL;
+
+        for (long scope = current_scope; scope >= 0 && aux == NULL; scope--)
                 aux = lookup_variable_in_scope(name, scope);
 
         return aux;
 }
 
-variable* lookup_variable_in_scope(const char* name, unsigned scope)
+variable *lookup_dangling_variable(const char *name)
 {
-        unsigned long long pre = hash(name);
+        LogDebug("%s(%s)\nCurrent scope: %d.", __func__, name, current_scope);
+
+        return lookup_variable_in_scope(name, SCOPE_DANGLING);
+}
+
+static variable *lookup_variable_in_scope(const char *name, long scope)
+{
+        LogDebug("%s(%s, %ld)\nCurrent scope: %d.", __func__, name, scope,
+                 current_scope);
+
+        node *node = lookup_node_in_scope(name, scope);
+        if (node == NULL)
+                return NULL;
+
+        return node->var;
+}
+
+static node *lookup_node_in_scope(const char *variable_name, long scope)
+{
+        LogDebug("%s(%s, %ld)\nCurrent scope: %d.", __func__, variable_name,
+                 scope, current_scope);
+        unsigned long long pre = hash(variable_name);
         unsigned key_index = pre % (num_blocks * BLOCKSIZE);
-        node* node = table[key_index];
+        node *node = table[key_index];
 
         while (node != NULL && (node->prehash != pre || node->scope != scope))
                 node = node->next;
@@ -136,12 +203,13 @@ variable* lookup_variable_in_scope(const char* name, unsigned scope)
         if (node == NULL)
                 return NULL;
 
-
-        return node->var;
+        return node;
 }
 
 void free_table()
 {
+        LogDebug("%s()", __func__);
+
         if (table != NULL)
                 free(table);
 }

@@ -1,3 +1,4 @@
+#include <ctype.h> /* isdigit */
 #include <stdbool.h> /* bool type */
 #include <stdlib.h> /* malloc, calloc */
 #include <string.h> /* strlen, strcpy */
@@ -64,6 +65,11 @@ int grammar_program(program_t *root, node_function *fun)
 
         state.result = 0;
         state.succeed = true;
+
+        if (count_dangling() > 0) {
+                state.result = COMPILER_STATE_RESULTS_DANGLING_VARIABLES;
+                state.succeed = false;
+        }
 
         return 0;
 }
@@ -146,7 +152,7 @@ node_expression *grammar_expression_from_list(const node_list *list)
 
         // node_expression* expr = (node_expression*) malloc(sizeof(node_expression));
 
-        // expr->listExpr = (node_list*) list;
+        // expr->list_expr = (node_list*) list;
         // expr->type = EXPRESSION_LIST;
 
         // return expr;
@@ -231,7 +237,7 @@ node_expression *grammar_new_declaration_file_node(const char *fpath,
         }
 
         node->type = EXPRESSION_FILE_DECLARATION;
-        node->listExpr = (node_list *)separators; // Could be NULL
+        node->list_expr = (node_list *)separators; // Could be NULL
 
         node->var = (variable *)calloc(1, sizeof(variable));
         if (node->var == NULL) {
@@ -339,18 +345,34 @@ node_expression *grammar_new_loop(const char *id,
 {
         LogDebug("%s(%p, %p, %p)\n", __func__, id, iterable, action);
 
-        return NULL;
-        // node_expression* expr = malloc(sizeof(node_expression));
-        // expr->type = EXPRESSION_LOOP;
+        variable *var = lookup_dangling_variable(id);
 
-        // loop_node* loop = calloc(1, sizeof(loop_node));
-        // loop->id = calloc(1, sizeof(char));
-        // loop->iterable = calloc(1, sizeof(node_expression));
-        // loop->action = calloc(1, sizeof(node_expression));
+        // TODO: Handle variable in previous scope
+        if (var != NULL) {
+                assign_scope_to_dangling_variable(var);
+                var->type = LOOP_VARIABLE_TYPE;
+        }
 
-        // expr->loop = loop;
+        node_expression *node =
+                (node_expression *)calloc(1, sizeof(node_expression));
+        if (node == NULL) {
+                error_no_memory();
+                exit(1);
+        }
 
-        // return expr;
+        node->type = EXPRESSION_LOOP;
+
+        node->loop_expr = (node_loop *)calloc(1, sizeof(node_loop));
+        if (node->loop_expr == NULL) {
+                error_no_memory();
+                exit(1);
+        }
+
+        node->loop_expr->var = var;
+        node->loop_expr->iterable = (node_expression *)iterable;
+        node->loop_expr->action = (node_expression *)action;
+
+        return node;
 }
 
 node_list *grammar_new_list(const node_expression *expr)
@@ -437,37 +459,41 @@ node_list *grammar_new_list_from_range(const char *start, const char *end)
 {
         LogDebug("%s(%p, %p)\n", __func__, start, end);
 
-        return NULL;
+        if (start == NULL || end == NULL) {
+                return NULL;
+        }
 
-        // if (start->type != TYPE_NUMBER || end->type != TYPE_NUMBER) {
-        //         LogError("Invalid type for range.\n");
-        //         return NULL;
-        // }
+        long range_start = atol(start);
+        long range_end = atol(end);
 
-        // const long long vstart = start->value.number;
-        // const long long vend = end->value.number;
-        // const long long diff = (vend > vstart) ? vend - vstart : vstart - vend;
+        // atol retuns 0 on error. Manually check that start is a number
+        if ((range_start == 0 && isdigit(start[0]) == 0) ||
+            (range_end == 0 && isdigit(end[0]) == 0)) {
+                error_invalid_range(start, end);
+                exit(1);
+        }
 
-        // node_list* lst = (node_list*) malloc(sizeof(node_list));
-        // lst->exprs = (node_expression**) malloc(diff * sizeof(node_expression*));
+        /* [From, To]
+         * [5, 1] : Invalid
+         * [-1, -8] : Invalid
+         * */
+        if (range_start > range_end) {
+                error_invalid_range(start, end);
+                exit(1);
+        }
 
-        // for (long long i = 0; i < diff; i++) {
-        //         node_expression* expr = (node_expression*) malloc(sizeof(node_expression));
-        //         variable* var = (variable*) malloc(sizeof(variable));
+        node_list *list = (node_list *)calloc(1, sizeof(node_list));
+        if (list == NULL) {
+                error_no_memory();
+                exit(1);
+        }
 
-        //         var->type = TYPE_NUMBER;
-        //         var->value.number = i;
+        list->len = labs(range_end - range_start);
+        list->type = LIST_RANGE_TYPE;
+        list->from = range_start;
+        list->to = range_end;
 
-        //         expr->var = var;
-        //         expr->type = NUMBER_TYPE;
-
-        //         lst->exprs[i] = expr;
-        // }
-
-        // lst->type = LIST_RANGE_TYPE;
-        // lst->len = diff;
-
-        // return lst;
+        return list;
 }
 
 node_list *grammar_new_list_args(const node_expression *expr)
@@ -961,7 +987,7 @@ grammar_expression_from_funcall(const node_function_call *fn_calls)
 
         // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
         // node->var = (variable*) calloc(1, sizeof(variable));
-        // node->function_call_pointer = (node_function_call*) fn_calls;
+        // node->fun_call = (node_function_call*) fn_calls;
 
         // return node;
 }
@@ -1025,19 +1051,6 @@ node_expression *grammar_new_assignment_expression(const node_expression *expr,
         node->expr = (node_expression *)expr;
 
         return node;
-
-        // variable* var = lookup_variable(id->var->name);
-        // if (var == NULL) {
-        //         LogError("Variable %s not found.", id->var->name);
-        //         exit(1);
-        // }
-
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
-        // node->var = expr->var;
-        // node->type = id->type;
-        // strcpy(node->var->name, id->var->name);
-
-        // return node;
 }
 
 node_expression *grammar_new_assignment_from_id(const char *from,
@@ -1047,8 +1060,20 @@ node_expression *grammar_new_assignment_from_id(const char *from,
 
         variable *var = lookup_variable(from);
         if (var == NULL) {
-                error_variable_not_found(from);
-                exit(1);
+                // Store as dangling variable
+                var = (variable *)calloc(1, sizeof(variable));
+                if (var == NULL) {
+                        error_no_memory();
+                        exit(1);
+                }
+
+                var->type = UNKNOWN_TYPE;
+                var->name = strdup(from);
+
+                if (insert_dangling_variable(var) < SUCCESS) {
+                        error_multiple_declaration(from);
+                        exit(1);
+                }
         }
 
         node_expression *node =

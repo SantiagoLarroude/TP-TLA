@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "backend/error.h"
 #include "backend/logger.h"
 #include "backend/shared.h"
 
@@ -34,7 +35,7 @@ const int main(const int argumentCount, const char** arguments)
         const int result = yyparse(root);
 
         switch (result) {
-        case 0:
+        case COMPILER_STATE_RESULTS_FINISHED:
                 if (state.succeed) {
 
                         LogInfo("La compilación fue exitosa.");
@@ -44,10 +45,13 @@ const int main(const int argumentCount, const char** arguments)
                         return -1;
                 }
                 break;
-        case 1:
+        case COMPILER_STATE_RESULTS_SYNTAX_ERROR:
                 LogError("Bison finalizó debido a un error de sintaxis.");
                 break;
-        case 2:
+        case COMPILER_STATE_RESULTS_DANGLING_VARIABLES:
+                error_dangling_variable_found();
+                break;
+        case COMPILER_STATE_RESULTS_OUT_OF_MEMORY:
                 LogError("Bison finalizó abruptamente debido a que ya no hay memoria disponible.");
                 break;
         default:

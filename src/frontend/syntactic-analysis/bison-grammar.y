@@ -1,5 +1,6 @@
 %code requires{
 
+#include "../../backend/symbols.h"
 #include "bison-actions.h"
 
 /* Top level root node in the AST */
@@ -225,9 +226,11 @@ conditional :   IF bool_expr THEN expression ELSE expression TEOL {
                 }
             ;
 
-loop        :    FOR ID IN expression DO expression TEOL {
-                      $$ = grammar_new_loop($2, $4, $6);
-                  }
+loop        :   FOR ID IN expression DO expression TEOL {
+                    next_scope();
+                    $$ = grammar_new_loop($2, $4, $6);
+                    prev_scope();
+                }
 
 list        :   /* blank */ { $$ = grammar_new_list(NULL); }
             |   expression  { $$ = grammar_new_list($1); }
