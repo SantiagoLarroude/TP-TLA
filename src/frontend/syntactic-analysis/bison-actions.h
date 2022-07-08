@@ -34,7 +34,7 @@ grammar_concat_expressions(node_expression_list* list,
 node_function_call* grammar_function_call(const char* fun_id,
                                           const node_list* args);
 node_function_call*
-grammar_concat_function_call(const node_function_call* fun_list,
+grammar_concat_function_call(node_function_call* fun_list,
                              const node_function_call* fun_append);
 
 node_function_call*

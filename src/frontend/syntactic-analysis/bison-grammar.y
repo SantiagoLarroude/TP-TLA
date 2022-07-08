@@ -177,7 +177,7 @@ expression  :   file_decl
             |   assign
             ;
 
-fn_calls    :   fn_call
+fn_calls    :   fn_call { $$ = $1; }
             |   fn_calls DOT fn_call {
                     $$ = grammar_concat_function_call($1, $3);
                 }

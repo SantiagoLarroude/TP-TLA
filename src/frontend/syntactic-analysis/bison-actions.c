@@ -148,14 +148,17 @@ node_expression *grammar_expression_from_list(const node_list *list)
 {
         LogDebug("%s(%p)\n", __func__, list);
 
-        return NULL;
+        node_expression *node =
+                (node_expression *)calloc(1, sizeof(node_expression));
+        if (node == NULL) {
+                error_no_memory();
+                exit(1);
+        }
 
-        // node_expression* expr = (node_expression*) malloc(sizeof(node_expression));
+        node->type = EXPRESSION_LIST;
+        node->list_expr = (node_list *)list;
 
-        // expr->list_expr = (node_list*) list;
-        // expr->type = EXPRESSION_LIST;
-
-        // return expr;
+        return node;
 }
 
 node_expression *
@@ -163,12 +166,17 @@ grammar_expression_from_filehandler(const node_file_block *fhandler)
 {
         LogDebug("%s(%p)\n", __func__, fhandler);
 
-        return NULL;
+        node_expression *node =
+                (node_expression *)calloc(1, sizeof(node_expression));
+        if (node == NULL) {
+                error_no_memory();
+                exit(1);
+        }
 
-        // node_expression* fileExpr = calloc(1, sizeof(node_expression));
-        // fileExpr->fileHandler = (node_file_block*) fhandler;
+        node->type = EXPRESSION_FILE_HANDLE;
+        node->file_handler = (node_file_block *)fhandler;
 
-        // return fileExpr;
+        return node;
 }
 
 node_expression *
@@ -182,18 +190,18 @@ grammar_expression_from_assignment(const node_expression *assignment)
 }
 
 node_function_call *
-grammar_concat_function_call(const node_function_call *fun_list,
+grammar_concat_function_call(node_function_call *fun_list,
                              const node_function_call *fun_append)
 {
         LogDebug("%s(%p, %p)\n", __func__, fun_append);
 
-        return NULL;
+        node_function_call *aux = fun_list;
+        while (aux->next != NULL)
+                aux = aux->next;
 
-        // node_function_call* node = calloc(1, sizeof(node_function_call));
-        // node->function_call = (node_function_call*) fun_list;
-        // node->function_append = (node_function_call*) fun_append;
+        aux->next = (node_function_call *)fun_append;
 
-        // return node;
+        return fun_list;
 }
 
 node_function_call *grammar_function_call(const char *fun_id,
@@ -201,13 +209,25 @@ node_function_call *grammar_function_call(const char *fun_id,
 {
         LogDebug("%s(%p, %p)\n", __func__, fun_id, args);
 
-        return NULL;
+        variable *fun_id_table_entry = lookup_variable(fun_id);
+        if (fun_id_table_entry == NULL ||
+            fun_id_table_entry->type != FUNCTION_TYPE) {
+                error_function_not_found(fun_id);
+                exit(1);
+        }
 
-        // node_function_call* node = calloc(1, sizeof(node_function_call));
-        // node->id = (char*) fun_id;
-        // node->node_list = (node_list*) args;
+        node_function_call *node =
+                (node_function_call *)calloc(1, sizeof(node_function_call));
+        if (node == NULL) {
+                error_no_memory();
+                exit(1);
+        }
 
-        // return node;
+        node->id = fun_id_table_entry;
+        node->args = (node_list *)args; // Could be NULL
+        node->next = NULL;
+
+        return node;
 }
 
 node_function_call *grammar_function_call_from_id(const char *id,
@@ -271,14 +291,22 @@ node_file_block *grammar_using_file(const char *id,
 {
         LogDebug("%s(%p, %p)\n", __func__, id, expr);
 
-        return NULL;
-        // node_file_block* node_file_block = calloc(1, sizeof(node_file_block));
-        // // node_file_block->id = calloc(1,sizeof(node_file_block));
-        // // node_file_block->expr = calloc(1,sizeof(node_file_block));
-        // node_file_block->id = (node_expression*) id;
-        // node_file_block->expr = (node_expression*) expr;
+        node_file_block *node =
+                (node_file_block *)calloc(1, sizeof(node_file_block));
+        if (node == NULL) {
+                error_no_memory();
+                exit(1);
+        }
 
-        // return NULL;
+        node->var = lookup_variable(id);
+        if (node->var == NULL) {
+                error_variable_not_found(id);
+                exit(1);
+        }
+
+        node->exprs_list = (node_expression_list *)expr;
+
+        return node;
 }
 
 node_expression *grammar_new_variable(const char *id,
@@ -983,13 +1011,17 @@ grammar_expression_from_funcall(const node_function_call *fn_calls)
 {
         LogDebug("%s(%p)\n", __func__, fn_calls);
 
-        return NULL;
+        node_expression *node =
+                (node_expression *)calloc(1, sizeof(node_expression));
+        if (node == NULL) {
+                error_no_memory();
+                exit(1);
+        }
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
-        // node->var = (variable*) calloc(1, sizeof(variable));
-        // node->fun_call = (node_function_call*) fn_calls;
+        node->fun_call = (node_function_call *)fn_calls;
+        node->type = EXPRESSION_FUNCTION_CALL;
 
-        // return node;
+        return node;
 }
 
 variable *grammar_new_return_node(const char *id)

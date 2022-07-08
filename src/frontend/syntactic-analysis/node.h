@@ -31,13 +31,14 @@ typedef union variable_value {
 } variable_value;
 
 typedef enum NODE_T {
-        UNKNOWN_TYPE = -1,
+        UNKNOWN_TYPE = 0,
         NUMBER_TYPE = 1,
         BOOL_TYPE,
         STRING_TYPE,
         FILE_PATH_TYPE,
         LOOP_VARIABLE_TYPE,
         VARIABLE_TYPE,
+        FUNCTION_TYPE,
         EXPRESSION_TYPE,
         LIST_ARGS_TYPE,
         LIST_EXPRESSION_TYPE,
@@ -48,6 +49,9 @@ typedef enum NODE_T {
         EXPRESSION_VARIABLE_DECLARATION,
         EXPRESSION_FILE_DECLARATION,
         EXPRESSION_LOOP,
+        EXPRESSION_LIST,
+        EXPRESSION_FUNCTION_CALL,
+        EXPRESSION_FILE_HANDLE,
 } NODE_T;
 
 struct variable {
@@ -83,8 +87,8 @@ struct node_list {
 };
 
 struct node_file_block {
-        char *id;
-        node_expression *expr;
+        variable *var;
+        node_expression_list *exprs_list;
 };
 
 struct node_loop {
@@ -94,10 +98,10 @@ struct node_loop {
 };
 
 struct node_function_call {
-        char *id;
-        node_function_call *function_call;
-        node_function_call *function_append;
-        node_list *node_list;
+        variable *id;
+        node_list *args;
+
+        node_function_call *next;
 };
 
 struct node_expression_list {

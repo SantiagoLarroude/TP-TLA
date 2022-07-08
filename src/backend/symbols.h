@@ -20,6 +20,8 @@ int insert_dangling_variable(variable *var);
 variable *lookup_variable(const char *name);
 variable *lookup_dangling_variable(const char *name);
 
+void insert_function(char *name);
+
 void next_scope();
 void prev_scope();
 

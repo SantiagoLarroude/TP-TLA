@@ -25,6 +25,11 @@ void error_dangling_variable_found()
                  count_dangling());
 }
 
+void error_function_not_found(const char *name)
+{
+        LogError("Function %s not found.", name);
+}
+
 void error_invalid_range(const char *from, const char *to)
 {
         LogError("Invalid range detected.\nFrom: %s\nTo: %s\n", from, to);

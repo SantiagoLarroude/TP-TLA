@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "error.h"
 #include "logger.h"
 
 #include "symbols.h"
@@ -29,6 +30,7 @@ static node **table;
 static hash_t hash(const char *name);
 static variable *lookup_variable_in_scope(const char *name, long scope);
 static node *lookup_node_in_scope(const char *variable_name, long scope);
+static void insert_std_functions();
 
 bool initialize_table()
 {
@@ -37,6 +39,8 @@ bool initialize_table()
         table = calloc(BLOCKSIZE, sizeof(node *));
         if (table == NULL)
                 return false;
+
+        insert_std_functions();
 
         return true;
 }
@@ -157,6 +161,28 @@ int insert_dangling_variable(variable *var)
         }
 
         return ret_val;
+}
+
+void insert_function(char *name) // type de lo que vaya a devolver
+{
+        variable *fun = (variable *)calloc(1, sizeof(variable));
+        if (fun == NULL) {
+                error_no_memory();
+                exit(1);
+        }
+
+        fun->name = strdup(name);
+        fun->type = FUNCTION_TYPE;
+
+        insert_variable(fun);
+}
+
+static void insert_std_functions()
+{
+        insert_function("columns");
+        insert_function("lines");
+        insert_function("byIndex");
+        insert_function("filter");
 }
 
 variable *lookup_variable(const char *name)
