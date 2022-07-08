@@ -61,5 +61,7 @@ const int main(const int argumentCount, const char** arguments)
 
         free_table();
 
+        free_main_function(root);
+
         return result;
 }
