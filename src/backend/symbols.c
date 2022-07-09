@@ -188,6 +188,8 @@ static void insert_std_functions()
         insert_function("lines");
         insert_function("byIndex");
         insert_function("filter");
+        insert_function("toString");
+        insert_function("at");
 }
 
 variable *lookup_variable(const char *name)
