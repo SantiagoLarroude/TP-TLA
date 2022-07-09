@@ -30,15 +30,5 @@ bool assign_scope_to_dangling_variable(variable *var); // Assigns current scope
 unsigned count_dangling();
 
 void free_table();
-void free_node_function_call(node_function_call * fun_call);
-void free_main_function(node_function * main_function);
-void free_node_function(node_function * function);
-void free_node_list(node_list * args);
-void free_node_expression_list(node_expression_list * expression_list);
-void free_node_list(node_list * args);
-void free_variable(variable * variable);
-void free_node_expression(node_expression * exprs);
-void free_node_file_block(node_file_block* file_handler);
-void free_node_loop(node_loop * loop_expr);
 
 #endif /* SYMBOLS_H */

@@ -93,6 +93,7 @@ add_executable(${PROJECT_NAME}
         frontend/syntactic-analysis/node.h
         backend/error.c
         backend/logger.c
+        backend/mem_management.c
         backend/symbols.c
 )
 

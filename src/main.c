@@ -5,6 +5,7 @@
 #include "backend/error.h"
 #include "backend/logger.h"
 #include "backend/shared.h"
+#include "backend/mem_management.h"
 
 #include "frontend/syntactic-analysis/bison-actions.h"
 #include "frontend/syntactic-analysis/bison-parser.h"
@@ -59,9 +60,7 @@ const int main(const int argumentCount, const char** arguments)
         }
         LogInfo("Fin.");
 
-        free_table();
-
-        free_main_function(root);
+        free_program(root);
 
         return result;
 }

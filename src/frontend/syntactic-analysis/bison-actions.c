@@ -235,12 +235,35 @@ node_function_call *grammar_function_call_from_id(const char *id,
 {
         LogDebug("%s(%p, %p)\n", __func__, id, fun);
 
-        return NULL;
-        // node_function_call* node = calloc(1, sizeof(node_function_call));
-        // node->id = (char*) id;
-        // node->function_call = (node_function_call*) fun;
+        node_function_call *node = 
+                (node_function_call *)calloc(1, sizeof(node_function_call));
+        if (node == NULL) {
+                error_no_memory();
+                exit(1);
+        }
 
-        // return node;
+        variable *var = lookup_variable(id);
+        if (var == NULL) {
+                // Store as dangling variable
+                var = (variable *)calloc(1, sizeof(variable));
+                if (var == NULL) {
+                        error_no_memory();
+                        exit(1);
+                }
+
+                var->type = UNKNOWN_TYPE;
+                var->name = strdup(id);
+
+                if (insert_dangling_variable(var) < SUCCESS) {
+                        error_multiple_declaration(id);
+                        exit(1);
+                }
+        }
+
+        node->id = var;
+        node->next = (node_function_call *)fun;
+
+        return node;
 }
 
 node_expression *grammar_new_declaration_file_node(const char *fpath,
@@ -1257,7 +1280,7 @@ node_expression *grammar_constant_string(const char *rval)
         }
 
         node->var->type = STRING_TYPE;
-        strcpy(node->var->value.string, rval);
+        node->var->value.string = strdup(rval);
 
         return node;
 

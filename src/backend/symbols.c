@@ -4,6 +4,7 @@
 
 #include "error.h"
 #include "logger.h"
+#include "mem_management.h"
 
 #include "symbols.h"
 
@@ -244,113 +245,10 @@ void free_table()
                 {
                         nextNode = currentNode->next;
                         free_variable(currentNode->var);
-                        free(nodeCurrent);
+                        free(currentNode);
 
                         currentNode = nextNode;
                 }
                 free(table);
-        }
-}
-
-void free_main_function(node_function * main_function){
-        if (main_function == NULL)
-                return;
-        free_node_function(main_function);
-}
-
-void free_node_function(node_function * function){
-        if (function == NULL)
-                return;
-        free(function->name);
-        free_node_list(function->args);
-        free_node_expression_list(function->expressions);
-        free_variable(function->return_variable);
-        free(function);       
-}
-
-void free_node_list(node_list * args){
-        if (args == NULL)
-                return;
-        //TODO free expres **
-        /*
-        int pointer = 0;
-        while() {
-                free(args+pointer);
-                pointer += args->len;
-        }
-        node_expression * currentExp = args->exprs;
-        node_expression * nextExp;
-        while(currentExp != NULL) {
-                nextExp = currentExp->expr;
-                free_node_expression(currentExp);
-                currentExp = nextExp;
-        }*/
- 
-        free(args);
-}
-
-void free_node_expression_list(node_expression_list * expression_list) {
-        if(expressions == NULL)
-                return;
-        node_expression_list * current = expression_list;
-        node_expression_list * nextNode;
-        
-        while(current != NULL) {
-                nextNode = current->next;
-                free_node_expression(current->expr);
-                free(current);
-                current = nextNode;
-        }
-}
-
-void free_variable(variable * variable){
-        if(variable == NULL) {
-                return;
-        }
-        if(variable->name != NULL) {
-                free(variable->name);
-        }
-        //needs free variable_value?
-        free(variable);
-}
-
-// TODO free exprs->expr?
-void free_node_expression(node_expression * exprs){
-        if (exprs == NULL) return;
-        free_variable(exprs->var);
-        free_node_file_block(exprs->file_handler);
-        free_node_list(exprs->list_expr);
-        free_node_loop(exprs->loop_expr);
-        free_node_function_call(exprs->fun_call);
-        free_node_expression(exprs->expr);
-        free(exprs);
-}
-
-void free_node_file_block(node_file_block* file_handler){
-        if (file_handler == NULL) return;
-        free_variable(file_handler->var);
-        free_node_expression_list(file_handler->exprs_list);
-        free(file_handler);
-}
-
-void free_node_loop(node_loop * loop_expr){
-        if (loop_expr == NULL) return;
-        free_node_expression(loop_expr->iterable);
-        free_node_expression(loop_expr->action);
-        free_variable(loop_expr->var);
-        free(loop_expr);
-}
-
-void free_node_function_call(node_function_call * fun_call){
-        if (fun_call == NULL) return NULL;
-        
-        node_function_call * current = fun_call;
-        node_function_call * aux;
-        while (current != NULL) {
-                aux = current->next;
-                free_variable(current->id);
-                free_node_list(current->args);
-                free(current);
-                current = aux;
         }
 }
