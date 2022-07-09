@@ -29,6 +29,7 @@ const int main(const int argumentCount, const char **arguments)
                 LogInfo("Argumento %d: '%s'", i, arguments[i]);
         }
 
+        init_mem_manager();
         program_t *root = new_program();
 
         // Compilar el programa de entrada.
