@@ -18,11 +18,14 @@ static dynamic_ptr_arr free_addresses;
 static void init_free_address_list();
 static bool has_been_freed(void *ptr);
 
+void init_mem_manager()
+{
+        init_free_address_list();
+}
+
 void free_program(program_t *root)
 {
         LogDebug("%s(%p)", __func__, root);
-
-        init_free_address_list();
 
         free_main_function(root);
         free_table();
@@ -125,7 +128,14 @@ void free_node_expression(node_expression *exprs)
         free_node_list(exprs->list_expr);
         free_node_loop(exprs->loop_expr);
         free_node_function_call(exprs->fun_call);
-        free_node_expression(exprs->expr);
+
+        if (exprs->type == EXPRESSION_VARIABLE_ASSIGNMENT ||
+            exprs->type == EXPRESSION_BOOLEAN_NOT) {
+                free_node_expression(exprs->expr);
+        } else {
+                free_node_expression(exprs->left);
+                free_node_expression(exprs->right);
+        }
 
         free_and_keep_address(exprs);
 }
@@ -194,7 +204,7 @@ void free_and_keep_address(void *ptr)
                         exit(1);
                 }
 
-                memset(free_addresses.array + free_addresses.elements, NULL,
+                memset(free_addresses.array + free_addresses.elements, 0,
                        free_addresses.len - free_addresses.elements);
         }
 
