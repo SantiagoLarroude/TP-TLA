@@ -235,7 +235,7 @@ node_function_call *grammar_function_call_from_id(const char *id,
 {
         LogDebug("%s(%p, %p)\n", __func__, id, fun);
 
-        node_function_call *node = 
+        node_function_call *node =
                 (node_function_call *)calloc(1, sizeof(node_function_call));
         if (node == NULL) {
                 error_no_memory();

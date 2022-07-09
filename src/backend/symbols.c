@@ -236,13 +236,11 @@ static node *lookup_node_in_scope(const char *variable_name, long scope)
 void free_table()
 {
         LogDebug("%s()", __func__);
-        
-        if (table != NULL)
-        {
-                node * currentNode = *table;
-                node * nextNode;
-                while(currentNode != NULL)
-                {
+
+        if (table != NULL) {
+                node *currentNode = *table;
+                node *nextNode;
+                while (currentNode != NULL) {
                         nextNode = currentNode->next;
                         free_variable(currentNode->var);
                         free(currentNode);

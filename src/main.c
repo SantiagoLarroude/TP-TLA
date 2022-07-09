@@ -18,7 +18,7 @@ CompilerState state;
 extern void free_yylval();
 
 // Punto de entrada principal del compilador.
-const int main(const int argumentCount, const char** arguments)
+const int main(const int argumentCount, const char **arguments)
 {
         // Inicializar estado de la aplicación.
         state.result = 0;
@@ -29,7 +29,7 @@ const int main(const int argumentCount, const char** arguments)
                 LogInfo("Argumento %d: '%s'", i, arguments[i]);
         }
 
-        program_t * root = new_program();
+        program_t *root = new_program();
 
         // Compilar el programa de entrada.
         LogInfo("Compilando...\n");
@@ -38,7 +38,6 @@ const int main(const int argumentCount, const char** arguments)
         switch (result) {
         case COMPILER_STATE_RESULTS_FINISHED:
                 if (state.succeed) {
-
                         LogInfo("La compilación fue exitosa.");
                         // generate_code(root);
                 } else {
@@ -53,10 +52,13 @@ const int main(const int argumentCount, const char** arguments)
                 error_dangling_variable_found();
                 break;
         case COMPILER_STATE_RESULTS_OUT_OF_MEMORY:
-                LogError("Bison finalizó abruptamente debido a que ya no hay memoria disponible.");
+                LogError(
+                        "Bison finalizó abruptamente debido a que ya no hay memoria disponible.");
                 break;
         default:
-                LogError("Error desconocido mientras se ejecutaba el analizador Bison (codigo %d).", result);
+                LogError(
+                        "Error desconocido mientras se ejecutaba el analizador Bison (codigo %d).",
+                        result);
         }
         LogInfo("Fin.");
 
