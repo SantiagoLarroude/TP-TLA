@@ -4,7 +4,7 @@
 
 #include "error.h"
 #include "logger.h"
-#include "mem_management.h"
+#include "mem_management.h" /* free_* functions */
 
 #include "symbols.h"
 
@@ -32,14 +32,17 @@ static hash_t hash(const char *name);
 static variable *lookup_variable_in_scope(const char *name, long scope);
 static node *lookup_node_in_scope(const char *variable_name, long scope);
 static void insert_std_functions();
+static node *free_table_node(node *table_node);
 
 bool initialize_table()
 {
         current_scope = 0;
         num_blocks = 1;
         table = calloc(BLOCKSIZE, sizeof(node *));
-        if (table == NULL)
+        if (table == NULL) {
+                error_no_memory();
                 return false;
+        }
 
         insert_std_functions();
 
@@ -120,6 +123,7 @@ unsigned count_dangling()
 int insert_variable(variable *var)
 {
         LogDebug("%s(%p)\nCurrent scope: %d.", __func__, var, current_scope);
+
         hash_t prehash = hash(var->name);
         unsigned key_index = prehash % (num_blocks * BLOCKSIZE);
         node *table_node = table[key_index];
@@ -237,16 +241,27 @@ void free_table()
 {
         LogDebug("%s()", __func__);
 
-        if (table != NULL) {
-                node *currentNode = *table;
-                node *nextNode;
-                while (currentNode != NULL) {
-                        nextNode = currentNode->next;
-                        free_variable(currentNode->var);
-                        free(currentNode);
+        if (table == NULL)
+                return;
 
-                        currentNode = nextNode;
+        for (size_t i = 0; i < num_blocks * BLOCKSIZE; i++) {
+                node *table_node = table[i];
+                while (table_node != NULL) {
+                        table_node = free_table_node(table_node);
                 }
-                free(table);
         }
+
+        free_and_keep_address(table);
+}
+
+static node *free_table_node(node *table_node)
+{
+        if (table_node == NULL)
+                return NULL;
+
+        node *next_node = table_node->next;
+        free_variable(table_node->var);
+        free_and_keep_address(table_node);
+
+        return next_node;
 }

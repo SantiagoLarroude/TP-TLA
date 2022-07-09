@@ -1,14 +1,33 @@
 #include <stdlib.h>
+#include <string.h> /* memset */
+#include <stdbool.h>
 
+#include "error.h"
 #include "logger.h"
 #include "symbols.h"
 #include "mem_management.h"
 
+typedef struct dynamic_ptr_arr {
+        void **array;
+        size_t len; // Array size
+        size_t elements; // Number of elements with valid content
+} dynamic_ptr_arr;
+
+static dynamic_ptr_arr free_addresses;
+
+static void init_free_address_list();
+static bool has_been_freed(void *ptr);
+
 void free_program(program_t *root)
 {
         LogDebug("%s(%p)", __func__, root);
+
+        init_free_address_list();
+
         free_main_function(root);
         free_table();
+
+        free(free_addresses.array);
 }
 
 void free_main_function(program_t *program)
@@ -25,24 +44,23 @@ void free_node_function(node_function *function)
 {
         LogDebug("%s(%p)", __func__, function);
 
-        if (function == NULL)
+        if (function == NULL || has_been_freed(function))
                 return;
 
-        if (function->name != NULL) {
-                free(function->name);
-        }
+        free_and_keep_address(function->name);
 
         free_node_list(function->args);
         free_node_expression_list(function->expressions);
         free_variable(function->return_variable);
-        free(function);
+
+        free_and_keep_address(function);
 }
 
 void free_node_list(node_list *args)
 {
         LogDebug("%s(%p)", __func__, args);
 
-        if (args == NULL)
+        if (args == NULL || has_been_freed(args))
                 return;
 
         if (args->type != LIST_RANGE_TYPE) {
@@ -50,17 +68,17 @@ void free_node_list(node_list *args)
                         free_node_expression(args->exprs[i]);
                 }
 
-                free(args->exprs);
+                free_and_keep_address(args->exprs);
         }
 
-        free(args);
+        free_and_keep_address(args);
 }
 
 void free_node_expression_list(node_expression_list *expression_list)
 {
         LogDebug("%s(%p)", __func__, expression_list);
 
-        if (expression_list == NULL)
+        if (expression_list == NULL || has_been_freed(expression_list))
                 return;
 
         node_expression_list *current = expression_list;
@@ -69,7 +87,8 @@ void free_node_expression_list(node_expression_list *expression_list)
                 node_expression_list *nextNode = current->next;
 
                 free_node_expression(current->expr);
-                free(current);
+
+                free_and_keep_address(current);
 
                 current = nextNode;
         }
@@ -79,28 +98,26 @@ void free_variable(variable *variable)
 {
         LogDebug("%s(%p)", __func__, variable);
 
-        if (variable == NULL)
+        if (variable == NULL || has_been_freed(variable))
                 return;
 
-        if (variable->name != NULL)
-                free(variable->name);
+        free_and_keep_address(variable->name);
 
         if (variable->type == EXPRESSION_TYPE) {
                 free_node_expression(variable->value.expr);
-        } else if ((variable->type == STRING_TYPE ||
-                    variable->type == FILE_PATH_TYPE) &&
-                   variable->value.string != NULL) {
-                free(variable->value.string);
+        } else if (variable->type == STRING_TYPE ||
+                   variable->type == FILE_PATH_TYPE) {
+                free_and_keep_address(variable->value.string);
         }
 
-        free(variable);
+        free_and_keep_address(variable);
 }
 
 void free_node_expression(node_expression *exprs)
 {
         LogDebug("%s(%p)", __func__, exprs);
 
-        if (exprs == NULL)
+        if (exprs == NULL || has_been_freed(exprs))
                 return;
 
         free_variable(exprs->var);
@@ -110,41 +127,41 @@ void free_node_expression(node_expression *exprs)
         free_node_function_call(exprs->fun_call);
         free_node_expression(exprs->expr);
 
-        free(exprs);
+        free_and_keep_address(exprs);
 }
 
 void free_node_file_block(node_file_block *file_handler)
 {
         LogDebug("%s(%p)", __func__, file_handler);
 
-        if (file_handler == NULL)
+        if (file_handler == NULL || has_been_freed(file_handler))
                 return;
 
         free_variable(file_handler->var);
         free_node_expression_list(file_handler->exprs_list);
 
-        free(file_handler);
+        free_and_keep_address(file_handler);
 }
 
 void free_node_loop(node_loop *loop_expr)
 {
         LogDebug("%s(%p)", __func__, loop_expr);
 
-        if (loop_expr == NULL)
+        if (loop_expr == NULL || has_been_freed(loop_expr))
                 return;
 
         free_node_expression(loop_expr->iterable);
         free_node_expression(loop_expr->action);
         free_variable(loop_expr->var);
 
-        free(loop_expr);
+        free_and_keep_address(loop_expr);
 }
 
 void free_node_function_call(node_function_call *fun_call)
 {
         LogDebug("%s(%p)", __func__, fun_call);
 
-        if (fun_call == NULL)
+        if (fun_call == NULL || has_been_freed(fun_call))
                 return;
 
         node_function_call *current = fun_call;
@@ -154,7 +171,58 @@ void free_node_function_call(node_function_call *fun_call)
                 aux = current->next;
                 free_variable(current->id);
                 free_node_list(current->args);
-                free(current);
+
+                free_and_keep_address(current);
+
                 current = aux;
         }
+}
+
+void free_and_keep_address(void *ptr)
+{
+        if (ptr == NULL || has_been_freed(ptr) == true)
+                return;
+
+        if (free_addresses.elements == free_addresses.len) {
+                free_addresses.len += 10;
+
+                free_addresses.array =
+                        (void **)realloc(free_addresses.array,
+                                         free_addresses.len * sizeof(void *));
+                if (free_addresses.array == NULL) {
+                        error_no_memory();
+                        exit(1);
+                }
+
+                memset(free_addresses.array + free_addresses.elements, NULL,
+                       free_addresses.len - free_addresses.elements);
+        }
+
+        free_addresses.array[free_addresses.elements++] = ptr;
+
+        free(ptr);
+}
+
+static void init_free_address_list()
+{
+        free_addresses.elements = 0;
+        free_addresses.len = 50;
+        free_addresses.array =
+                (void **)calloc(free_addresses.len, sizeof(void *));
+        if (free_addresses.array == NULL) {
+                error_no_memory();
+                exit(1);
+        }
+}
+
+static bool has_been_freed(void *ptr)
+{
+        if (ptr == NULL)
+                return true;
+
+        for (size_t i = 0; i < free_addresses.elements; ++i)
+                if (free_addresses.array[i] == ptr)
+                        return true;
+
+        return false;
 }

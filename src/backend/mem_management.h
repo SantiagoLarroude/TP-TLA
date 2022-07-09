@@ -16,4 +16,7 @@ void free_node_expression(node_expression *exprs);
 void free_node_file_block(node_file_block *file_handler);
 void free_node_loop(node_loop *loop_expr);
 
+// Must call after calling free_program
+void free_and_keep_address(void *ptr);
+
 #endif /* MEM_MANAGEMENT_H */
