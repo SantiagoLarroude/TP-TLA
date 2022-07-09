@@ -12,10 +12,10 @@ typedef struct node_list node_list;
 typedef struct node_file_block node_file_block;
 typedef struct node_expression node_expression;
 typedef struct node_loop node_loop;
+typedef struct node_conditional node_conditional;
 
 typedef struct node_function_call node_function_call;
 typedef struct node_function node_function;
-// typedef struct conditional_node conditional_node;
 typedef struct node_expression_list node_expression_list;
 typedef struct list list;
 
@@ -48,11 +48,30 @@ typedef enum NODE_T {
         EXPRESSION_VARIABLE_ASSIGNMENT,
         EXPRESSION_VARIABLE_DECLARATION,
         EXPRESSION_VARIABLE_WITH_FILTER,
+        EXPRESSION_VARIABLE,
         EXPRESSION_FILE_DECLARATION,
         EXPRESSION_LOOP,
         EXPRESSION_LIST,
         EXPRESSION_FUNCTION_CALL,
         EXPRESSION_FILE_HANDLE,
+        EXPRESSION_STR_ARITHMETIC_ADD,
+        EXPRESSION_STR_ARITHMETIC_SUB,
+        EXPRESSION_NUMBER_ARITHMETIC_ADD,
+        EXPRESSION_NUMBER_ARITHMETIC_SUB,
+        EXPRESSION_NUMBER_ARITHMETIC_MUL,
+        EXPRESSION_NUMBER_ARITHMETIC_DIV,
+        EXPRESSION_NUMBER_ARITHMETIC_MOD,
+        EXPRESSION_BOOLEAN_NOT,
+        EXPRESSION_BOOLEAN_AND,
+        EXPRESSION_BOOLEAN_OR,
+        EXPRESSION_COMPARE_EQUALS,
+        EXPRESSION_COMPARE_NOT_EQUALS,
+        EXPRESSION_COMPARE_GREATER_THAN,
+        EXPRESSION_COMPARE_GREATER_EQUAL,
+        EXPRESSION_COMPARE_LESS_THAN,
+        EXPRESSION_COMPARE_LESS_EQUAL,
+        EXPRESSION_VARIABLE_TYPE_COMPARISON,
+        EXPRESSION_CONDITIONAL,
 } NODE_T;
 
 struct variable {
@@ -64,10 +83,19 @@ struct variable {
 
 struct node_expression {
         variable *var;
+        token_t compare_type;
+
         node_file_block *file_handler;
         node_list *list_expr;
         node_loop *loop_expr;
-        node_expression *expr;
+        node_conditional *conditional;
+        union {
+                node_expression *expr;
+                struct {
+                        node_expression *left;
+                        node_expression *right;
+                };
+        };
 
         node_function_call *fun_call;
 
@@ -96,6 +124,12 @@ struct node_loop {
         variable *var;
         node_expression *iterable;
         node_expression *action;
+};
+
+struct node_conditional {
+        node_expression *condition;
+        node_expression *true_condition;
+        node_expression *else_condition;
 };
 
 struct node_function_call {

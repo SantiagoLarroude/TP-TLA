@@ -48,7 +48,6 @@ string          \"(\\.|[^"\\])*\"
 
 {comment}       { pattern_ignored(yytext); }
 
-{string}        { return pattern_string(yytext); }
 {number}        { return pattern_number(yytext); }
 
 "function"      { return all_type_of_pattern(yytext, FUNCTION); }
@@ -110,9 +109,11 @@ string          \"(\\.|[^"\\])*\"
 
 "is"            { return all_type_of_pattern(yytext, IS); }
 "File"          { log_debug_token(yytext);  return TYPE_FILE; }
-"Number"        { return pattern_number(yytext); }
-"String"        { return pattern_string(yytext); }
-"Boolean"       { return pattern_bool(yytext); }
+"Number"        { return pattern_type_number(yytext); }
+"String"        { return pattern_type_string(yytext); }
+"Boolean"       { return pattern_type_bool(yytext); }
+
+{string}        { return pattern_string(yytext); }
 
 {id}            { return pattern_id(yytext); }
 

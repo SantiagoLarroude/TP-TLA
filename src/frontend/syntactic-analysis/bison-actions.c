@@ -7,12 +7,16 @@
 #include "../../backend/logger.h" /* LogDebug */
 #include "../../backend/error.h"
 #include "../../backend/symbols.h"
+#include "../../backend/mem_management.h" /* free_node_list */
 
 /* Frontend */
 #include "../lexical-analysis/flex-actions.h" /* enum TokenID; free_yylval */
 
 /* This file */
 #include "bison-actions.h"
+static variable *create_variable();
+static node_expression *create_node_expression();
+static variable *lookup_variable_create_dangling(const char *id);
 
 /**
  * Implementación de "bison-grammar.h".
@@ -91,15 +95,17 @@ node_function *grammar_new_function(const char *name, const node_list *args,
         fun->expressions = (node_expression_list *)list;
         fun->return_variable = (variable *)return_variable;
 
+        if (args != NULL) {
+                for (size_t i = 0; i < args->len; i++) {
+                        if (args->exprs[i] != NULL &&
+                            args->exprs[i]->type == EXPRESSION_VARIABLE) {
+                                assign_scope_to_dangling_variable(
+                                        args->exprs[i]->var);
+                        }
+                }
+        }
+
         return fun;
-
-        // node_function* newFuncNode = calloc(1, sizeof(node_function));
-        // newFuncNode->expr = calloc(1, sizeof(node_expression));
-        // newFuncNode->expr = (node_expression*) expr;
-
-        // state.succeed = true;
-
-        // return newFuncNode;
 }
 
 node_expression_list *grammar_new_expression_list(const node_expression *expr)
@@ -148,12 +154,7 @@ node_expression *grammar_expression_from_list(const node_list *list)
 {
         LogDebug("%s(%p)\n", __func__, list);
 
-        node_expression *node =
-                (node_expression *)calloc(1, sizeof(node_expression));
-        if (node == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node_expression *node = create_node_expression();
 
         node->type = EXPRESSION_LIST;
         node->list_expr = (node_list *)list;
@@ -166,12 +167,7 @@ grammar_expression_from_filehandler(const node_file_block *fhandler)
 {
         LogDebug("%s(%p)\n", __func__, fhandler);
 
-        node_expression *node =
-                (node_expression *)calloc(1, sizeof(node_expression));
-        if (node == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node_expression *node = create_node_expression();
 
         node->type = EXPRESSION_FILE_HANDLE;
         node->file_handler = (node_file_block *)fhandler;
@@ -242,7 +238,8 @@ node_function_call *grammar_function_call_from_id(const char *id,
                 exit(1);
         }
 
-        variable *var = lookup_variable(id);
+        variable *var =
+                lookup_variable_create_dangling(id); /* lookup_variable(id);
         if (var == NULL) {
                 // Store as dangling variable
                 var = (variable *)calloc(1, sizeof(variable));
@@ -258,7 +255,7 @@ node_function_call *grammar_function_call_from_id(const char *id,
                         error_multiple_declaration(id);
                         exit(1);
                 }
-        }
+        } */
 
         node->id = var;
         node->next = (node_function_call *)fun;
@@ -272,21 +269,12 @@ node_expression *grammar_new_declaration_file_node(const char *fpath,
 {
         LogDebug("%s(%s, %p, %p)", __func__, fpath, id, separators);
 
-        node_expression *node =
-                (node_expression *)calloc(1, sizeof(node_expression));
-        if (node == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node_expression *node = create_node_expression();
 
         node->type = EXPRESSION_FILE_DECLARATION;
         node->list_expr = (node_list *)separators; // Could be NULL
 
-        node->var = (variable *)calloc(1, sizeof(variable));
-        if (node->var == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node->var = create_variable();
 
         node->var->type = FILE_PATH_TYPE;
         node->var->name = strdup(id);
@@ -337,11 +325,7 @@ node_expression *grammar_new_variable(const char *id,
 {
         LogDebug("%s(%p, %p)\n", __func__, id, expr);
 
-        variable *id_var = (variable *)calloc(1, sizeof(variable));
-        if (id_var == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        variable *id_var = create_variable();
 
         id_var->name = strdup(id);
         id_var->type = EXPRESSION_TYPE;
@@ -353,12 +337,7 @@ node_expression *grammar_new_variable(const char *id,
                 exit(1);
         }
 
-        node_expression *node =
-                (node_expression *)calloc(1, sizeof(node_expression));
-        if (node == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node_expression *node = create_node_expression();
 
         node->var = id_var;
         node->type = EXPRESSION_VARIABLE_DECLARATION;
@@ -373,21 +352,22 @@ node_expression *grammar_new_conditional(const node_expression *condition,
         LogDebug("%s(%p, %p, %p)\n", __func__, condition, expr_true,
                  expr_false);
 
-        return NULL;
-        // node_expression* expr = malloc(sizeof(node_expression));
-        // expr->type = EXPRESSION_CONDITIONAL;
+        node_expression *node = create_node_expression();
 
-        // conditional_node* node = calloc(1, sizeof(conditional_node));
-        // node->condition = calloc(1, sizeof(node_expression));
-        // node->condition = (node_expression*) condition;
-        // node->expr_true = calloc(1, sizeof(node_expression));
-        // node->expr_true = (node_expression*) expr_true;
-        // node->expr_false = calloc(1, sizeof(node_expression));
-        // node->expr_false = (node_expression*) expr_false;
+        node->type = EXPRESSION_CONDITIONAL;
 
-        // expr->conditional = node;
+        node->conditional =
+                (node_conditional *)calloc(1, sizeof(node_conditional));
+        if (node->conditional == NULL) {
+                error_no_memory();
+                exit(1);
+        }
 
-        // return expr;
+        node->conditional->condition = (node_expression *)condition;
+        node->conditional->true_condition = (node_expression *)expr_true;
+        node->conditional->else_condition = (node_expression *)expr_false;
+
+        return node;
 }
 
 node_expression *grammar_new_loop(const char *id,
@@ -404,12 +384,7 @@ node_expression *grammar_new_loop(const char *id,
                 var->type = LOOP_VARIABLE_TYPE;
         }
 
-        node_expression *node =
-                (node_expression *)calloc(1, sizeof(node_expression));
-        if (node == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node_expression *node = create_node_expression();
 
         node->type = EXPRESSION_LOOP;
 
@@ -453,25 +428,6 @@ node_list *grammar_new_list(const node_expression *expr)
         }
 
         return list;
-
-        // node_list* lst = (node_list*) malloc(sizeof(node_list));
-
-        // if (expr == NULL) {
-        //         lst->exprs = NULL;
-        //         lst->len = 0;
-        //         lst->type = LIST_BLANK_TYPE;
-        // } else {
-        //         lst->len = 1;
-        //         lst->type = LIST_EXPRESSION_TYPE;
-
-        //         lst->exprs = (node_expression**) malloc(sizeof(node_expression*));
-        //         lst->exprs[0] = (node_expression*) expr;
-        // }
-
-        // return lst;
-        /*
-        Devuelve l->{elem (expr), next-> NULL}
-        */
 }
 
 node_list *grammar_concat_list_expr(node_list *list,
@@ -479,13 +435,18 @@ node_list *grammar_concat_list_expr(node_list *list,
 {
         LogDebug("%s(%p, %p)\n", __func__, list, expr);
 
-        return NULL;
-        // node_expression** expanded = (node_expression**) realloc(list->exprs, (list->len + 1) * sizeof(node_expression*));
-        // expanded[list->len] = (node_expression*) expr;
+        node_expression **tmp_arr = realloc(
+                list->exprs, sizeof(node_expression *) * (1 + list->len));
+        if (tmp_arr == NULL) {
+                error_no_memory();
+                exit(1);
+        }
 
-        // list->exprs[(list->len)++] = (node_expression*) expanded;
+        tmp_arr[list->len++] = (node_expression*) expr;
 
-        // return list;
+        list->exprs = tmp_arr;
+
+        return list;
 }
 
 node_list *grammar_concat_list_list(node_list *head_list,
@@ -493,17 +454,25 @@ node_list *grammar_concat_list_list(node_list *head_list,
 {
         LogDebug("%s(%p, %p)\n", __func__, head_list, tail_list);
 
-        return NULL;
+        size_t new_len = tail_list->len + head_list->len;
 
-        // node_list* concat = realloc(head_list, head_list->len + tail_list->len);
+        node_expression **tmp_arr =
+                realloc(head_list->exprs, sizeof(node_expression *) * new_len);
+        if (tmp_arr == NULL) {
+                error_no_memory();
+                exit(1);
+        }
 
-        // for (size_t i = 0, last_head = head_list->len; i < tail_list->len; i++) {
-        //         concat->exprs[last_head + i] = tail_list->exprs[i];
-        // }
+        for (size_t i = head_list->len; i < new_len; i++) {
+                tmp_arr[i] = tail_list->exprs[i - head_list->len];
+        }
 
-        // head_list->len += tail_list->len;
-        // head_list = concat;
-        // return concat;
+        head_list->exprs = tmp_arr;
+        head_list->len = new_len;
+
+        free_node_list((node_list *)tail_list);
+
+        return head_list;
 }
 
 node_list *grammar_new_list_from_range(const char *start, const char *end)
@@ -517,17 +486,12 @@ node_list *grammar_new_list_from_range(const char *start, const char *end)
         long range_start = atol(start);
         long range_end = atol(end);
 
-        // atol retuns 0 on error. Manually check that start is a number
         if ((range_start == 0 && isdigit(start[0]) == 0) ||
             (range_end == 0 && isdigit(end[0]) == 0)) {
                 error_invalid_range(start, end);
                 exit(1);
         }
 
-        /* [From, To]
-         * [5, 1] : Invalid
-         * [-1, -8] : Invalid
-         * */
         if (range_start > range_end) {
                 error_invalid_range(start, end);
                 exit(1);
@@ -574,21 +538,16 @@ node_list *grammar_new_list_args(const node_expression *expr)
         }
 
         return list;
+}
 
-        // node_list* lst = (node_list*) malloc(sizeof(node_list));
+node_list *grammar_new_list_args_from_id(const char *id)
+{
+        node_expression *variable_node = create_node_expression();
 
-        // if (expr == NULL) {
-        //         lst->exprs = NULL;
-        //         lst->type = BLANK_TYPE;
-        //         lst->len = 0;
-        // } else {
-        //         lst->exprs = (node_expression**) malloc(sizeof(node_expression*));
+        variable_node->type = EXPRESSION_VARIABLE;
+        variable_node->var = lookup_variable_create_dangling(id);
 
-        //         lst->exprs[0] = (node_expression*) expr;
-        //         lst->len = 1;
-        //         lst->type = EXPRESSION_TYPE;
-        // }
-        // return lst;
+        return grammar_new_list_args(variable_node);
 }
 
 node_list *grammar_concat_list_args(node_list *list,
@@ -614,23 +573,29 @@ node_list *grammar_concat_list_args(node_list *list,
         return list;
 }
 
+node_list *grammar_concat_list_args_with_id(node_list *list, const char *id)
+{
+        node_expression *variable_node = create_node_expression();
+
+        variable_node->type = EXPRESSION_VARIABLE;
+        variable_node->var = lookup_variable_create_dangling(id);
+
+        return grammar_concat_list_args(list, variable_node);
+}
+
 node_expression *
 grammar_expression_arithmetic_num_add(const node_expression *lvalue,
                                       const node_expression *rvalue)
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
-        // node->var = (variable*) calloc(1, sizeof(variable));
-        // node->var->type = NUMBER_ARITHMETIC_ADD;
-        // char* name = "NUMBER_ARITHMETIC_ADD";
-        // node->var->name = calloc(1, strlen(name));
-        // strcpy(node->var->name, name);
-        // node->var->value.number = lvalue->var->value.number + rvalue->var->value.number;
+        node->type = EXPRESSION_NUMBER_ARITHMETIC_ADD;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
 
-        // return (node_expression*) node;
+        return node;
 }
 
 node_expression *
@@ -639,22 +604,13 @@ grammar_expression_arithmetic_num_sub(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
+        node->type = EXPRESSION_NUMBER_ARITHMETIC_SUB;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
 
-        // node->type = EXPRESSION_VARIABLE;
-
-        // node->var = (variable*) calloc(1, sizeof(variable));
-        // node->var->type = NUMBER_ARITHMETIC_SUB;
-
-        // char* name = "NUMBER_ARITHMETIC_SUB";
-        // node->var->name = calloc(1, strlen(name));
-        // strcpy(node->var->name, name);
-
-        // node->var->value.number = lvalue->var->value.number - rvalue->var->value.number;
-
-        // return (node_expression*) node;
+        return node;
 }
 
 node_expression *
@@ -663,22 +619,13 @@ grammar_expression_arithmetic_num_mul(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
+        node->type = EXPRESSION_NUMBER_ARITHMETIC_MUL;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
 
-        // node->type = EXPRESSION_VARIABLE;
-
-        // node->var = (variable*) calloc(1, sizeof(variable));
-        // node->var->type = NUMBER_ARITHMETIC_MUL;
-
-        // char* name = "NUMBER_ARITHMETIC_MUL";
-        // node->var->name = calloc(1, strlen(name));
-        // strcpy(node->var->name, name);
-
-        // node->var->value.number = lvalue->var->value.number * rvalue->var->value.number;
-
-        // return node;
+        return node;
 }
 
 node_expression *
@@ -687,22 +634,13 @@ grammar_expression_arithmetic_num_div(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
+        node->type = EXPRESSION_NUMBER_ARITHMETIC_DIV;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
 
-        // node->type = EXPRESSION_VARIABLE;
-        // node->var = (variable*) calloc(1, sizeof(variable));
-        // node->var->type = NUMBER_ARITHMETIC_DIV;
-
-        // char* name = "NUMBER_ARITHMETIC_DIV";
-        // node->var->name = calloc(1, strlen(name));
-        // strcpy(node->var->name, name);
-        // // strcpy(node->var->name, "NUMBER_ARITHMETIC_DIV");
-
-        // node->var->value.number = lvalue->var->value.number / rvalue->var->value.number;
-
-        // return node;
+        return node;
 }
 
 node_expression *
@@ -711,22 +649,13 @@ grammar_expression_arithmetic_num_mod(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
+        node->type = EXPRESSION_NUMBER_ARITHMETIC_MOD;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
 
-        // node->type = EXPRESSION_VARIABLE;
-        // node->var = (variable*) calloc(1, sizeof(variable));
-        // node->var->type = NUMBER_ARITHMETIC_MOD;
-
-        // char* name = "NUMBER_ARITHMETIC_MOD";
-        // node->var->name = calloc(1, strlen(name));
-        // strcpy(node->var->name, name);
-        // // strcpy(node->var->name, "NUMBER_ARITHMETIC_MOD");
-
-        // node->var->value.number = (double) (((long long) lvalue->var->value.number) % ((long long) rvalue->var->value.number));
-
-        // return node;
+        return node;
 }
 
 node_expression *
@@ -735,20 +664,13 @@ grammar_expression_arithmetic_str_add(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // const size_t a = strlen(lvalue->var->value.string);
-        // const size_t b = strlen(rvalue->var->value.string);
-        // const size_t size_ab = a + b + 1;
+        node->type = EXPRESSION_STR_ARITHMETIC_ADD;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
 
-        // node_expression* concat = (node_expression*) malloc(sizeof(char*) * size_ab);
-
-        // memcpy(concat, lvalue->var->value.string, a);
-        // memcpy(concat + a, rvalue->var->value.string, b + 1);
-
-        // concat->var->type = ARITHMETIC_ADD;
-
-        // return (node_expression*) concat;
+        return node;
 }
 
 node_expression *
@@ -757,23 +679,13 @@ grammar_expression_arithmetic_str_sub(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // char* p, * q, * r;
-        // char* str = lvalue->var->value.string;
-        // char* sub = rvalue->var->value.string;
-        // if (*sub && (q = r = strstr(str, sub)) != NULL) {
-        //         size_t len = strlen(sub);
-        //         while ((r = strstr(p = r + len, sub)) != NULL) {
-        //                 memmove(q, p, r - p);
-        //                 q += r - p;
-        //         }
-        //         memmove(q, p, strlen(p) + 1);
-        // }
+        node->type = EXPRESSION_STR_ARITHMETIC_SUB;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
 
-        // lvalue->var->type = ARITHMETIC_SUB;
-
-        // return (node_expression*) lvalue;
+        return node;
 }
 
 node_expression *grammar_expression_bool_and(const node_expression *lvalue,
@@ -781,17 +693,13 @@ node_expression *grammar_expression_bool_and(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
-        // node->g_boolean_type = BOOL_TYPE_AND;
-        // node->var = (variable*) calloc(1, sizeof(variable));
+        node->type = EXPRESSION_BOOLEAN_AND;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
 
-        // node->var->value.boolean = (lvalue->var->value.boolean && rvalue->var->value.boolean) ? true : false;
-
-        // node->var->type = node->g_boolean_type;
-
-        // return node;
+        return node;
 }
 
 node_expression *grammar_expression_bool_or(const node_expression *lvalue,
@@ -799,34 +707,25 @@ node_expression *grammar_expression_bool_or(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
-        // node->g_boolean_type = BOOL_TYPE_OR;
-        // node->var = (variable*) calloc(1, sizeof(variable));
+        node->type = EXPRESSION_BOOLEAN_OR;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
 
-        // node->var->value.boolean = (lvalue->var->value.boolean || rvalue->var->value.boolean) ? true : false;
-
-        // node->var->type = node->g_boolean_type;
-
-        // return node;
+        return node;
 }
 
 node_expression *grammar_expression_bool_not(const node_expression *value)
 {
         LogDebug("%s(%p)\n", __func__, value);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = calloc(1, sizeof(node_expression));
-        // node->g_boolean_type = BOOL_TYPE_NOT;
-        // node->var = (variable*) calloc(1, sizeof(variable));
+        node->type = EXPRESSION_BOOLEAN_NOT;
+        node->expr = (node_expression *)value;
 
-        // node->var->value.boolean = !value->var->value.boolean;
-
-        // node->var->type = node->g_boolean_type;
-
-        // return node;
+        return node;
 }
 
 node_expression *grammar_expression_cmp_equals(const node_expression *lvalue,
@@ -834,32 +733,13 @@ node_expression *grammar_expression_cmp_equals(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
-        // node->g_expression_cmp_type = CMP_EXP_EQUALS;
-        // node->var = (variable*) calloc(1, sizeof(variable));
-        // node->var->type = node->g_expression_cmp_type;
-        // switch (node->var->type) {
-        // case TYPE_NUMBER:
-        //         if (lvalue->var->value.number == rvalue->var->value.number) {
-        //                 node->var->value.boolean = true;
-        //         } else {
-        //                 node->var->value.boolean = false;
-        //         }
-        //         break;
-        // case TYPE_STRING:
-        //         if (strcmp(lvalue->var->value.string, rvalue->var->value.string) == 0) {
-        //                 node->var->value.boolean = true;
-        //         } else {
-        //                 node->var->value.boolean = false;
-        //         }
-        //         break;
-        // default:
-        //         break;
-        // }
+        node->type = EXPRESSION_COMPARE_EQUALS;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
 
-        // return node;
+        return node;
 }
 
 node_expression *
@@ -868,33 +748,13 @@ grammar_expression_cmp_not_equals(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
-        // node->var = (variable*) calloc(1, sizeof(variable));
-        // node->g_expression_cmp_type = CMP_EXP_NOT_EQUALS;
-        // node->var->type = node->g_expression_cmp_type;
+        node->type = EXPRESSION_COMPARE_NOT_EQUALS;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
 
-        // switch (node->var->type) {
-        // case TYPE_NUMBER:
-        //         if (lvalue->var->value.number != rvalue->var->value.number) {
-        //                 node->var->value.boolean = true;
-        //         } else {
-        //                 node->var->value.boolean = false;
-        //         }
-        //         break;
-        // case TYPE_STRING:
-        //         if (!strcmp(lvalue->var->value.string, rvalue->var->value.string) == 0) {
-        //                 node->var->value.boolean = true;
-        //         } else {
-        //                 node->var->value.boolean = false;
-        //         }
-        //         break;
-        // default:
-        //         break;
-        // }
-
-        // return node;
+        return node;
 }
 
 node_expression *
@@ -903,31 +763,13 @@ grammar_expression_cmp_greater_than(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
-        // node->var = (variable*) calloc(1, sizeof(variable));
-        // node->g_expression_cmp_type = CMP_EXP_GREATER_THAN;
-        // node->var->type = node->g_expression_cmp_type;
-        // switch (node->var->type) {
-        // case TYPE_NUMBER:
-        //         if (lvalue->var->value.number > rvalue->var->value.number) {
-        //                 node->var->value.boolean = true;
-        //         } else {
-        //                 node->var->value.boolean = false;
-        //         }
-        //         break;
-        // case TYPE_STRING:
-        //         if (strcmp(lvalue->var->value.string, rvalue->var->value.string) > 0) {
-        //                 node->var->value.boolean = true;
-        //         } else {
-        //                 node->var->value.boolean = false;
-        //         }
-        //         break;
-        // default:
-        //         break;
-        // }
-        // return node;
+        node->type = EXPRESSION_COMPARE_GREATER_THAN;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
+
+        return node;
 }
 
 node_expression *
@@ -936,31 +778,13 @@ grammar_expression_cmp_greater_equal(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
-        // node->var = (variable*) calloc(1, sizeof(variable));
-        // node->g_expression_cmp_type = CMP_EXP_GREATER_EQUAL;
-        // node->var->type = node->g_expression_cmp_type;
-        // switch (node->var->type) {
-        // case TYPE_NUMBER:
-        //         if (lvalue->var->value.number >= rvalue->var->value.number) {
-        //                 node->var->value.boolean = true;
-        //         } else {
-        //                 node->var->value.boolean = false;
-        //         }
-        //         break;
-        // case TYPE_STRING:
-        //         if (strcmp(lvalue->var->value.string, rvalue->var->value.string) >= 0) {
-        //                 node->var->value.boolean = true;
-        //         } else {
-        //                 node->var->value.boolean = false;
-        //         }
-        //         break;
-        // default:
-        //         break;
-        // }
-        // return node;
+        node->type = EXPRESSION_COMPARE_GREATER_EQUAL;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
+
+        return node;
 }
 
 node_expression *grammar_expression_cmp_less_than(const node_expression *lvalue,
@@ -968,14 +792,13 @@ node_expression *grammar_expression_cmp_less_than(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
-        // node->var = (variable*) calloc(1, sizeof(variable));
-        // node->g_expression_cmp_type = CMP_EXP_LESS_THAN;
-        // node->var->type = node->g_expression_cmp_type;
+        node->type = EXPRESSION_COMPARE_LESS_THAN;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
 
-        // return node;
+        return node;
 }
 
 node_expression *
@@ -984,49 +807,35 @@ grammar_expression_cmp_less_equal(const node_expression *lvalue,
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = (node_expression*) calloc(1, sizeof(node_expression));
-        // node->var = (variable*) calloc(1, sizeof(variable_value));
-        // node->g_expression_cmp_type = CMP_EXP_LESS_EQUAL;
-        // node->var->type = node->g_expression_cmp_type;
-        // switch (node->var->type) {
-        // case TYPE_NUMBER:
-        //         if (lvalue->var->value.number <= rvalue->var->value.number) {
-        //                 node->var->value.boolean = true;
-        //         } else {
-        //                 node->var->value.boolean = false;
-        //         }
-        //         break;
-        // case TYPE_STRING:
-        //         if (strcmp(lvalue->var->value.string, rvalue->var->value.string) <= 0) {
-        //                 node->var->value.boolean = true;
-        //         } else {
-        //                 node->var->value.boolean = false;
-        //         }
-        //         break;
-        // default:
-        //         break;
-        // }
+        node->type = EXPRESSION_COMPARE_LESS_EQUAL;
+        node->left = (node_expression *)lvalue;
+        node->right = (node_expression *)rvalue;
 
-        // return node;
+        return node;
 }
 
-// Chequear si recibe id o expr con el grammar (no coincide)
 node_expression *grammar_expression_cmp_by_type(const char *id,
-                                                const token_t type)
+                                                const char *type)
 {
         LogDebug("%s(%p, %d)\n", __func__, id, type);
 
-        return NULL;
+        node_expression *node = create_node_expression();
 
-        // node_expression* node = calloc(1, sizeof(node_expression));
-        // node->var = calloc(1, sizeof(variable_value));
-        // node->g_expression_cmp_type = CMP_EXP_IS;
-        // node->var->type = node->g_expression_cmp_type;
-        // node->var->value.boolean = (expr->var->type == type) ? true : false;
+        node->type = EXPRESSION_VARIABLE_TYPE_COMPARISON;
 
-        // return node;
+        if (strcmp(type, "File") == 0) {
+                node->compare_type = TYPE_FILE;
+        } else if (strcmp(type, "Number") == 0) {
+                node->compare_type = TYPE_NUMBER;
+        } else if (strcmp(type, "String") == 0) {
+                node->compare_type = TYPE_STRING;
+        } else if (strcmp(type, "Boolean") == 0) {
+                node->compare_type = TYPE_BOOLEAN;
+        }
+
+        return node;
 }
 
 node_expression *
@@ -1034,12 +843,7 @@ grammar_expression_from_funcall(const node_function_call *fn_calls)
 {
         LogDebug("%s(%p)\n", __func__, fn_calls);
 
-        node_expression *node =
-                (node_expression *)calloc(1, sizeof(node_expression));
-        if (node == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node_expression *node = create_node_expression();
 
         node->fun_call = (node_function_call *)fn_calls;
         node->type = EXPRESSION_FUNCTION_CALL;
@@ -1061,25 +865,6 @@ variable *grammar_new_return_node(const char *id)
         }
 
         return var;
-
-        // node_expression* node = calloc(1, sizeof(node_expression));
-        // if (id != NULL) {
-        //         node->var = calloc(1, sizeof(variable));
-        //         node->var->name = calloc(1, strlen(id->var->name) + 1);
-        //         strcpy(node->var->name, id->var->name);
-        //         node->var->type = id->var->type;
-        //         node->var->value = id->var->value;
-
-        //         node->type = RETURN__ID;
-        // } else {
-        //         node->var = calloc(1, sizeof(variable));
-        //         char* name = "RETURN_NO_ID";
-        //         node->var->name = calloc(1, strlen(name) + 1);
-        //         strcpy(node->var->name, name);
-        //         node->type = RETURN_NO_ID;
-        // }
-
-        // return node;
 }
 
 node_expression *grammar_new_assignment_expression(const node_expression *expr,
@@ -1093,12 +878,7 @@ node_expression *grammar_new_assignment_expression(const node_expression *expr,
                 exit(1);
         }
 
-        node_expression *node =
-                (node_expression *)calloc(1, sizeof(node_expression));
-        if (node == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node_expression *node = create_node_expression();
 
         node->type = EXPRESSION_VARIABLE_ASSIGNMENT;
 
@@ -1113,14 +893,11 @@ node_expression *grammar_new_assignment_from_id(const char *from,
 {
         LogDebug("%s(%s, %s)\n", __func__, from, to);
 
-        variable *var = lookup_variable(from);
+        variable *var =
+                lookup_variable_create_dangling(from); /* lookup_variable(from);
         if (var == NULL) {
                 // Store as dangling variable
-                var = (variable *)calloc(1, sizeof(variable));
-                if (var == NULL) {
-                        error_no_memory();
-                        exit(1);
-                }
+                var = create_variable();
 
                 var->type = UNKNOWN_TYPE;
                 var->name = strdup(from);
@@ -1129,14 +906,9 @@ node_expression *grammar_new_assignment_from_id(const char *from,
                         error_multiple_declaration(from);
                         exit(1);
                 }
-        }
+        } */
 
-        node_expression *node =
-                (node_expression *)calloc(1, sizeof(node_expression));
-        if (node == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node_expression *node = create_node_expression();
 
         node->type = VARIABLE_TYPE;
 
@@ -1147,18 +919,9 @@ node_expression *grammar_new_assignment_from_id(const char *from,
 
 node_expression *grammar_expression_type_from_id(const char *id)
 {
-        variable *var = lookup_variable(id);
-        if (var == NULL) {
-                error_variable_not_found(id);
-                exit(1);
-        }
+        variable *var = lookup_variable_create_dangling(id);
 
-        node_expression *node =
-                (node_expression *)calloc(1, sizeof(node_expression));
-        if (node == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node_expression *node = create_node_expression();
 
         node->type = VARIABLE_TYPE;
 
@@ -1171,22 +934,11 @@ node_expression *grammar_constant_bool(const char *rval)
 {
         LogDebug("%s(%s)\n", __func__, rval);
 
-        // printf("\n\nrval en grammar_constant_bool: %s\n\n", rval);
-
-        node_expression *node =
-                (node_expression *)calloc(1, sizeof(node_expression));
-        if (node == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node_expression *node = create_node_expression();
 
         node->type = EXPRESSION_GRAMMAR_CONSTANT_TYPE;
 
-        node->var = (variable *)calloc(1, sizeof(variable));
-        if (node == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node->var = create_variable();
 
         node->var->type = BOOL_TYPE;
         if (strcmp(rval, "True") == 0) {
@@ -1196,74 +948,44 @@ node_expression *grammar_constant_bool(const char *rval)
         }
 
         return node;
-
-        // node_expression* newNode = calloc(1, sizeof(node_expression));
-        // newNode->var = calloc(1, sizeof(variable));
-        // newNode->var->type = BOOL_TYPE;
-
-        // if (strcmp(rval, "True") == 0) {
-        //         newNode->var->value.boolean = true;
-        // } else {
-        //         newNode->var->value.boolean = false;
-        // }
-        // char* name = "BOOL_TYPE";
-        // newNode->var->name = calloc(1, strlen(name) + 1);
-        // strcpy(newNode->var->name, name);
-
-        // newNode->type = BOOL_TYPE;
-
-        // return newNode;
 }
 
 node_expression *grammar_constant_number(const char *rval)
 {
-        // printf("\nEntro a grammar\n");
-
         LogDebug("%s(%s)\n", __func__, rval);
 
-        node_expression *node =
-                (node_expression *)calloc(1, sizeof(node_expression));
-        if (node == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node_expression *node = create_node_expression();
 
         node->type = EXPRESSION_GRAMMAR_CONSTANT_TYPE;
 
-        node->var = (variable *)calloc(1, sizeof(variable));
-        if (node == NULL) {
-                error_no_memory();
-                exit(1);
-        }
+        node->var = create_variable();
 
         node->var->type = NUMBER_TYPE;
         node->var->value.number = atof(rval);
 
         return node;
-
-        // node->var = calloc(1, sizeof(variable*));
-        // // double rvalBis = strtod(*rval, NULL);
-        // double rvalBis = atof(rval);
-        // int rvalBisBis = atoi(rval);
-        // printf("\nf: %f", rvalBis);
-        // printf("\nd: %d", rvalBisBis);
-        // printf("\nrval: %s", rval);
-        // node->var->value.number = rvalBis;
-        // node->var->type = NUMBER_TYPE;
-
-        // char* name = "NUMBER_TYPE";
-        // node->var->name = calloc(1, strlen(name) + 1);
-        // strcpy(node->var->name, name);
-
-        // node->type = NUMBER_TYPE;
-        // printf("\nSalio a grammar\n\n");
-        // return node;
 }
 
 node_expression *grammar_constant_string(const char *rval)
 {
         LogDebug("%s(%s)\n", __func__, rval);
 
+        node_expression *node = create_node_expression();
+
+        node->type = EXPRESSION_GRAMMAR_CONSTANT_TYPE;
+
+        node->var = create_variable();
+
+        node->var->type = STRING_TYPE;
+        node->var->value.string = strdup(rval);
+
+        return node;
+}
+
+static node_expression *create_node_expression()
+{
+        LogDebug("%s()\n", __func__);
+
         node_expression *node =
                 (node_expression *)calloc(1, sizeof(node_expression));
         if (node == NULL) {
@@ -1271,31 +993,42 @@ node_expression *grammar_constant_string(const char *rval)
                 exit(1);
         }
 
-        node->type = EXPRESSION_GRAMMAR_CONSTANT_TYPE;
+        return node;
+}
 
-        node->var = (variable *)calloc(1, sizeof(variable));
-        if (node == NULL) {
+static variable *create_variable()
+{
+        LogDebug("%s()\n", __func__);
+
+        variable *var = (variable *)calloc(1, sizeof(variable));
+        if (var == NULL) {
                 error_no_memory();
                 exit(1);
         }
 
-        node->var->type = STRING_TYPE;
-        node->var->value.string = strdup(rval);
+        return var;
+}
 
-        return node;
+static variable *lookup_variable_create_dangling(const char *id)
+{
+        variable *var = lookup_variable(id);
+        if (var != NULL)
+                return var;
 
-        // node_expression* newNode = calloc(1, sizeof(node_expression));
-        // newNode->var = calloc(1, sizeof(variable));
-        // newNode->var->type = STRING_TYPE;
+        var = lookup_dangling_variable(id);
+        if (var != NULL)
+                return var;
 
-        // char* name = "STRING_TYPE";
-        // newNode->var->name = calloc(1, strlen(name) + 1);
-        // strcpy(newNode->var->name, name);
+        // Store as dangling variable
+        var = create_variable();
 
-        // newNode->var->value.string = (char*) malloc(strlen(rval) + 1);
-        // strcpy(newNode->var->value.string, rval);
+        var->type = UNKNOWN_TYPE;
+        var->name = strdup(id);
 
-        // newNode->type = STRING_TYPE;
+        if (insert_dangling_variable(var) < SUCCESS) {
+                error_multiple_declaration(id);
+                exit(1);
+        }
 
-        // return newNode;
+        return var;
 }

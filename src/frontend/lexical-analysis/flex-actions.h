@@ -127,6 +127,10 @@ TokenID pattern_number(const char* lexeme);
 
 TokenID pattern_bool(const bool lexeme);
 
+TokenID pattern_type_number(const char *lexeme);
+TokenID pattern_type_string(const char *lexeme);
+TokenID pattern_type_bool(const char *lexeme);
+
 void pattern_ignored(const char* lexeme);
 
 TokenID pattern_unknown(const char* lexeme);

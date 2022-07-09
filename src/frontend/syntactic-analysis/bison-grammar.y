@@ -81,7 +81,7 @@
 
 /* Data types */
 %token <token> IS
-%token <token> TYPE_FILE TYPE_NUMBER TYPE_STRING TYPE_BOOLEAN
+%token <string> TYPE_FILE TYPE_NUMBER TYPE_STRING TYPE_BOOLEAN
 
 /* End Of Line */
 %token <token> TEOL
@@ -100,11 +100,11 @@
                     num_arithm num_type str_arithm str_type
                     bool_expr bool_type cmp_expr cmp_type
                     assign
-                    constant bool_constant
+                    constant number_constant string_constant bool_constant
 %type <list>        list range
                     args_list
 %type <file_block>  file_handle
-%type <token>       data_type
+%type <string>       data_type
 
 
 // Associativity and precedence rules (from lower precedence to higher)
@@ -161,7 +161,6 @@ expressions :   expression { $$ = grammar_new_expression_list($1); }
 
 expression  :   file_decl
             |   var_decl
-            |   bool_constant
             |   constant
             |   conditional
             |   loop
@@ -250,8 +249,12 @@ range       :   NUMBER DOT DOT NUMBER {
 
 args_list   :   /* blank */ { $$ = grammar_new_list_args(NULL); }
             |   expression  { $$ = grammar_new_list_args($1); }
+            |   ID  { $$ = grammar_new_list_args_from_id($1); }
             |   args_list COMMA expression { 
                     $$ = grammar_concat_list_args($1, $3);
+                }
+            |   args_list COMMA ID { 
+                    $$ = grammar_concat_list_args_with_id($1, $3);
                 }
             ;
 
@@ -274,7 +277,7 @@ num_arithm  :   num_type ADD num_type {
 
 num_type    :   ID { $$ = grammar_expression_type_from_id($1); }
             |   fn_calls { $$ = grammar_expression_from_funcall($1); }
-            |   constant
+            |   number_constant
             ;
 
 str_arithm  :   str_type STR_ADD str_type {
@@ -287,7 +290,7 @@ str_arithm  :   str_type STR_ADD str_type {
     
 str_type    :   ID { $$ = grammar_expression_type_from_id($1); }
             |   fn_calls { $$ = grammar_expression_from_funcall($1); }
-            |   constant
+            |   string_constant
             ;
 
 
@@ -335,7 +338,6 @@ cmp_expr    :   cmp_type EQUALS cmp_type {
 
 cmp_type    :   ID { $$ = grammar_expression_type_from_id($1); }
             |   fn_calls { $$ = grammar_expression_from_funcall($1); }
-            |   bool_constant
             |   constant
             |   num_arithm
             |   str_arithm
@@ -359,13 +361,22 @@ data_type   :   TYPE_FILE
             |   TYPE_BOOLEAN
             ;
 
+constant    :   number_constant
+            |   string_constant
+            |   bool_constant
+            ;
+
+number_constant
+            :   NUMBER      { $$ = grammar_constant_number($1); }
+            ;
+
+string_constant
+            :   STRING      { $$ = grammar_constant_string($1); }
+            ;
+
 bool_constant 
             :   TTRUE       { $$ = grammar_constant_bool("True"); }
             |   TFALSE      { $$ = grammar_constant_bool("False"); }
-            ;
-
-constant    :   NUMBER      { $$ = grammar_constant_number($1); }
-            |   STRING      { $$ = grammar_constant_string($1); }
             ;
 
 %%
