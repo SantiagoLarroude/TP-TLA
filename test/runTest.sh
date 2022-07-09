@@ -4,22 +4,22 @@ readonly compiler_path="../bin/Debug/texler"
 
 # ['filename']=expected_return
 declare -A test_files=(\
-    ["r30"]=0 \
-    ["r31"]=0 \
-    ["r32"]=0 \
-    ["r33"]=0 \
-    ["r34"]=0 \
-    ["r35"]=0 \
-    ["r36"]=0 \
-    ["r37"]=0 \
-    ["r38"]=0 \
-    ["r39"]=0 \
-    ["r310"]=0 \
-    ["r311"]=1 \
-    ["r312"]=1 \
-    ["r313"]=1 \
-    ["r314"]=1 \
-    ["r315"]=1 \
+    ["r30.texler"]=0 \
+    ["r31.texler"]=0 \
+    ["r32.texler"]=0 \
+    ["r33.texler"]=0 \
+    ["r34.texler"]=0 \
+    ["r35.texler"]=0 \
+    ["r36.texler"]=0 \
+    ["r37.texler"]=0 \
+    ["r38.texler"]=0 \
+    ["r39.texler"]=0 \
+    ["r310.texler"]=0 \
+    ["r311.texler"]=1 \
+    ["r312.texler"]=1 \
+    ["r313.texler"]=1 \
+    ["r314.texler"]=1 \
+    ["r315.texler"]=1 \
 )
 
 readonly test_logs="logs"
@@ -47,7 +47,7 @@ function runTest()
 
     if [ -f "$1" ]
     then
-        $compiler_path < "$1" &> "$test_logs/$1.log"
+        $compiler_path "$1" 2> "$test_logs/$1.log"
         retVal=$?
     else
         infoc 31 "Test file '$1' does not exists."

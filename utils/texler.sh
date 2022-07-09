@@ -24,43 +24,60 @@
 # SOFTWARE.
 #
 readonly SCRIPT_DIR="$(dirname ${BASH_SOURCE[0]})"
-pushd "$SCRIPT_DIR" &> /dev/null
 
-function compile()
+chmod +x "$SCRIPT_DIR/texler_compiler"
+
+if [ ${#@} -eq 0 ]; then
+    echo -e "\e[31mError\e[0m"
+    echo "Please provide an input file."
+    echo "Compilation terminated."
+    exit 1
+fi
+
+for (( opt_i=1; opt_i <= ${#}; opt_i++)); do
+   if [ ! -f "${!opt_i}" ]; then
+       echo -e "\e[31mError\e[0m"
+       echo "Argument number $opt_i is not a regular file:"
+       echo "${!opt_i}"
+       exit 1
+   fi
+done
+
+function compile_file()
 {
     local ret_val=0
 
-    pushd build/ &> /dev/null
-    
-    # cmake -S ../ -B . && ninja clean && ninja all
-    cmake -S ../ && make clean && make all 
+    local texler_source="$1"
+    local source_name="$(basename $1)"
+    source_name="${source_name%.*}"
+    local c_source="$(mktemp -u -p . ${source_name}_XXX.c)"
+
+    "$SCRIPT_DIR"/texler_compiler < "$texler_source" > "$c_source"
+    ret_val=$?
+
+    if [ $ret_val -ne 0 ]; then
+        return $ret_val
+    fi
+
+    gcc \
+        --std=c11 \
+        -Wall \
+        -g \
+        "$c_source" \
+        -o "$source_name.elf"
     ret_val=$?
     
-    popd &> /dev/null # build/
-
     return $ret_val
 }
 
-function copy_utils()
-{
-    local ret_val=0
+max_return=0
 
-    if [ -d "bin/Debug/" ]; then
-        cp utils/texler.sh bin/Debug/texler
-        chmod +x bin/Debug/texler
-    fi
+for (( opt_i=1; opt_i <= ${#}; opt_i++)); do
+    ret_val=0
+    compile_file "${!opt_i}"
+    ret_val=$?
 
-    if [ -d "bin/Release/" ]; then
-        cp utils/texler.sh bin/Release/texler
-        chmod +x bin/Release/texler
-    fi
+    max_return=$(( $ret_val > $max_return ? $ret_val : $max_return ))
+done
 
-    return $ret_val
-}
-
-mkdir -p build/ &> /dev/null
-
-compile
-copy_utils
-    
-popd &> /dev/null # $SCRIPT_DIR
+exit $max_return

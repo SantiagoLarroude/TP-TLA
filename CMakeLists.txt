@@ -22,7 +22,7 @@
 # SOFTWARE.
 
 cmake_minimum_required(VERSION 3.16.0)
-project(texler VERSION 0.1.0 LANGUAGES C)
+project(texler_compiler VERSION 0.1.0 LANGUAGES C)
 
 # Release type
 # 
