@@ -5,6 +5,4 @@
 
 void generate_code(program_t * ast);
 
-void generate_header();
-
 #endif
