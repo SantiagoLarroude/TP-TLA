@@ -4,11 +4,13 @@ function r34()
     File "path" as input.
     File "new" as output.
 
-    with input: for col in lines().byIndex(1) do
-                    if col is Number then
-                        col * 2 -> output.
-                    else
-                        col -> output.
+    with input: for line in lines().byIndex(1) do
+                    for column in line.columns() do
+                        if column is Number then
+                            column * 2 -> output.
+                        else
+                            column -> output.
+                        .
                     .
                 .
     .

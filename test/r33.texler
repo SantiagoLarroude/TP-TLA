@@ -4,8 +4,8 @@ function r33()
     File "path" as input.
     File "new" as output.
 
-    with input: for line in lines() do
-                    line.filter("palabra") -> output.
+    with input: for line in lines().filter("palabra") do
+                    line -> output.
                 .
     .
 

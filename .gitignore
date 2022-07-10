@@ -379,6 +379,9 @@ node_modules/
 *.csproj.user
 *~
 
+# Compiled files
+*.out
+
 # Project specific:
 bison-parser.c
 bison-parser.h
@@ -387,3 +390,4 @@ flex-scanner.c
 private/
 test/*.c
 test/**/*.c
+!test/**/*.c
