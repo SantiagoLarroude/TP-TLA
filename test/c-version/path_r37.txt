@@ -1,0 +1,2 @@
+hola,como,todo,bien,vos
+chau        mal        poco        chicos
