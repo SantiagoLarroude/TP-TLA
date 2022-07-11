@@ -175,9 +175,9 @@ char *string_substract(char *str1, char *str2)
 // IS_SEPARATOR_RETURN is_separator(char * str, char * separator){
 //         if ( IS_SEPARATOR_RETURN_MATCH == strcmp(str, separator))
 //         {
-                
+
 //         }
-        
+
 // }
 
 /*
@@ -600,14 +600,10 @@ void r35(void)
                 return;
         }
 
-        copy_file_content(input1->value.file.stream,
-                          output->value.file.stream);
-        copy_file_content(input2->value.file.stream,
-                          output->value.file.stream);
+        copy_file_content(input1->value.file.stream, output->value.file.stream);
+        copy_file_content(input2->value.file.stream, output->value.file.stream);
 
-
-        copy_file_content(input3->value.file.stream,
-                          output->value.file.stream);
+        copy_file_content(input3->value.file.stream, output->value.file.stream);
 
         free_texlerobject(input1);
         free_texlerobject(input2);
@@ -615,7 +611,8 @@ void r35(void)
         free_texlerobject(output);
 }
 
-void r36(int n){
+void r36(int n)
+{
         TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
         if (input == NULL) {
                 perror("Aborting due to");
@@ -643,10 +640,9 @@ void r36(int n){
         output->type = TYPE_T_FILEPTR;
         output->value.file.stream = stdout;
 
-        while (n > 0)
-        {
-                copy_file_content(input->value.file.stream, 
-                        output->value.file.stream);
+        while (n > 0) {
+                copy_file_content(input->value.file.stream,
+                                  output->value.file.stream);
                 n--;
         }
 
@@ -708,17 +704,16 @@ void r37(void)
 
                 while (remaining != NULL) {
                         int separator_char = 0;
-                        col_len = columns(&remaining, ",        ", &column,
-                        // col_len = columns(&remaining, NULL, &column,
-                                          &separator_char);
+                        col_len = columns(
+                                &remaining, ",        ", &column,
+                                // col_len = columns(&remaining, NULL, &column,
+                                &separator_char);
                         if (column != NULL && col_len > 0) {
-                                copy_buffer_content(
-                                                column,
-                                                output->value.file.stream);
+                                copy_buffer_content(column,
+                                                    output->value.file.stream);
                         }
                         if (separator_char) {
-                                fputs("\n",
-                                      output->value.file.stream);
+                                fputs("\n", output->value.file.stream);
                         }
                 }
                 free(column);
@@ -839,9 +834,9 @@ int main(void)
         TexlerObject *r32_obj = r32();
         // Para checkear que funciona
         if (r32_obj != NULL) {
-        printf("### r32 output ###\n");
-        copy_file_content(r32_obj->value.file.stream, stdout);
-        free_texlerobject(r32_obj);
+                printf("### r32 output ###\n");
+                copy_file_content(r32_obj->value.file.stream, stdout);
+                free_texlerobject(r32_obj);
         }
 
         printf("### r33 ###\n");
@@ -852,7 +847,7 @@ int main(void)
 
         printf("### r35 ###\n");
         r35();
-        
+
         printf("### r36 ###\n");
         r36(3);
 
