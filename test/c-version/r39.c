@@ -690,6 +690,161 @@ void r37(void)
         free(line);
 }
 
+void r38(void){
+        TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (input == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+
+        if (open_file("path.txt", "r", input) == false) {
+                free_texlerobject(input);
+                return;
+        }
+
+        TexlerObject *output = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (output == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                exit(1);
+        }
+
+        if (open_file("new_r38.txt", "w+", output) == false) {
+                free_texlerobject(input);
+                free_texlerobject(output);
+                return;
+        }
+
+        long int line_len = BUFFER_SIZE;
+        char *line = (char *)calloc(line_len, sizeof(char));
+        if (output == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+        // byIndex:
+        for (long i = 1 - 1; i < 5; i++) {
+                line_len = lines(input, &line);
+                if (line_len <= 0 || line == NULL)
+                        break;
+
+                char* str_concat = (char *) calloc(line_len, sizeof(char));
+                
+                // (-2) para sacar el "\n"
+                strncat(str_concat, line, line_len - 2);
+                // int new_size_str_concat = strlen(str_concat) + strlen(", ");
+                // str_concat = (char *) realloc(str_concat, new_size_str_concat);
+                strcat(str_concat, ", ");
+                
+                copy_buffer_content(str_concat, output->value.file.stream);
+
+                free(str_concat);
+        }
+
+        free_texlerobject(input);
+        free_texlerobject(output);
+        free(line);
+}
+
+void r39(void){
+        TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (input == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+
+        if (open_file("path_columns.txt", "r", input) == false) {
+                free_texlerobject(input);
+                return;
+        }
+
+        TexlerObject *output = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (output == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                exit(1);
+        }
+
+        if (open_file("new_r39.txt", "w+", output) == false) {
+                free_texlerobject(input);
+                free_texlerobject(output);
+                return;
+        }
+
+        long int line_len = BUFFER_SIZE;
+        char *line = (char *)calloc(line_len, sizeof(char));
+        if (line == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                free_texlerobject(output);
+                exit(1);
+        }
+
+        // byIndex:
+        while (line_len > 0) {
+                line_len = lines(input, &line);
+                if (line_len <= 0 || line == NULL)
+                        break;
+
+                char *remaining = line;
+                long int col_len = BUFFER_SIZE;
+                char *column = (char *)calloc(col_len, sizeof(char));
+                if (column == NULL) {
+                        perror("Aborting due to");
+                        free_texlerobject(input);
+                        free_texlerobject(output);
+                        free(line);
+                        exit(1);
+                }
+
+                while (remaining != NULL) {
+                        int separator_char = 0;
+                        col_len = columns(&remaining, ",", &column,
+                                          &separator_char);
+                        if (column != NULL && col_len > 0) {
+                                IS_NUMBER_RETURN isnum =
+                                        is_number(column, strlen(column));
+                                if (isnum == IS_NUMBER_RETURN_FLOATING) {
+                                        double n = atof(column);
+                                        n *= 2.5;
+                                        fprintf(output->value.file.stream,
+                                                "%f", n);
+                                } else if (isnum == IS_NUMBER_RETURN_INTEGER) {
+                                        double n = atof(column);
+                                        n *= 2.5;
+                                        fprintf(output->value.file.stream,
+                                                "%f", n);
+                                } else {
+                                        if (column[col_len - 2] != '\n') {
+                                                fprintf(output->value.file.stream, "%s%s", column, " :)");
+                                        } else {
+                                                for(int i = 0; i < col_len - 2; i++){ 
+                                                        fputc(column[i], output->value.file.stream);
+                                                }
+                                                fprintf(output->value.file.stream, "%s\n", " :)");
+                                        }
+
+                                        // char* str_concat = (char *) 
+                                        //         calloc(col_len, sizeof(char));
+
+                                        // strcat(str_concat, column);
+                                        // strcat(str_concat, " :)");
+                
+                                        // copy_buffer_content(str_concat, 
+                                        //         output->value.file.stream);
+
+                                        // free(str_concat);
+                                }
+                        }
+
+                        if (separator_char) {
+                                fputc(separator_char,
+                                      output->value.file.stream);
+                        }
+                }
+                free(column);
+        }
+}
+
 int main(void)
 {
         printf("### r30 ###\n");
@@ -723,6 +878,12 @@ int main(void)
 
         printf("### r37 ###\n");
         r37();
+
+        printf("### r38 ###\n");
+        r38();
+
+        printf("### r39 ###\n");
+        r39();
 
         return 0;
 }

@@ -44,6 +44,7 @@ typedef struct TexlerObject {
                 struct {
                         FILE *stream;
                         fpos_t pos;
+                        size_t n_line;
                 } file;
         } value;
         type_t type;
@@ -107,6 +108,8 @@ bool open_file(const char *name, const char *mode, TexlerObject *tex_obj)
                 perror("Error while getting file position");
                 return false;
         }
+        tex_obj->value.file.n_line = 0;
+
         return true;
 }
 
@@ -127,6 +130,25 @@ void copy_file_content(FILE *from, FILE *to)
 
                 fputs(buffer, to);
         }
+}
+
+// Substract str2 from the end of str1
+char* string_substract(char* str1, char* str2)
+{
+        int str1_len = strlen(str1);
+        int str2_len = strlen(str2);
+        char* aux = NULL;
+
+        int i = str2_len;
+        while(str2 > str2 - str2_len && str2[i] == str1[str1_len - i]) {
+                aux = str1 + str1_len - i;
+                i--;
+        }
+        if (i < 1) {
+                memset(aux, 0, str2_len);
+        }
+
+        return str1;
 }
 
 /*
@@ -219,8 +241,10 @@ long int lines(TexlerObject *tex_obj, char **buffer)
                 perror("Error while getting file position");
                 return false;
         }
+        tex_obj->value.file.n_line++;
 
         *buffer = new_buffer;
+
 
         return new_size;
 }
@@ -690,6 +714,92 @@ void r37(void)
         free(line);
 }
 
+void r38(void){
+        TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (input == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+
+        if (open_file("path.txt", "r", input) == false) {
+                free_texlerobject(input);
+                return;
+        }
+
+        TexlerObject *output = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (output == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                exit(1);
+        }
+
+        if (open_file("new_r38.txt", "w+", output) == false) {
+                free_texlerobject(input);
+                free_texlerobject(output);
+                return;
+        }
+
+        TexlerObject *accumulator = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (accumulator == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                free_texlerobject(output);
+                exit(1);
+        }
+        
+        accumulator->type = TYPE_T_STRING;
+        accumulator->value.string = strdup("");
+
+        long int line_len = BUFFER_SIZE;
+        char *line = (char *)calloc(line_len, sizeof(char));
+        if (output == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+        // idx in [1..5]:
+        for (long idx = 1 - 1; idx < 5; idx++) {
+                if (idx == 5) {
+                        while(input->value.file.n_line != idx + 1) {
+                                line_len = lines(input, &line);
+                                if (line_len <= 0 || line == NULL)
+                                        break;
+                        }
+                        accumulator->value.string = 
+                                (char *)realloc(
+                                                strlen(
+                                                        sizeof(char) * 
+                                                        (accumulator->value.string) +
+                                                        line_len));
+                        strcat(accumulator->value.string, line);
+                } else {
+                        while(input->value.file.n_line != idx + 1) {
+                                line_len = lines(input, &line);
+                                if (line_len <= 0 || line == NULL)
+                                        break;
+                        }
+                        accumulator->value.string = 
+                                (char *)realloc(
+                                                strlen(
+                                                        sizeof(char) * 
+                                                        (accumulator->value.string) +
+                                                        line_len));
+                        strcat(accumulator->value.string, line);
+                }
+
+                
+
+                for (int i = 0; i < line_len - 2; i++)
+                {
+                        fputc(line[i], output->value.file.stream);
+                }
+                fprintf(output->value.file.stream, "%s", ", ");
+                
+        }
+
+        free_texlerobject(input);
+        free(line);
+}
+
 int main(void)
 {
         printf("### r30 ###\n");
@@ -723,6 +833,9 @@ int main(void)
 
         printf("### r37 ###\n");
         r37();
+
+        printf("### r38 ###\n");
+        r38();
 
         return 0;
 }
