@@ -957,13 +957,14 @@ void r39(void){
 }
 
 void r311(void){
+
         TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
         if (input == NULL) {
                 perror("Aborting due to");
                 exit(1);
         }
 
-        // Deberia fallar aca
+        // Deberia fallar aca:
         if (open_file("path_r311.txt", "r", input) == false) {
                 free_texlerobject(input);
                 return;
@@ -982,8 +983,51 @@ void r311(void){
                 return;
         }
 
-        output->type = TYPE_T_FILEPTR;
-        output->value.file.stream = stdout;
+        long int line_len = BUFFER_SIZE;
+        char *line = (char *)calloc(line_len, sizeof(char));
+        if (line == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                free_texlerobject(output);
+                exit(1);
+        }
+
+        // byIndex:
+        while (line_len > 0) {
+                line_len = lines(input, &line);
+                if (line_len <= 0 || line == NULL)
+                        break;
+
+                char *remaining = line;
+                long int col_len = BUFFER_SIZE;
+                char *column = (char *)calloc(col_len, sizeof(char));
+                if (column == NULL) {
+                        perror("Aborting due to");
+                        free_texlerobject(input);
+                        free_texlerobject(output);
+                        free(line);
+                        exit(1);
+                }
+
+                while (remaining != NULL) {
+                        int separator_char = 0;
+                        col_len = columns(
+                                &remaining, "\n", &column,
+                                &separator_char);
+                        if (column != NULL && col_len > 0) {
+                                copy_buffer_content(column,
+                                                    output->value.file.stream);
+                        }
+                        if (separator_char) {
+                                fputs("\n", output->value.file.stream);
+                        }
+                }
+                free(column);
+        }
+
+        free_texlerobject(input);
+        free_texlerobject(output);
+        free(line);
 }
 
 int main(void)
