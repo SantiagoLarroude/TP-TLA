@@ -500,7 +500,7 @@ void r35(void)
         TexlerObject *input2 = (TexlerObject *)calloc(1, sizeof(TexlerObject));
         if (input2 == NULL) {
                 perror("Aborting due to");
-                free_texlerobject(input2);
+                free_texlerobject(input1);
                 exit(1);
         }
 
@@ -555,6 +555,45 @@ void r35(void)
         free_texlerobject(output);
 }
 
+void r36(int n){
+        TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (input == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+
+        if (open_file("path_r36.txt", "r", input) == false) {
+                free_texlerobject(input);
+                return;
+        }
+
+        TexlerObject *output = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (output == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                exit(1);
+        }
+
+        if (open_file("new_r36.txt", "w+", output) == false) {
+                free_texlerobject(input);
+                free_texlerobject(output);
+                return;
+        }
+
+        output->type = TYPE_T_FILEPTR;
+        output->value.file.stream = stdout;
+
+        while (n > 0)
+        {
+                copy_file_content(input->value.file.stream, 
+                        output->value.file.stream);
+                n--;
+        }
+
+        free_texlerobject(input);
+        free_texlerobject(output);
+}
+
 int main(void)
 {
         printf("### r30 ###\n");
@@ -582,6 +621,9 @@ int main(void)
 
         printf("### r35 ###\n");
         r35();
+
+        printf("### r36 ###\n");
+        r36(3);
 
         return 0;
 }

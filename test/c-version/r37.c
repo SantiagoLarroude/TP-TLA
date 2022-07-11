@@ -8,6 +8,8 @@
 
 const char *DEFAULT_SEPARATORS = " ,";
 
+const char *DEFAULT_TAB_SEPARATOR = "        ";
+
 typedef enum {
         TYPE_T_NONE = 0,
         TYPE_T_BOOLEAN,
@@ -24,6 +26,11 @@ typedef enum {
         IS_NUMBER_RETURN_FLOATING,
         N_IS_NUMBER_RETURN
 } IS_NUMBER_RETURN;
+
+typedef enum {
+        IS_SEPARATOR_RETURN_NOT_MATCH = 0,
+        IS_SEPARATOR_RETURN_MATCH,
+} IS_SEPARATOR_RETURN;
 
 typedef struct TexlerObject {
         union {
@@ -120,6 +127,19 @@ void copy_file_content(FILE *from, FILE *to)
 
                 fputs(buffer, to);
         }
+}
+
+/*
+* str: string to find de separator
+* separator: string with de separator to find
+*/
+IS_SEPARATOR_RETURN is_separator(char * str, char * separator){
+        if ( IS_SEPARATOR_RETURN_MATCH == strcmp(str, separator))
+        {
+                
+        }
+        
+
 }
 
 /*
@@ -246,7 +266,9 @@ long int columns(char **str, char *separators, char **buffer, int *separator)
 
         if (next_column != NULL && *next_column != '\0' &&
             strchr(seps, *next_column) != NULL) {
+                // if(*separators == '\\') *separators++;
                 *separator = *next_column++;
+                
         }
 
         *str = (next_column == NULL || *next_column == '\0') ? NULL :
@@ -500,7 +522,7 @@ void r35(void)
         TexlerObject *input2 = (TexlerObject *)calloc(1, sizeof(TexlerObject));
         if (input2 == NULL) {
                 perror("Aborting due to");
-                free_texlerobject(input2);
+                free_texlerobject(input1);
                 exit(1);
         }
 
@@ -555,33 +577,205 @@ void r35(void)
         free_texlerobject(output);
 }
 
-int main(void)
-{
-        printf("### r30 ###\n");
-        r30();
-
-        printf("### r31 ###\n");
-        r31();
-        printf("### r31 ###\n");
-        r31();
-
-        printf("### r32 ###\n");
-        TexlerObject *r32_obj = r32();
-        // Para checkear que funciona
-        if (r32_obj != NULL) {
-        printf("### r32 output ###\n");
-        copy_file_content(r32_obj->value.file.stream, stdout);
-        free_texlerobject(r32_obj);
+void r36(int n){
+        TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (input == NULL) {
+                perror("Aborting due to");
+                exit(1);
         }
 
-        printf("### r33 ###\n");
-        r33();
+        if (open_file("path_r36.txt", "r", input) == false) {
+                free_texlerobject(input);
+                return;
+        }
 
-        printf("### r34 ###\n");
-        r34();
+        TexlerObject *output = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (output == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                exit(1);
+        }
 
-        printf("### r35 ###\n");
-        r35();
+        if (open_file("new_r36.txt", "w+", output) == false) {
+                free_texlerobject(input);
+                free_texlerobject(output);
+                return;
+        }
+
+        output->type = TYPE_T_FILEPTR;
+        output->value.file.stream = stdout;
+
+        while (n > 0)
+        {
+                copy_file_content(input->value.file.stream, 
+                        output->value.file.stream);
+                n--;
+        }
+
+        free_texlerobject(input);
+        free_texlerobject(output);
+}
+
+void r37(void)
+{
+        TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (input == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+
+        if (open_file("path_r37.txt", "r", input) == false) {
+                free_texlerobject(input);
+                return;
+        }
+
+        TexlerObject *output = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (output == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                exit(1);
+        }
+
+        if (open_file("new_r37.txt", "w+", output) == false) {
+                free_texlerobject(input);
+                free_texlerobject(output);
+                return;
+        }
+
+        long int line_len = BUFFER_SIZE;
+        char *line = (char *)calloc(line_len, sizeof(char));
+        if (line == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                free_texlerobject(output);
+                exit(1);
+        }
+
+        // byIndex:
+        while (line_len > 0) {
+                line_len = lines(input, &line);
+                if (line_len <= 0 || line == NULL)
+                        break;
+
+                char *remaining = line;
+                long int col_len = BUFFER_SIZE;
+                char *column = (char *)calloc(col_len, sizeof(char));
+                if (column == NULL) {
+                        perror("Aborting due to");
+                        free_texlerobject(input);
+                        free_texlerobject(output);
+                        free(line);
+                        exit(1);
+                }
+
+                while (remaining != NULL) {
+                        int separator_char = 0;
+                        char * my_separators = ",        ";
+                        col_len = columns(&remaining, &my_separators, &column,
+                                          &separator_char);
+                        
+                        /*
+                        if (column != NULL && col_len > 0) {
+                                IS_NUMBER_RETURN isnum =
+                                        is_number(column, strlen(column));
+                                if (isnum == IS_NUMBER_RETURN_FLOATING) {
+                                        double n = atof(column);
+                                        n *= 2;
+                                        fprintf(output->value.file.stream, "%f",
+                                                n);
+                                } else if (isnum == IS_NUMBER_RETURN_INTEGER) {
+                                        long n = atol(column);
+                                        n *= 2;
+                                        fprintf(output->value.file.stream,
+                                                "%ld", n);
+                                } else {
+                                        copy_buffer_content(
+                                                column,
+                                                output->value.file.stream);
+                                }
+                        }
+                        */
+                        
+                        if (column != NULL && col_len > 0) {
+                                int separator_count = 2;
+
+                                for (size_t i = 0; i < separator_count; i++)
+                                {
+                                        
+                                }
+                                
+                                if (strstr(&column, ) != NULL) {
+                                }
+                                
+                        }
+                        
+                        copy_buffer_content(column,
+                                   output->value.file.stream);
+
+                        fputs("\n",
+                              output->value.file.stream);
+                }
+                free(column);
+        }
+
+/*
+        long int line_len = BUFFER_SIZE;
+        char *line = (char *)calloc(line_len, sizeof(char));
+        if (output == NULL) {
+                free_texlerobject(input);
+                free_texlerobject(output);
+                perror("Aborting due to");
+                exit(1);
+        }
+
+        rewind(input->value.file.stream);
+
+        while (line_len > 0) {
+                line_len = lines(input, &line);
+                if (is_in_string("palabra", line)) {
+                        copy_buffer_content(line, output->value.file.stream);
+                }
+        }
+        */
+
+        free_texlerobject(input);
+        free_texlerobject(output);
+        free(line);
+}
+
+int main(void)
+{
+        // printf("### r30 ###\n");
+        // r30();
+
+        // printf("### r31 ###\n");
+        // r31();
+        // printf("### r31 ###\n");
+        // r31();
+
+        // printf("### r32 ###\n");
+        // TexlerObject *r32_obj = r32();
+        // // Para checkear que funciona
+        // if (r32_obj != NULL) {
+        // printf("### r32 output ###\n");
+        // copy_file_content(r32_obj->value.file.stream, stdout);
+        // free_texlerobject(r32_obj);
+        // }
+
+        // printf("### r33 ###\n");
+        // r33();
+
+        // printf("### r34 ###\n");
+        // r34();
+
+        // printf("### r35 ###\n");
+        // r35();
+        
+        // printf("### r36 ###\n");
+        // r36(3);
+
+        printf("### r37 ###\n");
+        r37();
 
         return 0;
 }
