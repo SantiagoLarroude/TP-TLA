@@ -8,7 +8,7 @@
 
 const char *DEFAULT_SEPARATORS = " ,";
 
-const char *DEFAULT_TAB_SEPARATOR = "        ";
+#define DEFAULT_TAB_SEPARATOR "        ";
 
 typedef enum {
         TYPE_T_NONE = 0,
@@ -133,14 +133,13 @@ void copy_file_content(FILE *from, FILE *to)
 * str: string to find de separator
 * separator: string with de separator to find
 */
-IS_SEPARATOR_RETURN is_separator(char * str, char * separator){
-        if ( IS_SEPARATOR_RETURN_MATCH == strcmp(str, separator))
-        {
+// IS_SEPARATOR_RETURN is_separator(char * str, char * separator){
+//         if ( IS_SEPARATOR_RETURN_MATCH == strcmp(str, separator))
+//         {
                 
-        }
+//         }
         
-
-}
+// }
 
 /*
  * Return: NAN if is not a number
@@ -670,50 +669,18 @@ void r37(void)
 
                 while (remaining != NULL) {
                         int separator_char = 0;
-                        char * my_separators = ",        ";
-                        col_len = columns(&remaining, &my_separators, &column,
+                        col_len = columns(&remaining, ",        ", &column,
+                        // col_len = columns(&remaining, NULL, &column,
                                           &separator_char);
-                        
-                        /*
                         if (column != NULL && col_len > 0) {
-                                IS_NUMBER_RETURN isnum =
-                                        is_number(column, strlen(column));
-                                if (isnum == IS_NUMBER_RETURN_FLOATING) {
-                                        double n = atof(column);
-                                        n *= 2;
-                                        fprintf(output->value.file.stream, "%f",
-                                                n);
-                                } else if (isnum == IS_NUMBER_RETURN_INTEGER) {
-                                        long n = atol(column);
-                                        n *= 2;
-                                        fprintf(output->value.file.stream,
-                                                "%ld", n);
-                                } else {
-                                        copy_buffer_content(
+                                copy_buffer_content(
                                                 column,
                                                 output->value.file.stream);
-                                }
                         }
-                        */
-                        
-                        if (column != NULL && col_len > 0) {
-                                int separator_count = 2;
-
-                                for (size_t i = 0; i < separator_count; i++)
-                                {
-                                        
-                                }
-                                
-                                if (strstr(&column, ) != NULL) {
-                                }
-                                
+                        if (separator_char) {
+                                fputs("\n",
+                                      output->value.file.stream);
                         }
-                        
-                        copy_buffer_content(column,
-                                   output->value.file.stream);
-
-                        fputs("\n",
-                              output->value.file.stream);
                 }
                 free(column);
         }
