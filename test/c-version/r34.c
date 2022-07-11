@@ -498,9 +498,9 @@ int main(void)
         TexlerObject *r32_obj = r32();
         // Para checkear que funciona
         if (r32_obj != NULL) {
-        printf("### r32 output ###\n");
-        copy_file_content(r32_obj->value.file.stream, stdout);
-        free_texlerobject(r32_obj);
+                printf("### r32 output ###\n");
+                copy_file_content(r32_obj->value.file.stream, stdout);
+                free_texlerobject(r32_obj);
         }
 
         printf("### r33 ###\n");

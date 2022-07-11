@@ -820,7 +820,8 @@ void r38(void)
         free(line);
 }
 
-void r39(void){
+void r39(void)
+{
         TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
         if (input == NULL) {
                 perror("Aborting due to");
@@ -881,30 +882,37 @@ void r39(void){
                                 if (isnum == IS_NUMBER_RETURN_FLOATING) {
                                         double n = atof(column);
                                         n *= 2.5;
-                                        fprintf(output->value.file.stream,
-                                                "%f", n);
+                                        fprintf(output->value.file.stream, "%f",
+                                                n);
                                 } else if (isnum == IS_NUMBER_RETURN_INTEGER) {
                                         double n = atof(column);
                                         n *= 2.5;
-                                        fprintf(output->value.file.stream,
-                                                "%f", n);
+                                        fprintf(output->value.file.stream, "%f",
+                                                n);
                                 } else {
                                         if (column[col_len - 2] != '\n') {
-                                                fprintf(output->value.file.stream, "%s%s", column, " :)");
+                                                fprintf(output->value.file
+                                                                .stream,
+                                                        "%s%s", column, " :)");
                                         } else {
-                                                for(int i = 0; i < col_len - 2; i++){ 
-                                                        fputc(column[i], output->value.file.stream);
+                                                for (int i = 0; i < col_len - 2;
+                                                     i++) {
+                                                        fputc(column[i],
+                                                              output->value.file
+                                                                      .stream);
                                                 }
-                                                fprintf(output->value.file.stream, "%s\n", " :)");
+                                                fprintf(output->value.file
+                                                                .stream,
+                                                        "%s\n", " :)");
                                         }
 
-                                        // char* str_concat = (char *) 
+                                        // char* str_concat = (char *)
                                         //         calloc(col_len, sizeof(char));
 
                                         // strcat(str_concat, column);
                                         // strcat(str_concat, " :)");
-                
-                                        // copy_buffer_content(str_concat, 
+
+                                        // copy_buffer_content(str_concat,
                                         //         output->value.file.stream);
 
                                         // free(str_concat);

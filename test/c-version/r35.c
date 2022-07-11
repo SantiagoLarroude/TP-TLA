@@ -540,14 +540,10 @@ void r35(void)
                 return;
         }
 
-        copy_file_content(input1->value.file.stream,
-                          output->value.file.stream);
-        copy_file_content(input2->value.file.stream,
-                          output->value.file.stream);
+        copy_file_content(input1->value.file.stream, output->value.file.stream);
+        copy_file_content(input2->value.file.stream, output->value.file.stream);
 
-
-        copy_file_content(input3->value.file.stream,
-                          output->value.file.stream);
+        copy_file_content(input3->value.file.stream, output->value.file.stream);
 
         free_texlerobject(input1);
         free_texlerobject(input2);
@@ -569,9 +565,9 @@ int main(void)
         TexlerObject *r32_obj = r32();
         // Para checkear que funciona
         if (r32_obj != NULL) {
-        printf("### r32 output ###\n");
-        copy_file_content(r32_obj->value.file.stream, stdout);
-        free_texlerobject(r32_obj);
+                printf("### r32 output ###\n");
+                copy_file_content(r32_obj->value.file.stream, stdout);
+                free_texlerobject(r32_obj);
         }
 
         printf("### r33 ###\n");
