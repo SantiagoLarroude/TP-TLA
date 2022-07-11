@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <dirent.h>
 
 #define BUFFER_SIZE 256
 
@@ -15,6 +16,7 @@ typedef enum {
         TYPE_T_REAL,
         TYPE_T_INTEGER,
         TYPE_T_FILEPTR,
+        TYPE_T_FILE_LIST,
         N_TYPE_T
 } type_t;
 
@@ -30,7 +32,9 @@ typedef enum {
         IS_SEPARATOR_RETURN_MATCH,
 } IS_SEPARATOR_RETURN;
 
-typedef struct TexlerObject {
+typedef struct TexlerObject TexlerObject;
+
+struct TexlerObject {
         union {
                 bool boolean;
                 struct {
@@ -42,10 +46,15 @@ typedef struct TexlerObject {
                 struct {
                         FILE *stream;
                         fpos_t pos;
+                        size_t n_line;
                 } file;
+                struct {
+                        char **arr;
+                        size_t n_files;
+                } list_of_files;
         } value;
         type_t type;
-} TexlerObject;
+};
 
 void free_texlerobject(TexlerObject *tex_obj)
 {
@@ -60,8 +69,23 @@ void free_texlerobject(TexlerObject *tex_obj)
                     tex_obj->value.file.stream != stdin)
                         fclose(tex_obj->value.file.stream);
                 break;
-        case TYPE_T_BOOLEAN: /* Fallsthrough*/
+        case TYPE_T_FILE_LIST:
+                if (tex_obj->value.list_of_files.arr != NULL) {
+                        while(tex_obj->value.list_of_files.n_files > 0) {
+                                if (tex_obj->value.list_of_files.arr[tex_obj->value.list_of_files.n_files] != NULL)
+                                        free(tex_obj->value.list_of_files.arr[tex_obj->value.list_of_files.n_files]);
+
+                                tex_obj->value.list_of_files.n_files--;
+                        }
+                        free(tex_obj->value.list_of_files.arr);
+                }
+                break;
         case TYPE_T_STRING:
+                if (tex_obj->value.string != NULL) {
+                        free(tex_obj->value.string);
+                }
+                break;
+        case TYPE_T_BOOLEAN: /* Fallsthrough*/
         case TYPE_T_REAL:
         case TYPE_T_INTEGER:
                 break;
@@ -105,6 +129,8 @@ bool open_file(const char *name, const char *mode, TexlerObject *tex_obj)
                 perror("Error while getting file position");
                 return false;
         }
+        tex_obj->value.file.n_line = 1;
+
         return true;
 }
 
@@ -127,17 +153,76 @@ void copy_file_content(FILE *from, FILE *to)
         }
 }
 
-/*
-* str: string to find de separator
-* separator: string with de separator to find
-*/
-// IS_SEPARATOR_RETURN is_separator(char * str, char * separator){
-//         if ( IS_SEPARATOR_RETURN_MATCH == strcmp(str, separator))
-//         {
-                
-//         }
+/* Devuelve la cantidad de archivos en la carpeta path
+ * Files es un arreglo con el path de cada archivo
+ */
+long get_list_of_files_in_dir(char *** files, const char * path)
+{
+        if (files == NULL)
+                return -1;
+
+        char **files_list = *files;
+
+        DIR *dir_ptr = NULL;
+        struct dirent* dir = NULL;
+        long count_files = 0;
         
-// }
+        dir_ptr = opendir(path);
+        
+        if (dir_ptr) {
+                while ((dir = readdir(dir_ptr)) != NULL) {
+                        // Condition to check regular file.
+                        if (dir->d_type == DT_REG) {
+                                count_files++;
+                                files_list = 
+                                        (char **)realloc(files_list, 
+                                                count_files * sizeof(char*));
+                                files_list[count_files - 1] = 
+                                        (char *)calloc(strlen(path) + 1 
+                                                        + strlen(dir->d_name) 
+                                                        + 1, sizeof(char));
+                                sprintf(files_list[count_files-1], "%s/%s", path,
+                                        dir->d_name);
+                        }
+                }
+                closedir(dir_ptr);
+        }
+
+        *files = files_list;
+        return count_files;
+}
+
+// Substract str2 from the end of str1
+char *string_substract(char *str1, char *str2)
+{
+        int str1_len = strlen(str1);
+        int str2_len = strlen(str2);
+
+        if (str1_len < str2_len)
+                return str1;
+
+        int i = 0;
+        int j = str2_len;
+        while (str2[i] == str1[str1_len - j] && str2_len > i) {
+                i++;
+                j--;
+        }
+
+        if (str2[i] == str1[str1_len - j] && j < 1) {
+                memset(str1 + str1_len - str2_len, 0, str2_len);
+
+                char *aux = (char *)realloc(str1,
+                                            sizeof(char) * (1 + strlen(str1)));
+                if (aux == NULL) {
+                        perror("Aborting due to");
+                        exit(1);
+                }
+
+                str1 = aux;
+        }
+
+        return str1;
+}
 
 /*
  * Return: NAN if is not a number
@@ -217,6 +302,7 @@ long int lines(TexlerObject *tex_obj, char **buffer)
                 perror("Error while getting file position");
                 return false;
         }
+        tex_obj->value.file.n_line++;
 
         *buffer = new_buffer;
 
@@ -265,7 +351,6 @@ long int columns(char **str, char *separators, char **buffer, int *separator)
             strchr(seps, *next_column) != NULL) {
                 // if(*separators == '\\') *separators++;
                 *separator = *next_column++;
-                
         }
 
         *str = (next_column == NULL || *next_column == '\0') ? NULL :
@@ -559,14 +644,10 @@ void r35(void)
                 return;
         }
 
-        copy_file_content(input1->value.file.stream,
-                          output->value.file.stream);
-        copy_file_content(input2->value.file.stream,
-                          output->value.file.stream);
+        copy_file_content(input1->value.file.stream, output->value.file.stream);
+        copy_file_content(input2->value.file.stream, output->value.file.stream);
 
-
-        copy_file_content(input3->value.file.stream,
-                          output->value.file.stream);
+        copy_file_content(input3->value.file.stream, output->value.file.stream);
 
         free_texlerobject(input1);
         free_texlerobject(input2);
@@ -574,7 +655,8 @@ void r35(void)
         free_texlerobject(output);
 }
 
-void r36(int n){
+void r36(int n)
+{
         TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
         if (input == NULL) {
                 perror("Aborting due to");
@@ -602,10 +684,9 @@ void r36(int n){
         output->type = TYPE_T_FILEPTR;
         output->value.file.stream = stdout;
 
-        while (n > 0)
-        {
-                copy_file_content(input->value.file.stream, 
-                        output->value.file.stream);
+        while (n > 0) {
+                copy_file_content(input->value.file.stream,
+                                  output->value.file.stream);
                 n--;
         }
 
@@ -667,17 +748,15 @@ void r37(void)
 
                 while (remaining != NULL) {
                         int separator_char = 0;
-                        col_len = columns(&remaining, ",\t", &column,
-                        // col_len = columns(&remaining, NULL, &column,
-                                          &separator_char);
+                        col_len = columns(
+                                &remaining, ",\t", &column,
+                                &separator_char);
                         if (column != NULL && col_len > 0) {
-                                copy_buffer_content(
-                                                column,
-                                                output->value.file.stream);
+                                copy_buffer_content(column,
+                                                    output->value.file.stream);
                         }
                         if (separator_char) {
-                                fputs("\n",
-                                      output->value.file.stream);
+                                fputs("\n", output->value.file.stream);
                         }
                 }
                 free(column);
@@ -686,6 +765,225 @@ void r37(void)
         free_texlerobject(input);
         free_texlerobject(output);
         free(line);
+}
+
+void r38(void)
+{
+        TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (input == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+
+        if (open_file("path.txt", "r", input) == false) {
+                free_texlerobject(input);
+                return;
+        }
+
+        TexlerObject *output = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (output == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                exit(1);
+        }
+
+        if (open_file("new_r38.txt", "w+", output) == false) {
+                free_texlerobject(input);
+                free_texlerobject(output);
+                return;
+        }
+
+        TexlerObject *accumulator =
+                (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (accumulator == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                free_texlerobject(output);
+                exit(1);
+        }
+
+        accumulator->type = TYPE_T_STRING;
+        accumulator->value.string = strdup("");
+
+        long int line_len = BUFFER_SIZE;
+        char *line = (char *)calloc(line_len, sizeof(char));
+        if (output == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+        // idx in [1..5]:
+        for (long idx = 1 - 1; idx < 5; idx++) {
+                if (idx == 5 - 1) {
+                        while (input->value.file.n_line != idx + 2) {
+                                line_len = lines(input, &line);
+                                if (line_len <= 0 || line == NULL)
+                                        break;
+                        }
+                        if (line_len <= 0 || line == NULL)
+                                break;
+
+                        accumulator->value.string = (char *)realloc(
+                                accumulator->value.string,
+                                sizeof(char) *
+                                        (1 + strlen(accumulator->value.string) +
+                                         strlen(line)));
+                        strcat(accumulator->value.string, line);
+                } else {
+                        while (input->value.file.n_line != idx + 2) {
+                                line_len = lines(input, &line);
+                                if (line_len <= 0 || line == NULL)
+                                        break;
+                        }
+                        if (line_len <= 0 || line == NULL)
+                                break;
+
+                        string_substract(line, "\n");
+
+                        line = (char *)realloc(line, sizeof(char) *
+                                                             (1 + strlen(line) +
+                                                              strlen(", ")));
+                        line_len = 1 + strlen(line);
+
+                        strcat(line, ",");
+
+                        accumulator->value.string = (char *)realloc(
+                                accumulator->value.string,
+                                sizeof(char) *
+                                        (1 + strlen(accumulator->value.string) +
+                                         strlen(line)));
+
+                        strcat(accumulator->value.string, line);
+                }
+        }
+
+        fputs(accumulator->value.string, output->value.file.stream);
+
+        free_texlerobject(input);
+        free_texlerobject(accumulator);
+        free(line);
+}
+
+void r39(void){
+        TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (input == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+
+        if (open_file("path_columns.txt", "r", input) == false) {
+                free_texlerobject(input);
+                return;
+        }
+
+        TexlerObject *output = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (output == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                exit(1);
+        }
+
+        if (open_file("new_r39.txt", "w+", output) == false) {
+                free_texlerobject(input);
+                free_texlerobject(output);
+                return;
+        }
+
+        long int line_len = BUFFER_SIZE;
+        char *line = (char *)calloc(line_len, sizeof(char));
+        if (line == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                free_texlerobject(output);
+                exit(1);
+        }
+
+        // byIndex:
+        while (line_len > 0) {
+                line_len = lines(input, &line);
+                if (line_len <= 0 || line == NULL)
+                        break;
+
+                char *remaining = line;
+                long int col_len = BUFFER_SIZE;
+                char *column = (char *)calloc(col_len, sizeof(char));
+                if (column == NULL) {
+                        perror("Aborting due to");
+                        free_texlerobject(input);
+                        free_texlerobject(output);
+                        free(line);
+                        exit(1);
+                }
+
+                while (remaining != NULL) {
+                        int separator_char = 0;
+                        col_len = columns(&remaining, ",", &column,
+                                          &separator_char);
+                        if (column != NULL && col_len > 0) {
+                                IS_NUMBER_RETURN isnum =
+                                        is_number(column, strlen(column));
+                                if (isnum == IS_NUMBER_RETURN_FLOATING) {
+                                        double n = atof(column);
+                                        n *= 2.5;
+                                        fprintf(output->value.file.stream,
+                                                "%f", n);
+                                } else if (isnum == IS_NUMBER_RETURN_INTEGER) {
+                                        double n = atof(column);
+                                        n *= 2.5;
+                                        fprintf(output->value.file.stream,
+                                                "%f", n);
+                                } else {
+                                        if (column[col_len - 2] != '\n') {
+                                                fprintf(output->value.file.stream, "%s%s", column, " :)");
+                                        } else {
+                                                for(int i = 0; i < col_len - 2; i++){ 
+                                                        fputc(column[i], output->value.file.stream);
+                                                }
+                                                fprintf(output->value.file.stream, "%s\n", " :)");
+                                        }
+                                }
+                        }
+
+                        if (separator_char) {
+                                fputc(separator_char,
+                                      output->value.file.stream);
+                        }
+                }
+                free(column);
+        }
+
+        free(line);
+        free_texlerobject(input);
+        free_texlerobject(output);
+}
+
+void r311(void){
+        TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (input == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+
+        // Deberia fallar aca
+        if (open_file("path_r311.txt", "r", input) == false) {
+                free_texlerobject(input);
+                return;
+        }
+
+        TexlerObject *output = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        if (output == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                exit(1);
+        }
+
+        if (open_file("new_r311.txt", "w+", output) == false) {
+                free_texlerobject(input);
+                free_texlerobject(output);
+                return;
+        }
+
+        output->type = TYPE_T_FILEPTR;
+        output->value.file.stream = stdout;
 }
 
 int main(void)
@@ -702,9 +1000,9 @@ int main(void)
         TexlerObject *r32_obj = r32();
         // Para checkear que funciona
         if (r32_obj != NULL) {
-        printf("### r32 output ###\n");
-        copy_file_content(r32_obj->value.file.stream, stdout);
-        free_texlerobject(r32_obj);
+                printf("### r32 output ###\n");
+                copy_file_content(r32_obj->value.file.stream, stdout);
+                free_texlerobject(r32_obj);
         }
 
         printf("### r33 ###\n");
@@ -715,12 +1013,24 @@ int main(void)
 
         printf("### r35 ###\n");
         r35();
-        
+
         printf("### r36 ###\n");
         r36(3);
 
         printf("### r37 ###\n");
         r37();
+
+        printf("### r38 ###\n");
+        r38();
+
+        printf("### r39 ###\n");
+        r39();
+
+        // printf("### r310 ###\n");
+        // r310();
+
+        printf("### r311 ###\n");
+        r311();
 
         return 0;
 }
