@@ -11,7 +11,7 @@ function r38()
             with input: lines().byIndex(idx) -> accumulator.
             .
         else
-            with input: lines().byIndex(idx) -- "\n" ++ ", " -> accumulator.
+            with input: lines().byIndex(idx) -- "\n" ++ "," -> accumulator.
             .
         .
     .
