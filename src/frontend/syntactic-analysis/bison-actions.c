@@ -569,7 +569,7 @@ node_list *grammar_concat_list_args(node_list *list,
         expanded[list->len] = (node_expression *)expr;
         list->exprs = expanded;
         list->len += 1;
-        list->type = EXPRESSION_TYPE;
+        list->type = LIST_ARGS_TYPE;
 
         return list;
 }
