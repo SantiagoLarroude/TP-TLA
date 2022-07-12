@@ -7,5 +7,7 @@ void error_variable_not_found(const char *name);
 void error_dangling_variable_found();
 void error_function_not_found(const char *name);
 void error_invalid_range(const char *from, const char *to);
+void error_invalid_function_arguments();
+void error_in_function(const char *name);
 
 #endif

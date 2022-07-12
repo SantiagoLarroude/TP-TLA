@@ -39,8 +39,12 @@ const int main(const int argumentCount, const char **arguments)
         switch (result) {
         case COMPILER_STATE_RESULTS_FINISHED:
                 if (state.succeed) {
-                        LogInfo("La compilación fue exitosa.");
-                        generate_code(root);
+                        if (generate_code(root, arguments[1])) {
+                                LogInfo("La compilación fue exitosa.");
+                        } else {
+                                LogError("Se produjo un error durante "
+                                         "el proceso de compilación.");
+                        }
                 } else {
                         LogError("Se produjo un error en la aplicacion.");
                         free_program(root);

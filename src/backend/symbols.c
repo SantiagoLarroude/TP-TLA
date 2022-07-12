@@ -93,6 +93,10 @@ void prev_scope()
 bool is_dangling(variable *var)
 {
         LogDebug("%s(%p)", __func__, var);
+
+        if (var == NULL)
+            return false;
+
         if (lookup_variable_in_scope(var->name, SCOPE_DANGLING) == NULL)
                 return false;
 

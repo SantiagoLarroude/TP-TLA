@@ -34,3 +34,13 @@ void error_invalid_range(const char *from, const char *to)
 {
         LogError("Invalid range detected.\nFrom: %s\nTo: %s\n", from, to);
 }
+
+void error_invalid_function_arguments()
+{
+        LogError("Invalid name or arguments for function");
+}
+
+void error_in_function(const char *name)
+{
+        LogError("Error in function: %s", name);
+}

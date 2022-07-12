@@ -3,7 +3,7 @@
 
 #include "../../frontend/syntactic-analysis/node.h"
 
-void generate_code(program_t * ast);
-void generate_allocation_error_msg(char* ptr_name);
+bool generate_code(program_t *ast, const char *filename);
+void generate_allocation_error_msg(FILE *const output, char *ptr_name);
 
 #endif
