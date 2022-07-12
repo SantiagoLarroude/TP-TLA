@@ -32,8 +32,8 @@ function compile()
 
     pushd build/ &> /dev/null
     
-    # cmake -S ../ -B . && ninja clean && ninja all
-    cmake -S ../ && make clean && make all 
+    cmake -S ../ -B . -G Ninja && ninja clean && ninja all
+    # cmake -S ../ && make clean && make all 
     ret_val=$?
     
     popd &> /dev/null # build/
