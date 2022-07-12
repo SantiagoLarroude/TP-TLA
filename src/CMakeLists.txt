@@ -95,6 +95,9 @@ add_executable(${PROJECT_NAME}
         backend/logger.c
         backend/mem_management.c
         backend/symbols.c
+        backend/generator/code-generator.c
+        backend/generator/internal_functions.c
+        backend/generator/standard_functions.c
 )
 
 target_link_libraries(${PROJECT_NAME})

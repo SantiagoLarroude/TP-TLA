@@ -10,7 +10,7 @@
 #include "frontend/syntactic-analysis/bison-actions.h"
 #include "frontend/syntactic-analysis/bison-parser.h"
 #include "backend/symbols.h"
-#include "backend/code-generator.h"
+#include "backend/generator/code-generator.h"
 
 //Estado de la aplicación.
 CompilerState state;
@@ -40,7 +40,7 @@ const int main(const int argumentCount, const char **arguments)
         case COMPILER_STATE_RESULTS_FINISHED:
                 if (state.succeed) {
                         LogInfo("La compilación fue exitosa.");
-                        // generate_code(root);
+                        generate_code(root);
                 } else {
                         LogError("Se produjo un error en la aplicacion.");
                         free_program(root);

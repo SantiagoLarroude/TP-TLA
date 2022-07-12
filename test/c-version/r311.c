@@ -1,9 +1,9 @@
 #include <ctype.h>
+#include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <dirent.h>
 
 #define BUFFER_SIZE 256
 
@@ -59,16 +59,18 @@ struct TexlerObject {
 
 void free_texlerobject(TexlerObject *tex_obj)
 {
-        if (tex_obj == NULL)
+        if (tex_obj == NULL) {
                 return;
+        }
 
         switch (tex_obj->type) {
         case TYPE_T_FILEPTR:
                 if (tex_obj->value.file.stream != NULL &&
                     tex_obj->value.file.stream != stdout &&
                     tex_obj->value.file.stream != stderr &&
-                    tex_obj->value.file.stream != stdin)
+                    tex_obj->value.file.stream != stdin) {
                         fclose(tex_obj->value.file.stream);
+                }
                 break;
         case TYPE_T_FILE_LIST:
                 if (tex_obj->value.file.path_list != NULL) {
