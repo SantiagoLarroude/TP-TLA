@@ -19,7 +19,6 @@
 static bool save_token(const char *lexeme);
 static bool save_token_id(const char *lexeme);
 static bool save_token_string(const char *lexeme);
-static bool save_token_number(const char *lexeme);
 
 /**
  * "flex-rules.h" implementation
@@ -76,14 +75,6 @@ TokenID pattern_number(const char *lexeme)
         }
 
         return YYUNDEF;
-}
-
-static bool save_token_number(const char *lexeme)
-{
-        // printf(lexeme);
-        yylval.value.number = atoi(lexeme);
-        printf(" save_token_number_2 f: %f\n", yylval.value.number);
-        return true;
 }
 
 TokenID pattern_bool(const bool lexeme)
