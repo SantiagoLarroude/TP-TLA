@@ -17,6 +17,7 @@ static dynamic_ptr_arr free_addresses;
 
 static void init_free_address_list();
 static bool has_been_freed(void *ptr);
+static void free_free_address_list();
 
 void init_mem_manager()
 {
@@ -27,10 +28,17 @@ void free_program(program_t *root)
 {
         LogDebug("%s(%p)", __func__, root);
 
-        free_main_function(root);
+        if (root != NULL) {
+                free_main_function(root);
+        }
+
         free_table();
 
-        free(free_addresses.array);
+        free_free_address_list();
+
+        if (root != NULL) {
+                free(root);
+        }
 }
 
 void free_main_function(program_t *program)
@@ -235,4 +243,16 @@ static bool has_been_freed(void *ptr)
                         return true;
 
         return false;
+}
+
+static void free_free_address_list()
+{
+        if (free_addresses.array == NULL)
+                return;
+
+        memset(free_addresses.array, 0, free_addresses.len);
+        free_addresses.len = 0;
+        free_addresses.elements = 0;
+
+        free(free_addresses.array);
 }

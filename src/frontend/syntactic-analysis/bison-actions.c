@@ -49,11 +49,12 @@ program_t *new_program()
                 exit(1);
         }
 
-        program->main_function = NULL;
+        memset(program, 0, sizeof(program_t));
 
         // Hash table for variables
         if (initialize_table() == false) {
                 LogError("Could not initialize variables table. Aborting.");
+                free_program(program);
                 exit(1);
         }
 

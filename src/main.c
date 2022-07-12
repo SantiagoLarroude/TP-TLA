@@ -43,6 +43,7 @@ const int main(const int argumentCount, const char **arguments)
                         // generate_code(root);
                 } else {
                         LogError("Se produjo un error en la aplicacion.");
+                        free_program(root);
                         return -1;
                 }
                 break;
