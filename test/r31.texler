@@ -1,6 +1,6 @@
 # R3.1 [Aceptar] Un programa que lea un archivo y lo imprima sin modificación.
 function r31()
-    File "path" as input.
+    File "test_file_cases.txt" as input.
     File STDOUT as output.
 
     input -> output.
