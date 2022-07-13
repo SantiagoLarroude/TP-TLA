@@ -137,6 +137,7 @@ struct node_function_call {
         node_list *args;
 
         node_function_call *next;
+        node_function_call *prev;
 };
 
 struct node_expression_list {

@@ -27,7 +27,13 @@ static bool generate_args(FILE *const output, node_list *args);
 static bool generate_return(FILE *const output, const variable *var);
 
 static bool generate_expressions_list(FILE *const output,
-                                      node_expression_list *expressions);
+                                      node_expression_list *expressions,
+                                      const char *working_filename);
+static bool generate_expression(FILE *const output,
+                                free_function_call_array *frees_stack,
+                                node_expression *expr,
+                                const char *working_filename);
+
 static bool generate_variable(FILE *const output, variable *var,
                               free_function_call_array *frees_stack);
 
@@ -41,6 +47,16 @@ static bool generate_variable_assignment_to_constant(FILE *const output,
                                                      variable *source);
 static bool generate_variable_file(FILE *const output, variable *var,
                                    free_function_call_array *frees_stack);
+static bool generate_expressions_list_with_file(FILE *const output,
+                                                node_file_block *fhandler);
+static bool generate_loop_expression(FILE *const output, node_loop *loop,
+                                     free_function_call_array *frees_stack,
+                                     const char *working_filename);
+
+static bool
+generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
+                                        free_function_call_array *frees_stack,
+                                        const char *working_filename);
 
 // void generate_type_code(token_t type);
 // void generate_declaration(node_expression *declaration);
@@ -84,6 +100,9 @@ bool generate_code(program_t *ast, const char *filename)
 
 void generate_allocation_error_msg(FILE *const output, char *ptr_name)
 {
+        if (output == NULL || ptr_name == NULL)
+                return;
+
         fprintf(output,
                 "if (%s == NULL) {"
                 "perror(\"Aborting due to\");"
@@ -258,7 +277,7 @@ static bool generate_function(FILE *const output, node_function *function)
 
         fprintf(output, " { ");
         // generate_expression_list(function->expressions);
-        if (!generate_expressions_list(output, function->expressions)) {
+        if (!generate_expressions_list(output, function->expressions, NULL)) {
                 error_in_function(function->name);
                 return false;
         }
@@ -299,7 +318,8 @@ static bool generate_args(FILE *const output, node_list *args)
 }
 
 static bool generate_expressions_list(FILE *const output,
-                                      node_expression_list *expressions)
+                                      node_expression_list *expressions,
+                                      const char *working_filename)
 {
         if (expressions == NULL || expressions->expr == NULL)
                 return false;
@@ -312,38 +332,68 @@ static bool generate_expressions_list(FILE *const output,
                 exit(1);
         }
 
-        while (expressions != NULL && expressions->expr != NULL) {
-                switch (expressions->expr->type) {
-                case EXPRESSION_VARIABLE_ASSIGNMENT:
-                        generate_variable_assignment(output,
-                                                     expressions->expr->var,
-                                                     expressions->expr->expr);
-                        break;
-                case EXPRESSION_VARIABLE_DECLARATION: /* Fallsthrough */
-                case EXPRESSION_FILE_DECLARATION:
-                        generate_variable(output, expressions->expr->var,
-                                          frees_stack);
-                        break;
-                default:
-                        LogDebug("Got expression of type: %d\n"
-                                 "\tFunction:",
-                                 expressions->expr->type, __func__);
-                        break;
-                }
+        bool gen_expression_return = true;
+        while (expressions != NULL && expressions->expr != NULL &&
+               gen_expression_return == true) {
+                generate_expression(output, frees_stack, expressions->expr,
+                                    working_filename);
 
                 expressions = expressions->next;
         }
 
-        while (frees_stack->size > 0) {
+        /* while (frees_stack->size > 0) {
                 free_function_call *ffc = pop_free_function_call(&frees_stack);
 
                 if (ffc != NULL)
                         fprintf(output, "%s(%s);", ffc->fun, ffc->name);
 
                 free_struct_free_function_call(&ffc);
-        }
+        } */
 
         free_struct_free_function_call_array(&frees_stack);
+        return gen_expression_return;
+}
+
+static bool generate_expression(FILE *const output,
+                                free_function_call_array *frees_stack,
+                                node_expression *expr,
+                                const char *working_filename)
+{
+        if (output == NULL || expr == NULL)
+                return false;
+
+        switch (expr->type) {
+        case EXPRESSION_VARIABLE_ASSIGNMENT:
+                if (!generate_variable_assignment(output, expr->var,
+                                                  expr->expr)) {
+                        return false;
+                }
+                break;
+        case EXPRESSION_VARIABLE_DECLARATION: /* Fallsthrough */
+        case EXPRESSION_FILE_DECLARATION:
+                if (!generate_variable(output, expr->var, frees_stack)) {
+                        return false;
+                }
+                break;
+        case EXPRESSION_LOOP:
+                if (!generate_loop_expression(output, expr->loop_expr,
+                                              frees_stack, working_filename)) {
+                        return false;
+                }
+                break;
+        case EXPRESSION_FILE_HANDLE:
+                if (!generate_expressions_list_with_file(output,
+                                                         expr->file_handler)) {
+                        return false;
+                }
+                break;
+        default:
+                LogDebug("Got expression of type: %d\n"
+                         "\tFunction:",
+                         expr->type, __func__);
+                break;
+        }
+
         return true;
 }
 
@@ -439,13 +489,29 @@ static bool generate_variable_file(FILE *const output, variable *var,
                                 "}");
 
         } else if (strstr(var->name, "output") == var->name) {
-                if (strlen(var->value.string) == 0) // Filename: ""
+                if (strlen(var->value.string) == 0 ||
+                    strcmp(var->value.string, "\"\"") == 0) // Filename: ""
                 {
+                        size_t stream_str_len = 1 + strlen(var->name) +
+                                                strlen("->value.file.stream");
+                        char *stream_str =
+                                (char *)calloc(stream_str_len, sizeof(char));
+                        if (stream_str == NULL) {
+                                error_no_memory();
+                                exit(1);
+                        }
+                        snprintf(stream_str, stream_str_len,
+                                 "%s->value.file.stream", var->name);
+
                         fprintf(output, "%s->type = TYPE_T_FILEPTR;",
                                 var->name);
                         fprintf(output, "%s->value.file.stream = tmpfile();",
                                 var->name);
-                        generate_allocation_error_msg(output, var->name);
+                        generate_allocation_error_msg(output, stream_str);
+
+                        if (stream_str != NULL)
+                                free(stream_str);
+
                 } else if (strcmp(var->value.string, "STDOUT") == 0) {
                         fprintf(output, "%s->type = TYPE_T_FILEPTR;",
                                 var->name);
@@ -515,6 +581,24 @@ static bool generate_variable_assignment_to_variable(FILE *const output,
                         "%s->value.file.stream"
                         ");",
                         source->name, dest->name);
+        } else if (source->type == LOOP_VARIABLE_TYPE) {
+                switch (dest->type) {
+                case FILE_PATH_TYPE:
+                        fprintf(output,
+                                "copy_buffer_content("
+                                "%s"
+                                ","
+                                "%s->value.file.stream"
+                                ");",
+                                source->name, dest->name);
+                        break;
+
+                default:
+                        fprintf(output,
+                                "memcpy(%s, %s, sizeof(TexlerObject));",
+                                dest->name, source->name);
+                        break;
+                }
         } else {
                 fprintf(output, "memcpy(%s, %s, sizeof(TexlerObject));",
                         dest->name, source->name);
@@ -555,6 +639,138 @@ static bool generate_variable_assignment_to_constant(FILE *const output,
                          source->type, __func__);
                 return false;
                 break;
+        }
+
+        return true;
+}
+
+static bool generate_expressions_list_with_file(FILE *const output,
+                                                node_file_block *fhandler)
+{
+        if (output == NULL || fhandler == NULL)
+                return false;
+
+        if (fhandler->var == NULL || fhandler->var->name == NULL ||
+            fhandler->var->type != FILE_PATH_TYPE) {
+                error_invalid_node_file_handler(__func__);
+                return false;
+        }
+
+        return generate_expressions_list(output, fhandler->exprs_list,
+                                         fhandler->var->name);
+}
+
+static bool generate_loop_expression(FILE *const output, node_loop *loop,
+                                     free_function_call_array *frees_stack,
+                                     const char *working_filename)
+{
+        if (output == NULL || loop == NULL || loop->iterable == NULL ||
+            loop->action == NULL || loop->var == NULL)
+                return false;
+
+        switch (loop->iterable->type) {
+        case LIST_RANGE_TYPE:
+                // TODO
+                break;
+        case EXPRESSION_FUNCTION_CALL:
+                if (!generate_loop_function_calls_expression(
+                            output, loop, frees_stack, working_filename))
+                        return false;
+
+                break;
+        default:
+                LogDebug("Got expression of type: %d\n"
+                         "\tFunction: %s",
+                         loop->iterable->type, __func__);
+                break;
+        }
+
+        return true;
+}
+
+static bool
+generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
+                                        free_function_call_array *frees_stack,
+                                        const char *working_filename)
+{
+        if (output == NULL || loop == NULL)
+                return false;
+
+        size_t closing_braces = 0;
+        size_t concat_functions = 1;
+        node_function_call *fn_calls = loop->iterable->fun_call; // Alias
+
+        while (fn_calls->next != NULL) {
+                fn_calls = fn_calls->next;
+                concat_functions++;
+        }
+
+        while (concat_functions > 0) {
+                if (strcmp(fn_calls->id->name, "lines") == 0) {
+                        fprintf(output, "long _line_len_implementation"
+                                        "="
+                                        "BUFFER_SIZE;");
+                        fprintf(output,
+                                "char * %s = "
+                                "(char *)"
+                                "calloc("
+                                "_line_len_implementation,"
+                                "sizeof(char)"
+                                ");",
+                                loop->var->name);
+                        generate_allocation_error_msg(output, loop->var->name);
+                        fprintf(output,
+                                "_line_len_implementation = "
+                                "lines(%s, &%s);",
+                                working_filename, loop->var->name);
+
+                        if (fn_calls->next != NULL &&
+                            strcmp(fn_calls->next->id->name, "byIndex") == 0) {
+                                fprintf(output,
+                                        "if ("
+                                        "_line_len_implementation <= 0"
+                                        "||"
+                                        "%s == NULL"
+                                        ")"
+                                        "{"
+                                        "break;"
+                                        "}",
+                                        loop->var->name);
+                        }
+                } else if (strcmp(fn_calls->id->name, "columns") == 0) {
+                        //
+                } else if (strcmp(fn_calls->id->name, "byIndex") == 0) {
+                        fprintf(output,
+                                "for (long %s = %ld - 1;"
+                                "%s < %ld;"
+                                "%s++)"
+                                "{",
+                                "_byIndex_implementation",
+                                fn_calls->args->exprs[0]->list_expr->from,
+                                "_byIndex_implementation",
+                                fn_calls->args->exprs[0]->list_expr->to,
+                                "_byIndex_implementation");
+
+                        closing_braces++;
+                } else if (strcmp(fn_calls->id->name, "filter") == 0) {
+                        //
+                } else {
+                        LogError("Not implemented for function: %s\n"
+                                 "\tFunction: %s",
+                                 fn_calls->id->name, __func__);
+                        return false;
+                }
+
+                fn_calls = fn_calls->prev;
+                concat_functions--;
+        }
+
+        generate_expression(output, frees_stack, loop->action,
+                            working_filename);
+
+        while (closing_braces > 0) {
+                fprintf(output, "}");
+                closing_braces--;
         }
 
         return true;

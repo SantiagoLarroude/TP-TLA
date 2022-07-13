@@ -1,7 +1,7 @@
 # R3.2 [Aceptar] Un programa que lea un archivo y se quede con una parte del
 # mismo.
 function r32()
-    File "path" as input.
+    File "test_file_cases.txt" as input.
     File "" as output.
 
     # Líneas 1, 2 y 3 (el rango es inclusivo)

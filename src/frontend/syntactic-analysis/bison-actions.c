@@ -178,15 +178,16 @@ grammar_expression_from_filehandler(const node_file_block *fhandler)
 
 node_function_call *
 grammar_concat_function_call(node_function_call *fun_list,
-                             const node_function_call *fun_append)
+                             node_function_call *fun_append)
 {
-        LogDebug("%s(%p, %p)\n", __func__, fun_append);
+        LogDebug("%s(%p, %p)\n", __func__, fun_list, fun_append);
 
         node_function_call *aux = fun_list;
         while (aux->next != NULL)
                 aux = aux->next;
 
         aux->next = (node_function_call *)fun_append;
+        fun_append->prev = aux;
 
         return fun_list;
 }
@@ -213,12 +214,13 @@ node_function_call *grammar_function_call(const char *fun_id,
         node->id = fun_id_table_entry;
         node->args = (node_list *)args; // Could be NULL
         node->next = NULL;
+        node->prev = NULL;
 
         return node;
 }
 
-node_function_call *
-grammar_function_call_from_id(const char *id, const node_function_call *fun)
+node_function_call *grammar_function_call_from_id(const char *id,
+                                                  node_function_call *fun)
 {
         LogDebug("%s(%p, %p)\n", __func__, id, fun);
 
@@ -229,27 +231,11 @@ grammar_function_call_from_id(const char *id, const node_function_call *fun)
                 exit(1);
         }
 
-        variable *var =
-                lookup_variable_create_dangling(id); /* lookup_variable(id);
-        if (var == NULL) {
-                // Store as dangling variable
-                var = (variable *)calloc(1, sizeof(variable));
-                if (var == NULL) {
-                        error_no_memory();
-                        exit(1);
-                }
-
-                var->type = UNKNOWN_TYPE;
-                var->name = strdup(id);
-
-                if (insert_dangling_variable(var) < SUCCESS) {
-                        error_multiple_declaration(id);
-                        exit(1);
-                }
-        } */
+        variable *var = lookup_variable_create_dangling(id);
 
         node->id = var;
         node->next = (node_function_call *)fun;
+        node->prev = NULL;
 
         return node;
 }

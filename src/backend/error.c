@@ -51,3 +51,8 @@ void error_invalid_file_variable_name(const char *name)
                  "Valid names start with 'input' or 'output'.",
                  name);
 }
+
+void error_invalid_node_file_handler(const char *function)
+{
+        LogError("Invalid node_file_block.\tFunction: %s", function);
+}

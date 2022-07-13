@@ -31,10 +31,10 @@ node_function_call *grammar_function_call(const char *fun_id,
                                           const node_list *args);
 node_function_call *
 grammar_concat_function_call(node_function_call *fun_list,
-                             const node_function_call *fun_append);
+                             node_function_call *fun_append);
 
-node_function_call *
-grammar_function_call_from_id(const char *id, const node_function_call *fun);
+node_function_call *grammar_function_call_from_id(const char *id,
+                                                  node_function_call *fun);
 
 node_expression *
 grammar_expression_from_funcall(const node_function_call *fn_calls);
@@ -63,9 +63,9 @@ node_expression *
 grammar_concat_expressions_filehandler(const node_expression *exprs,
                                        const node_file_block *fhandler);
 
-node_expression *grammar_new_declaration_file_node(const char *fpath,
-                                                   const char *id,
-                                                   const node_list *separators);
+node_expression *
+grammar_new_declaration_file_node(const char *fpath, const char *id,
+                                  const node_list *separators);
 
 node_expression *
 grammar_new_declaration_stdout_node(const char *id,
