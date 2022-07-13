@@ -114,7 +114,7 @@ void free_variable(variable *variable)
 
         free_and_keep_address(variable->name);
 
-        if (variable->type == EXPRESSION_TYPE) {
+        if (variable->type == CONSTANT_TYPE) {
                 free_node_expression(variable->value.expr);
         } else if (variable->type == STRING_TYPE ||
                    variable->type == FILE_PATH_TYPE) {

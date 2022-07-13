@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 
 #include "../logger.h"
 #include "../error.h"
 
+#include "free_function_call.h"
 #include "standard_functions.h"
 #include "internal_functions.h"
 
@@ -12,7 +15,7 @@
 //utils with functions to deal with code generation for each specific node type
 
 static FILE *open_output_file(const char *filename);
-static void generate_c_main();
+static bool generate_c_main(FILE *const output, node_function *main_function);
 
 static void generate_header(FILE *const output);
 static void generate_header_types_TexlerObject(FILE *const output);
@@ -23,16 +26,28 @@ static bool generate_function(FILE *const output, node_function *function);
 static bool generate_args(FILE *const output, node_list *args);
 static bool generate_return(FILE *const output, const variable *var);
 
+static bool generate_expressions_list(FILE *const output,
+                                      node_expression_list *expressions);
+static bool generate_variable(FILE *const output, variable *var,
+                              free_function_call_array *frees_stack);
+
+static bool generate_variable_assignment(FILE *const output, variable *var,
+                                         node_expression *expr);
+static bool generate_variable_assignment_to_variable(FILE *const output,
+                                                     variable *dest,
+                                                     variable *source);
+static bool generate_variable_assignment_to_constant(FILE *const output,
+                                                     variable *dest,
+                                                     variable *source);
+
 // void generate_type_code(token_t type);
 // void generate_declaration(node_expression *declaration);
 // void generate_assign_declaration(node_expression *assign_declaration);
 // void generate_assign(node_expression *assignment);
-// void generate_variable_value(variable *var);
 // void generate_return(variable *v);
 // static void error_handler(char *msg);
 //
 // char *variable_types[] = { "double", "bool", "char *", "int" };
-// void generate_expression_list(node_expression_list *expression_list);
 
 bool generate_code(program_t *ast, const char *filename)
 {
@@ -51,12 +66,15 @@ bool generate_code(program_t *ast, const char *filename)
         generate_standard_functions(out_file);
 
         if (!generate_function(out_file, ast->main_function)) {
+                fclose(out_file);
                 return false;
         }
 
-        generate_c_main(out_file);
+        if (!generate_c_main(out_file, ast->main_function)) {
+                fclose(out_file);
+                return false;
+        }
 
-        fflush(out_file);
         fclose(out_file);
 
         return true;
@@ -86,12 +104,20 @@ static FILE *open_output_file(const char *filename)
         return fptr;
 }
 
-static void generate_c_main(FILE *const output)
+static bool generate_c_main(FILE *const output, node_function *main_function)
 {
-        fprintf(output, "int main(void)"
-                        "{"
-                        "return 0;"
-                        "}");
+        if (main_function == NULL)
+                return false;
+
+        fprintf(output,
+                "int main(void)"
+                "{"
+                " %s();"
+                "return 0;"
+                "}",
+                main_function->name);
+
+        return true;
 }
 
 /* HEADER */
@@ -230,6 +256,10 @@ static bool generate_function(FILE *const output, node_function *function)
 
         fprintf(output, " { ");
         // generate_expression_list(function->expressions);
+        if (!generate_expressions_list(output, function->expressions)) {
+                error_in_function(function->name);
+                return false;
+        }
 
         if (!generate_return(output, function->return_variable)) {
                 error_in_function(function->name);
@@ -265,6 +295,200 @@ static bool generate_args(FILE *const output, node_list *args)
         return true;
 }
 
+static bool generate_expressions_list(FILE *const output,
+                                      node_expression_list *expressions)
+{
+        if (expressions == NULL || expressions->expr == NULL)
+                return false;
+
+        free_function_call_array *frees_stack =
+                (free_function_call_array *)calloc(
+                        1, sizeof(free_function_call_array));
+        if (frees_stack == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+
+        while (expressions != NULL && expressions->expr != NULL) {
+                switch (expressions->expr->type) {
+                case EXPRESSION_VARIABLE_DECLARATION:
+                        generate_variable(output, expressions->expr->var,
+                                          frees_stack);
+                        break;
+                case EXPRESSION_VARIABLE_ASSIGNMENT:
+                        generate_variable_assignment(output,
+                                                     expressions->expr->var,
+                                                     expressions->expr->expr);
+                        break;
+                default:
+                        LogDebug("Got expression of type: %d\n"
+                                 "\tFunction:",
+                                 expressions->expr->type, __func__);
+                        break;
+                }
+
+                expressions = expressions->next;
+        }
+
+        while (frees_stack->size > 0) {
+                free_function_call *ffc = pop_free_function_call(&frees_stack);
+
+                if (ffc != NULL)
+                        fprintf(output, "%s(%s);", ffc->fun, ffc->name);
+
+                free_struct_free_function_call(&ffc);
+        }
+
+        free_struct_free_function_call_array(&frees_stack);
+        return true;
+}
+
+static bool generate_variable(FILE *const output, variable *var,
+                              free_function_call_array *frees_stack)
+{
+        if (output == NULL || var == NULL || frees_stack == NULL)
+                return false;
+
+        if (var->name == NULL)
+                return false;
+
+        fprintf(output,
+                "TexlerObject * %s = "
+                "(TexlerObject *)calloc(1, sizeof(TexlerObject));",
+                var->name);
+
+        generate_allocation_error_msg(output, var->name);
+
+        switch (var->type) {
+        case NUMBER_TYPE:
+                fprintf(output, "%s->type = TYPE_T_REAL;", var->name);
+                fprintf(output, "%s->value.real = %f;", var->name,
+                        var->value.number);
+                break;
+        case BOOL_TYPE:
+                fprintf(output, "%s->type = TYPE_T_BOOLEAN;", var->name);
+                fprintf(output, "%s->value.boolean = %d;", var->name,
+                        var->value.boolean);
+                break;
+        case STRING_TYPE:
+                fprintf(output, "%s->type = TYPE_T_BOOLEAN;", var->name);
+                fprintf(output, "%s->value.string = %s;", var->name,
+                        var->value.string);
+                fprintf(output, "%s->value.length = %ld;", var->name,
+                        strlen(var->value.string));
+                break;
+        case CONSTANT_TYPE:
+                switch (var->value.expr->var->type) {
+                case NUMBER_TYPE:
+                        fprintf(output, "%s->type = TYPE_T_REAL;", var->name);
+                        fprintf(output, "%s->value.real = %f;", var->name,
+                                var->value.expr->var->value.number);
+                        break;
+                case BOOL_TYPE:
+                        fprintf(output, "%s->type = TYPE_T_BOOLEAN;",
+                                var->name);
+                        fprintf(output, "%s->value.boolean = %d;", var->name,
+                                var->value.expr->var->value.boolean);
+                        break;
+                case STRING_TYPE:
+                        fprintf(output, "%s->type = TYPE_T_BOOLEAN;",
+                                var->name);
+                        fprintf(output, "%s->value.string = %s;", var->name,
+                                var->value.expr->var->value.string);
+                        fprintf(output, "%s->value.length = %ld;", var->name,
+                                strlen(var->value.expr->var->value.string));
+                        break;
+                }
+                break;
+        default:
+                LogDebug("Got variable type: %d\n"
+                         "\tFunction:",
+                         var->type, __func__);
+        }
+
+        push_free_function_call(frees_stack, var->name, "free_texlerobject");
+
+        return true;
+}
+
+static bool generate_variable_assignment(FILE *const output, variable *var,
+                                         node_expression *expr)
+{
+        if (output == NULL || var == NULL || expr == NULL)
+                return false;
+
+        switch (expr->type) {
+        case EXPRESSION_GRAMMAR_CONSTANT_TYPE: // ie: True -> ID.
+                if (!generate_variable_assignment_to_constant(output, var,
+                                                              expr->var)) {
+                        return false;
+                }
+                break;
+        case VARIABLE_TYPE: // ID -> ID.
+                if (!generate_variable_assignment_to_variable(output, var,
+                                                              expr->var)) {
+                        return false;
+                }
+                break;
+        default:
+                break;
+        }
+
+        return true;
+}
+
+static bool generate_variable_assignment_to_variable(FILE *const output,
+                                                     variable *dest,
+                                                     variable *source)
+{
+        if (output == NULL || dest == NULL || source == NULL)
+                return false;
+
+        if (dest->name == NULL || source->name == NULL)
+                return false;
+
+        fprintf(output, "memcpy(%s, %s, sizeof(TexlerObject));", dest->name,
+                source->name);
+
+        return true;
+}
+
+static bool generate_variable_assignment_to_constant(FILE *const output,
+                                                     variable *dest,
+                                                     variable *source)
+{
+        if (output == NULL || dest == NULL || source == NULL)
+                return false;
+
+        if (dest->name == NULL)
+                return false;
+
+        fprintf(output, "%s->value", dest->name);
+        switch (source->type) {
+        case NUMBER_TYPE:
+                fprintf(output, ".real = %f;", source->value.number);
+                fprintf(output, "%s->type = TYPE_T_REAL;", dest->name);
+                break;
+        case BOOL_TYPE:
+                fprintf(output, ".boolean = %d;", source->value.boolean);
+                fprintf(output, "%s->type = TYPE_T_BOOLEAN;", dest->name);
+                break;
+        case STRING_TYPE:
+                fprintf(output, ".string = %s;", source->value.string);
+                fprintf(output, ".length = %ld;", strlen(source->value.string));
+                fprintf(output, "%s->type = TYPE_T_STRING;", dest->name);
+                break;
+        default:
+                LogDebug("Got variable of type: %d\n"
+                         "\tFunction:",
+                         source->type, __func__);
+                return false;
+                break;
+        }
+
+        return true;
+}
+
 static bool generate_return(FILE *const output, const variable *var)
 {
         if (var == NULL) {
@@ -280,17 +504,6 @@ static bool generate_return(FILE *const output, const variable *var)
 //  {
 //          return;
 //  }
-//
-//  void generate_expression_list(node_expression_list *expression_list)
-//  {
-//          node_expression *prev;
-//          while (expression_list != NULL) {
-//                  generate_expression(expression_list->expr);
-//                  prev = expression_list;
-//                  expression_list = expression_list->next;
-//          }
-//  }
-//
 //
 //
 //  void generate_type_code(token_t type)

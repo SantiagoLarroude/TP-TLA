@@ -98,6 +98,7 @@ add_executable(${PROJECT_NAME}
         backend/generator/code-generator.c
         backend/generator/internal_functions.c
         backend/generator/standard_functions.c
+        backend/generator/free_function_call.c
 )
 
 target_link_libraries(${PROJECT_NAME})
