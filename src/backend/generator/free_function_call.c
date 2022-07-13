@@ -94,3 +94,38 @@ free_function_call *pop_free_function_call(free_function_call_array **ffca)
 
         return to_return;
 }
+
+char *generate_complete_free_function_call_array(
+        free_function_call_array *frees_stack)
+{
+        if (frees_stack == NULL)
+                return NULL;
+
+        char *to_return = NULL;
+        for (size_t i = 0; i < frees_stack->size; i++) {
+                if (frees_stack->data[i]->name != NULL &&
+                    frees_stack->data[i]->fun != NULL) {
+                        // 4 = '(' + ')' + ';' + '\0'
+                        size_t new_len = strlen(frees_stack->data[i]->fun) +
+                                         strlen(frees_stack->data[i]->name) +
+                                         4;
+                        if (to_return != NULL)
+                                new_len += strlen(to_return);
+
+                        to_return = (char *)realloc(to_return,
+                                                    sizeof(char) * new_len);
+                        if (to_return == NULL) {
+                                perror("Aborting due to");
+                                exit(1);
+                        }
+
+                        strncat(to_return, frees_stack->data[i]->fun, new_len);
+                        strncat(to_return, "(", new_len);
+                        strncat(to_return, frees_stack->data[i]->name,
+                                new_len);
+                        strncat(to_return, ");", new_len);
+                }
+        }
+
+        return to_return;
+}

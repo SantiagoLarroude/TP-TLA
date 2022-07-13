@@ -44,3 +44,10 @@ void error_in_function(const char *name)
 {
         LogError("Error in function: %s", name);
 }
+
+void error_invalid_file_variable_name(const char *name)
+{
+        LogError("'%s' is not a valid name for a variable of type File.\n"
+                 "Valid names start with 'input' or 'output'.",
+                 name);
+}

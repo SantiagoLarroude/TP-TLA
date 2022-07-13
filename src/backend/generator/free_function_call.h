@@ -19,6 +19,9 @@ bool push_free_function_call(free_function_call_array *ffca, const char *name,
                              const char *function);
 free_function_call *pop_free_function_call(free_function_call_array **ffca);
 
+char *generate_complete_free_function_call_array(
+        free_function_call_array *frees_stack);
+
 void free_struct_free_function_call(free_function_call **ffc);
 void free_struct_free_function_call_array(free_function_call_array **ffca);
 

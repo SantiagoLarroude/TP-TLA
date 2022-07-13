@@ -39,6 +39,8 @@ static bool generate_variable_assignment_to_variable(FILE *const output,
 static bool generate_variable_assignment_to_constant(FILE *const output,
                                                      variable *dest,
                                                      variable *source);
+static bool generate_variable_file(FILE *const output, variable *var,
+                                   free_function_call_array *frees_stack);
 
 // void generate_type_code(token_t type);
 // void generate_declaration(node_expression *declaration);
@@ -312,14 +314,15 @@ static bool generate_expressions_list(FILE *const output,
 
         while (expressions != NULL && expressions->expr != NULL) {
                 switch (expressions->expr->type) {
-                case EXPRESSION_VARIABLE_DECLARATION:
-                        generate_variable(output, expressions->expr->var,
-                                          frees_stack);
-                        break;
                 case EXPRESSION_VARIABLE_ASSIGNMENT:
                         generate_variable_assignment(output,
                                                      expressions->expr->var,
                                                      expressions->expr->expr);
+                        break;
+                case EXPRESSION_VARIABLE_DECLARATION: /* Fallsthrough */
+                case EXPRESSION_FILE_DECLARATION:
+                        generate_variable(output, expressions->expr->var,
+                                          frees_stack);
                         break;
                 default:
                         LogDebug("Got expression of type: %d\n"
@@ -359,6 +362,8 @@ static bool generate_variable(FILE *const output, variable *var,
                 var->name);
 
         generate_allocation_error_msg(output, var->name);
+
+        push_free_function_call(frees_stack, var->name, "free_texlerobject");
 
         switch (var->type) {
         case NUMBER_TYPE:
@@ -401,13 +406,67 @@ static bool generate_variable(FILE *const output, variable *var,
                         break;
                 }
                 break;
+        case FILE_PATH_TYPE:
+                generate_variable_file(output, var, frees_stack);
         default:
                 LogDebug("Got variable type: %d\n"
                          "\tFunction:",
                          var->type, __func__);
         }
 
-        push_free_function_call(frees_stack, var->name, "free_texlerobject");
+        return true;
+}
+
+static bool generate_variable_file(FILE *const output, variable *var,
+                                   free_function_call_array *frees_stack)
+{
+        if (output == NULL || var == NULL || frees_stack == NULL)
+                return false;
+
+        char *frees_string =
+                generate_complete_free_function_call_array(frees_stack);
+
+        if (strstr(var->name, "input") == var->name) {
+                fprintf(output,
+                        "if (open_file(%s, \"r\", %s) == false)"
+                        "{",
+                        var->value.string, var->name);
+
+                if (frees_string != NULL)
+                        fprintf(output, "%s", frees_string);
+
+                fprintf(output, "return;"
+                                "}");
+
+        } else if (strstr(var->name, "output") == var->name) {
+                if (strlen(var->value.string) == 0) // Filename: ""
+                {
+                        fprintf(output, "%s->type = TYPE_T_FILEPTR;",
+                                var->name);
+                        fprintf(output, "%s->value.file.stream = tmpfile();",
+                                var->name);
+                        generate_allocation_error_msg(output, var->name);
+                } else if (strcmp(var->value.string, "STDOUT") == 0) {
+                        fprintf(output, "%s->type = TYPE_T_FILEPTR;",
+                                var->name);
+                        fprintf(output, "%s->value.file.stream = stdout;",
+                                var->name);
+                } else {
+                        fprintf(output,
+                                "if (open_file(\"%s\", \"w+\", %s) == false)"
+                                "{"
+                                "%s;"
+                                "return;"
+                                "}",
+                                var->value.string, var->name, frees_string);
+                }
+        } else {
+                error_invalid_file_variable_name(var->name);
+                return false;
+        }
+
+        if (frees_string != NULL)
+                free(frees_string);
 
         return true;
 }
@@ -448,8 +507,18 @@ static bool generate_variable_assignment_to_variable(FILE *const output,
         if (dest->name == NULL || source->name == NULL)
                 return false;
 
-        fprintf(output, "memcpy(%s, %s, sizeof(TexlerObject));", dest->name,
-                source->name);
+        if (dest->type == FILE_PATH_TYPE && source->type == FILE_PATH_TYPE) {
+                fprintf(output,
+                        "copy_file_content("
+                        "%s->value.file.stream"
+                        ","
+                        "%s->value.file.stream"
+                        ");",
+                        source->name, dest->name);
+        } else {
+                fprintf(output, "memcpy(%s, %s, sizeof(TexlerObject));",
+                        dest->name, source->name);
+        }
 
         return true;
 }
