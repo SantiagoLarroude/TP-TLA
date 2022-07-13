@@ -1,8 +1,11 @@
 # R3.0 Expresiones básicas
 function r30()
     let abc be True.
+    let def be True.
 
     False -> abc.
+
+    def -> abc.
 
     return.
 end
