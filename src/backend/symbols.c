@@ -95,7 +95,7 @@ bool is_dangling(variable *var)
         LogDebug("%s(%p)", __func__, var);
 
         if (var == NULL)
-            return false;
+                return false;
 
         if (lookup_variable_in_scope(var->name, SCOPE_DANGLING) == NULL)
                 return false;
@@ -150,7 +150,8 @@ int insert_variable(variable *var)
 
         if ((table_size * 1.0) / (num_blocks * BLOCKSIZE) >= THRESHOLD) {
                 num_blocks++;
-                table = realloc(table, sizeof(node *) * num_blocks * BLOCKSIZE);
+                table = realloc(table,
+                                sizeof(node *) * num_blocks * BLOCKSIZE);
                 memset(table + table_size, 0,
                        (num_blocks * BLOCKSIZE - table_size) * sizeof(node *));
         }

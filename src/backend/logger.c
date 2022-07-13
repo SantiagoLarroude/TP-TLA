@@ -7,16 +7,15 @@
  * Implementación de "logger.h".
  */
 
-void
-Log(FILE* const stream, const char* prefix, const char* const format,
-    const char* suffix, va_list arguments)
+void Log(FILE *const stream, const char *prefix, const char *const format,
+         const char *suffix, va_list arguments)
 {
         fprintf(stream, "%s", prefix);
         vfprintf(stream, format, arguments);
         fprintf(stream, "%s", suffix);
 }
 
-void LogDebug(const char* const format, ...)
+void LogDebug(const char *const format, ...)
 {
 #ifdef DEBUG
         va_list arguments;
@@ -26,7 +25,7 @@ void LogDebug(const char* const format, ...)
 #endif
 }
 
-void LogError(const char* const format, ...)
+void LogError(const char *const format, ...)
 {
         va_list arguments;
         va_start(arguments, format);
@@ -34,7 +33,7 @@ void LogError(const char* const format, ...)
         va_end(arguments);
 }
 
-void LogErrorRaw(const char* const format, ...)
+void LogErrorRaw(const char *const format, ...)
 {
         va_list arguments;
         va_start(arguments, format);
@@ -42,7 +41,7 @@ void LogErrorRaw(const char* const format, ...)
         va_end(arguments);
 }
 
-void LogInfo(const char* const format, ...)
+void LogInfo(const char *const format, ...)
 {
         va_list arguments;
         va_start(arguments, format);

@@ -79,7 +79,8 @@ void free_texlerobject(TexlerObject *tex_obj)
                                             [tex_obj->value.file.n_files - 1] !=
                                     NULL) {
                                         free(tex_obj->value.file.path_list
-                                                     [tex_obj->value.file.n_files -
+                                                     [tex_obj->value.file
+                                                              .n_files -
                                                       1]);
                                 }
 
@@ -187,8 +188,8 @@ long get_list_of_files_in_dir(char ***files, const char *path)
                                         files_list,
                                         count_files * sizeof(char *));
                                 files_list[count_files - 1] = (char *)calloc(
-                                        strlen(path) + 1 + strlen(dir->d_name) +
-                                                1,
+                                        strlen(path) + 1 +
+                                                strlen(dir->d_name) + 1,
                                         sizeof(char));
                                 sprintf(files_list[count_files - 1], "%s/%s",
                                         path, dir->d_name);
@@ -576,8 +577,8 @@ void r34(void)
                                 if (isnum == IS_NUMBER_RETURN_FLOATING) {
                                         double n = atof(column);
                                         n *= 2;
-                                        fprintf(output->value.file.stream, "%f",
-                                                n);
+                                        fprintf(output->value.file.stream,
+                                                "%f", n);
                                 } else if (isnum == IS_NUMBER_RETURN_INTEGER) {
                                         long n = atol(column);
                                         n *= 2;
@@ -659,10 +660,13 @@ void r35(void)
                 return;
         }
 
-        copy_file_content(input1->value.file.stream, output->value.file.stream);
-        copy_file_content(input2->value.file.stream, output->value.file.stream);
+        copy_file_content(input1->value.file.stream,
+                          output->value.file.stream);
+        copy_file_content(input2->value.file.stream,
+                          output->value.file.stream);
 
-        copy_file_content(input3->value.file.stream, output->value.file.stream);
+        copy_file_content(input3->value.file.stream,
+                          output->value.file.stream);
 
         free_texlerobject(input1);
         free_texlerobject(input2);
@@ -839,7 +843,8 @@ void r38(void)
                         accumulator->value.string = (char *)realloc(
                                 accumulator->value.string,
                                 sizeof(char) *
-                                        (1 + strlen(accumulator->value.string) +
+                                        (1 +
+                                         strlen(accumulator->value.string) +
                                          strlen(line)));
                         strcat(accumulator->value.string, line);
                 } else {
@@ -858,8 +863,9 @@ void r38(void)
                         else
                                 line_len = 1;
 
-                        line = (char *)realloc(line, (line_len + strlen(", ")) *
-                                                             sizeof(char));
+                        line = (char *)realloc(line,
+                                               (line_len + strlen(", ")) *
+                                                       sizeof(char));
                         strcat(line, ", ");
 
                         line_len = 1 + strlen(line);
@@ -867,7 +873,8 @@ void r38(void)
                         accumulator->value.string = (char *)realloc(
                                 accumulator->value.string,
                                 sizeof(char) *
-                                        (1 + strlen(accumulator->value.string) +
+                                        (1 +
+                                         strlen(accumulator->value.string) +
                                          strlen(line)));
 
                         strcat(accumulator->value.string, line);
@@ -944,23 +951,24 @@ void r39(void)
                                 if (isnum == IS_NUMBER_RETURN_FLOATING) {
                                         double n = atof(column);
                                         n *= 2.5;
-                                        fprintf(output->value.file.stream, "%f",
-                                                n);
+                                        fprintf(output->value.file.stream,
+                                                "%f", n);
                                 } else if (isnum == IS_NUMBER_RETURN_INTEGER) {
                                         double n = atof(column);
                                         n *= 2.5;
-                                        fprintf(output->value.file.stream, "%f",
-                                                n);
+                                        fprintf(output->value.file.stream,
+                                                "%f", n);
                                 } else {
                                         if (column[col_len - 2] != '\n') {
                                                 fprintf(output->value.file
                                                                 .stream,
                                                         "%s%s", column, " :)");
                                         } else {
-                                                for (int i = 0; i < col_len - 2;
-                                                     i++) {
+                                                for (int i = 0;
+                                                     i < col_len - 2; i++) {
                                                         fputc(column[i],
-                                                              output->value.file
+                                                              output->value
+                                                                      .file
                                                                       .stream);
                                                 }
                                                 fprintf(output->value.file

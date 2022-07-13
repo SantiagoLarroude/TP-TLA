@@ -24,7 +24,8 @@ void generate_standard_functions_headers(FILE *const output)
                         "N_IS_NUMBER_RETURN"
                         "} IS_NUMBER_RETURN;\n");
 
-        fprintf(output, "IS_NUMBER_RETURN is_number(char *str, long int n);\n");
+        fprintf(output,
+                "IS_NUMBER_RETURN is_number(char *str, long int n);\n");
         fprintf(output,
                 "long int line_length(FILE *stream, const fpos_t *pos);\n");
         fprintf(output,

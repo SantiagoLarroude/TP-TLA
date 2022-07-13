@@ -113,8 +113,8 @@ node_expression_list *grammar_new_expression_list(const node_expression *expr)
 {
         LogDebug("%s(%p)\n", __func__, expr);
 
-        node_expression_list *list =
-                (node_expression_list *)calloc(1, sizeof(node_expression_list));
+        node_expression_list *list = (node_expression_list *)calloc(
+                1, sizeof(node_expression_list));
         if (list == NULL) {
                 error_no_memory();
                 exit(1);
@@ -131,8 +131,8 @@ node_expression_list *grammar_concat_expressions(node_expression_list *list,
 {
         LogDebug("%s(%p, %p)\n", __func__, list, expr);
 
-        node_expression_list *new_list_node =
-                (node_expression_list *)calloc(1, sizeof(node_expression_list));
+        node_expression_list *new_list_node = (node_expression_list *)calloc(
+                1, sizeof(node_expression_list));
 
         if (new_list_node == NULL) {
                 error_no_memory();
@@ -217,8 +217,8 @@ node_function_call *grammar_function_call(const char *fun_id,
         return node;
 }
 
-node_function_call *grammar_function_call_from_id(const char *id,
-                                                  const node_function_call *fun)
+node_function_call *
+grammar_function_call_from_id(const char *id, const node_function_call *fun)
 {
         LogDebug("%s(%p, %p)\n", __func__, id, fun);
 
@@ -281,7 +281,8 @@ node_expression *grammar_new_declaration_file_node(const char *fpath,
 }
 
 node_expression *
-grammar_new_declaration_stdout_node(const char *id, const node_list *separators)
+grammar_new_declaration_stdout_node(const char *id,
+                                    const node_list *separators)
 {
         LogDebug("%s(%p, %p)\n", __func__, id, separators);
 
@@ -778,8 +779,9 @@ grammar_expression_cmp_greater_equal(const node_expression *lvalue,
         return node;
 }
 
-node_expression *grammar_expression_cmp_less_than(const node_expression *lvalue,
-                                                  const node_expression *rvalue)
+node_expression *
+grammar_expression_cmp_less_than(const node_expression *lvalue,
+                                 const node_expression *rvalue)
 {
         LogDebug("%s(%p, %p)\n", __func__, lvalue, rvalue);
 

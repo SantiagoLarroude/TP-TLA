@@ -272,7 +272,8 @@ static bool generate_function(FILE *const output, node_function *function)
 
 static bool generate_args(FILE *const output, node_list *args)
 {
-        if (args == NULL || args->type != LIST_ARGS_TYPE || args->exprs == NULL)
+        if (args == NULL || args->type != LIST_ARGS_TYPE ||
+            args->exprs == NULL)
                 return false;
 
         for (size_t i = 0; i < args->len; i++) {
@@ -475,7 +476,8 @@ static bool generate_variable_assignment_to_constant(FILE *const output,
                 break;
         case STRING_TYPE:
                 fprintf(output, ".string = %s;", source->value.string);
-                fprintf(output, ".length = %ld;", strlen(source->value.string));
+                fprintf(output, ".length = %ld;",
+                        strlen(source->value.string));
                 fprintf(output, "%s->type = TYPE_T_STRING;", dest->name);
                 break;
         default:
