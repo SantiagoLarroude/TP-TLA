@@ -39,7 +39,7 @@ typedef enum NODE_T {
         LOOP_VARIABLE_TYPE,
         VARIABLE_TYPE,
         FUNCTION_TYPE,
-        EXPRESSION_TYPE,
+        CONSTANT_TYPE,
         LIST_ARGS_TYPE,
         LIST_EXPRESSION_TYPE,
         LIST_RANGE_TYPE,
@@ -140,7 +140,7 @@ struct node_function_call {
 };
 
 struct node_expression_list {
-        struct node_expression_list *next;
+        node_expression_list *next;
         node_expression *expr;
 };
 

@@ -176,16 +176,6 @@ grammar_expression_from_filehandler(const node_file_block *fhandler)
         return node;
 }
 
-node_expression *
-grammar_expression_from_assignment(const node_expression *assignment)
-{
-        LogDebug("%s(%p)\n", __func__, assignment);
-
-        return NULL;
-
-        // return (node_expression*) assignment;
-}
-
 node_function_call *
 grammar_concat_function_call(node_function_call *fun_list,
                              const node_function_call *fun_append)
@@ -329,7 +319,7 @@ node_expression *grammar_new_variable(const char *id,
         variable *id_var = create_variable();
 
         id_var->name = strdup(id);
-        id_var->type = EXPRESSION_TYPE;
+        id_var->type = CONSTANT_TYPE;
 
         id_var->value.expr = (node_expression *)expr;
 
@@ -443,7 +433,7 @@ node_list *grammar_concat_list_expr(node_list *list,
                 exit(1);
         }
 
-        tmp_arr[list->len++] = (node_expression*) expr;
+        tmp_arr[list->len++] = (node_expression *)expr;
 
         list->exprs = tmp_arr;
 
@@ -894,20 +884,7 @@ node_expression *grammar_new_assignment_from_id(const char *from,
 {
         LogDebug("%s(%s, %s)\n", __func__, from, to);
 
-        variable *var =
-                lookup_variable_create_dangling(from); /* lookup_variable(from);
-        if (var == NULL) {
-                // Store as dangling variable
-                var = create_variable();
-
-                var->type = UNKNOWN_TYPE;
-                var->name = strdup(from);
-
-                if (insert_dangling_variable(var) < SUCCESS) {
-                        error_multiple_declaration(from);
-                        exit(1);
-                }
-        } */
+        variable *var = lookup_variable_create_dangling(from);
 
         node_expression *node = create_node_expression();
 

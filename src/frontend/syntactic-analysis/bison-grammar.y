@@ -215,7 +215,7 @@ file_handle :   WITH ID COLON expressions TEOL {
                 }
             ;
 
-var_decl    :   LET ID BE expression TEOL {
+var_decl    :   LET ID BE constant TEOL {
                     $$ = grammar_new_variable($2, $4);
                 }
             ;
