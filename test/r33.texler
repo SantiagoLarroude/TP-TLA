@@ -1,8 +1,8 @@
 # R3.3 [Aceptar] Un programa que filtre ciertas líneas de un archivo según un
 # predicado.
 function r33()
-    File "path" as input.
-    File "new" as output.
+    File "test_file_cases.txt" as input.
+    File "new_r33.txt" as output.
 
     with input: for line in lines().filter("palabra") do
                     line -> output.

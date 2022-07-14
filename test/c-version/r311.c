@@ -447,7 +447,7 @@ TexlerObject *r32(void)
 
         long int line_len = BUFFER_SIZE;
         char *line = (char *)calloc(line_len, sizeof(char));
-        if (output == NULL) {
+        if (line == NULL) {
                 perror("Aborting due to");
                 exit(1);
         }

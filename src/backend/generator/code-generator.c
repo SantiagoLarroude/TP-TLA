@@ -519,7 +519,7 @@ static bool generate_variable_file(FILE *const output, variable *var,
                                 var->name);
                 } else {
                         fprintf(output,
-                                "if (open_file(\"%s\", \"w+\", %s) == false)"
+                                "if (open_file(%s, \"w+\", %s) == false)"
                                 "{"
                                 "%s;"
                                 "return;"
@@ -705,6 +705,31 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                 concat_functions++;
         }
 
+        // while (concat_functions > 0) {
+        //         if (concat_functions >= 2 &&
+        //                 strcmp(fn_calls->id->name, "lines") == 0) {
+        //                 fprintf(output, "long _line_len_implementation"
+        //                                 "="
+        //                                 "BUFFER_SIZE;");
+        //                 fprintf(output,
+        //                         "char * %s = "
+        //                         "(char *)"
+        //                         "calloc("
+        //                         "_line_len_implementation,"
+        //                         "sizeof(char)"
+        //                         ");",
+        //                         loop->var->name);
+        //                 generate_allocation_error_msg(output, loop->var->name);
+        //                 fprintf(output,
+        //                         "_line_len_implementation = "
+        //                         "lines(%s, &%s);",
+        //                         working_filename, loop->var->name);
+        //         }else if (concat_functions == 1 && 0 == strcmp()) {}
+
+        //         fn_calls = fn_calls->prev;
+        //         concat_functions--;
+        // }
+
         while (concat_functions > 0) {
                 if (strcmp(fn_calls->id->name, "lines") == 0) {
                         fprintf(output, "long _line_len_implementation"
@@ -719,13 +744,18 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                 ");",
                                 loop->var->name);
                         generate_allocation_error_msg(output, loop->var->name);
-                        fprintf(output,
-                                "_line_len_implementation = "
-                                "lines(%s, &%s);",
-                                working_filename, loop->var->name);
+                        // fprintf(output,
+                        //         "_line_len_implementation = "
+                        //         "lines(%s, &%s);",
+                        //         working_filename, loop->var->name);
 
                         if (fn_calls->next != NULL &&
                             strcmp(fn_calls->next->id->name, "byIndex") == 0) {
+                                fprintf(output,
+                                        "_line_len_implementation = "
+                                        "lines(%s, &%s);",
+                                        working_filename, loop->var->name);
+
                                 fprintf(output,
                                         "if ("
                                         "_line_len_implementation <= 0"
@@ -736,6 +766,32 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                         "break;"
                                         "}",
                                         loop->var->name);
+                        }
+
+                        if (fn_calls->next != NULL &&
+                            fn_calls->next->args != NULL &&
+                            strcmp(fn_calls->next->id->name, "filter") == 0) {
+                                fprintf(output,
+                                        "rewind(%s->"
+                                        "value.file.stream);"
+                                        "while (_line_len_implementation > 0)"
+                                        "{",
+                                        working_filename);
+                                fprintf(output,
+                                        "_line_len_implementation = "
+                                        "lines(%s, &%s);",
+                                        working_filename, loop->var->name);
+
+                                closing_braces++;
+
+                                fprintf(output, "if (is_in_string(%s, %s)) {",
+                                        fn_calls->next->args->exprs[0]
+                                                ->var->value
+                                                .string, // "palabra"
+                                        loop->var->name
+
+                                );
+                                closing_braces++;
                         }
                 } else if (strcmp(fn_calls->id->name, "columns") == 0) {
                         //
@@ -753,7 +809,13 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
 
                         closing_braces++;
                 } else if (strcmp(fn_calls->id->name, "filter") == 0) {
-                        //
+                        // fprintf(output,
+                        //         "// rewind(el nombre de input flechita "
+                        //         "value.file.stream);\n"
+                        //         "while (_line_len_implementation > 0)"
+                        //         "{");
+
+                        // closing_braces++;
                 } else {
                         LogError("Not implemented for function: %s\n"
                                  "\tFunction: %s",
