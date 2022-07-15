@@ -520,11 +520,14 @@ static bool generate_variable_file(FILE *const output, variable *var,
                 } else {
                         fprintf(output,
                                 "if (open_file(%s, \"w+\", %s) == false)"
-                                "{"
-                                "%s;"
-                                "return;"
-                                "}",
-                                var->value.string, var->name, frees_string);
+                                "{",
+                                var->value.string, var->name);
+
+                        if (frees_string != NULL)
+                                fprintf(output, "%s", frees_string);
+
+                        fprintf(output, "return;"
+                                        "}");
                 }
         } else {
                 error_invalid_file_variable_name(var->name);

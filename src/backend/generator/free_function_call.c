@@ -101,8 +101,10 @@ char *generate_complete_free_function_call_array(
         if (frees_stack == NULL)
                 return NULL;
 
+        /* Chain from last to first */
         char *to_return = NULL;
-        for (size_t i = 0; i < frees_stack->size; i++) {
+        for (long i = frees_stack->size - 1; i >= 0; i--) {
+                char *tmp = NULL;
                 if (frees_stack->data[i]->name != NULL &&
                     frees_stack->data[i]->fun != NULL) {
                         // 4 = '(' + ')' + ';' + '\0'
@@ -112,18 +114,24 @@ char *generate_complete_free_function_call_array(
                         if (to_return != NULL)
                                 new_len += strlen(to_return);
 
-                        to_return = (char *)realloc(to_return,
-                                                    sizeof(char) * new_len);
-                        if (to_return == NULL) {
+                        tmp = (char *)calloc(new_len, sizeof(char));
+                        if (tmp == NULL) {
                                 perror("Aborting due to");
                                 exit(1);
                         }
 
-                        strncat(to_return, frees_stack->data[i]->fun, new_len);
-                        strncat(to_return, "(", new_len);
-                        strncat(to_return, frees_stack->data[i]->name,
-                                new_len);
-                        strncat(to_return, ");", new_len);
+                        if (to_return != NULL)
+                                strncpy(tmp, to_return, new_len);
+
+                        strncat(tmp, frees_stack->data[i]->fun, new_len);
+                        strncat(tmp, "(", new_len);
+                        strncat(tmp, frees_stack->data[i]->name, new_len);
+                        strncat(tmp, ");", new_len);
+
+                        if (to_return != NULL)
+                                free(to_return);
+
+                        to_return = tmp;
                 }
         }
 
