@@ -2,7 +2,7 @@
 # mismo.
 function r32()
     File "test_file_cases.txt" as input.
-    File "new_r32.txt" as output.
+    File "" as output.
 
     # Líneas 1, 2 y 3 (el rango es inclusivo)
     with input: for line in lines().byIndex([1..3]) do
