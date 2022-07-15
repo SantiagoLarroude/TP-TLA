@@ -458,6 +458,7 @@ static bool generate_variable(FILE *const output, variable *var,
                 break;
         case FILE_PATH_TYPE:
                 generate_variable_file(output, var, frees_stack);
+                break;
         default:
                 LogDebug("Got variable type: %d\n"
                          "\tFunction:",
