@@ -2,7 +2,7 @@
 # los archivos de una carpeta.
 function r310()
     File "folder_path/" with [","] as input.
-    File "new" as output.
+    File "new_r310.txt" as output.
 
     with input: for line in lines() do
                     line.filter("ERROR") -> output.

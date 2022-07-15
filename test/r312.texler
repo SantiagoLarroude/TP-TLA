@@ -2,7 +2,7 @@
 # que no existe en un CSV.
 function r311()
     File "path.csv" with [","] as input.
-    File "new" as output.
+    File "new_r312.txt" as output.
 
     let tmp be "".
 

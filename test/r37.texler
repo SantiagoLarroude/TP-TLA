@@ -2,7 +2,7 @@
 # en líneas individuales.
 function r37()
     File "path.csv" with [",", "\t"] as input.
-    File "new" with ["\n"] as output.
+    File "new_r37.txt" with ["\n"] as output.
 
     input -> output.
 

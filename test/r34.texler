@@ -1,8 +1,8 @@
 # R3.4 [Aceptar] Un programa que aplique una función aritmética sobre cierto 
 # campo del archivo de entrada.
 function r34()
-    File "path" as input.
-    File "new" as output.
+    File "test_file_cases.txt" as input.
+    File "new_r34.txt" as output.
 
     with input: for line in lines().byIndex(1) do
                     for column in line.columns() do

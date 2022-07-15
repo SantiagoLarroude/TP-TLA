@@ -3,7 +3,7 @@ function r35()
     File "path1" as input1.
     File "path2" as input2.
     File "path3" as input3.
-    File "new" as output.
+    File "new_r35.txt" as output.
 
     input1 ++ input2 -> output.
     output ++ input3 -> output.

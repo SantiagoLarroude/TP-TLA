@@ -1,8 +1,8 @@
 # R3.8 [Aceptar] Un programa que agrupe 5 líneas de entrada en 1 de salida
 # separada por comas.
 function r38()
-    File "path" as input.
-    File "new" as output.
+    File "test_file_cases.txt" as input.
+    File "new_r38.txt" as output.
 
     let accumulator be "".
 

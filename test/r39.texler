@@ -1,8 +1,8 @@
 # R3.9 [Aceptar] Un programa que aplique una transformación diferente sobre
 # cada columna de entrada.
 function r39()
-    File "path" with [","] as input.
-    File "new" as output.
+    File "test_file_cases.txt" with [","] as input.
+    File "new_r39.txt" as output.
 
     with input: for col in columns() do
                     if col is Number then
