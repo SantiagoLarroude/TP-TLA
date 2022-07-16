@@ -47,6 +47,8 @@ struct TexlerObject {
                         FILE *stream;
                         fpos_t pos;
 
+                        char *separators;
+
                         char **path_list;
                         union {
                                 size_t n_line;
@@ -88,6 +90,10 @@ void free_texlerobject(TexlerObject *tex_obj)
                         }
                         free(tex_obj->value.file.path_list);
                 }
+                if (tex_obj->value.file.separators != NULL &&
+                    tex_obj->value.file.separators != DEFAULT_SEPARATORS) {
+                        free(tex_obj->value.file.separators);
+                }
                 break;
         case TYPE_T_STRING:
                 if (tex_obj->value.string != NULL) {
@@ -106,7 +112,8 @@ void free_texlerobject(TexlerObject *tex_obj)
         free(tex_obj);
 }
 
-bool open_file(const char *name, const char *mode, TexlerObject *tex_obj)
+bool open_file(const char *name, const char *mode, TexlerObject *tex_obj,
+               const char *separators)
 {
         if (name == NULL || mode == NULL || tex_obj == NULL)
                 return false;
@@ -140,6 +147,11 @@ bool open_file(const char *name, const char *mode, TexlerObject *tex_obj)
                 return false;
         }
         tex_obj->value.file.n_line = 1;
+        if (separators == NULL) {
+                tex_obj->value.file.separators = strdup(DEFAULT_SEPARATORS);
+        } else {
+                tex_obj->value.file.separators = strdup(separators);
+        }
 
         return true;
 }
@@ -451,7 +463,7 @@ void r31(void)
                 exit(1);
         }
 
-        if (open_file("path.txt", "r", input) == false) {
+        if (open_file("path.txt", "r", input, NULL) == false) {
                 free_texlerobject(input);
                 return;
         }
@@ -479,7 +491,7 @@ TexlerObject *r32(void)
                 exit(1);
         }
 
-        if (open_file("path.txt", "r", input) == false) {
+        if (open_file("path.txt", "r", input, NULL) == false) {
                 free_texlerobject(input);
                 return NULL;
         }
@@ -527,7 +539,7 @@ void r33(void)
                 exit(1);
         }
 
-        if (open_file("path.txt", "r", input) == false) {
+        if (open_file("path.txt", "r", input, NULL) == false) {
                 free_texlerobject(input);
                 return;
         }
@@ -539,7 +551,7 @@ void r33(void)
                 exit(1);
         }
 
-        if (open_file("new_r33.txt", "w+", output) == false) {
+        if (open_file("new_r33.txt", "w+", output, NULL) == false) {
                 free_texlerobject(input);
                 free_texlerobject(output);
                 return;
@@ -576,7 +588,7 @@ void r34(void)
                 exit(1);
         }
 
-        if (open_file("path_columns.txt", "r", input) == false) {
+        if (open_file("path_columns.txt", "r", input, NULL) == false) {
                 free_texlerobject(input);
                 return;
         }
@@ -588,7 +600,7 @@ void r34(void)
                 exit(1);
         }
 
-        if (open_file("new_r34.txt", "w+", output) == false) {
+        if (open_file("new_r34.txt", "w+", output, NULL) == false) {
                 free_texlerobject(input);
                 free_texlerobject(output);
                 return;
@@ -658,7 +670,7 @@ void r35(void)
                 exit(1);
         }
 
-        if (open_file("path1.txt", "r", input1) == false) {
+        if (open_file("path1.txt", "r", input1, NULL) == false) {
                 free_texlerobject(input1);
                 return;
         }
@@ -670,7 +682,7 @@ void r35(void)
                 exit(1);
         }
 
-        if (open_file("path2.txt", "r", input2) == false) {
+        if (open_file("path2.txt", "r", input2, NULL) == false) {
                 free_texlerobject(input1);
                 free_texlerobject(input2);
                 return;
@@ -683,7 +695,7 @@ void r35(void)
                 exit(1);
         }
 
-        if (open_file("path3.txt", "r", input3) == false) {
+        if (open_file("path3.txt", "r", input3, NULL) == false) {
                 free_texlerobject(input1);
                 free_texlerobject(input2);
                 free_texlerobject(input3);
@@ -699,7 +711,7 @@ void r35(void)
                 exit(1);
         }
 
-        if (open_file("new_r35.txt", "w+", output) == false) {
+        if (open_file("new_r35.txt", "w+", output, NULL) == false) {
                 free_texlerobject(input1);
                 free_texlerobject(input2);
                 free_texlerobject(input3);
@@ -729,7 +741,7 @@ void r36(int n)
                 exit(1);
         }
 
-        if (open_file("path_r36.txt", "r", input) == false) {
+        if (open_file("path_r36.txt", "r", input, NULL) == false) {
                 free_texlerobject(input);
                 return;
         }
@@ -741,7 +753,7 @@ void r36(int n)
                 exit(1);
         }
 
-        if (open_file("new_r36.txt", "w+", output) == false) {
+        if (open_file("new_r36.txt", "w+", output, NULL) == false) {
                 free_texlerobject(input);
                 free_texlerobject(output);
                 return;
@@ -768,7 +780,7 @@ void r37(void)
                 exit(1);
         }
 
-        if (open_file("path_r37.txt", "r", input) == false) {
+        if (open_file("path_r37.txt", "r", input, ",\t") == false) {
                 free_texlerobject(input);
                 return;
         }
@@ -780,7 +792,7 @@ void r37(void)
                 exit(1);
         }
 
-        if (open_file("new_r37.txt", "w+", output) == false) {
+        if (open_file("new_r37.txt", "w+", output, "\n") == false) {
                 free_texlerobject(input);
                 free_texlerobject(output);
                 return;
@@ -814,8 +826,9 @@ void r37(void)
 
                 while (remaining != NULL) {
                         int separator_char = 0;
-                        col_len = columns(&remaining, ",\t", &column,
-                                          &separator_char);
+                        col_len = columns(&remaining,
+                                          input->value.file.separators,
+                                          &column, &separator_char);
                         if (column != NULL && col_len > 0) {
                                 copy_buffer_content(column,
                                                     output->value.file.stream);
@@ -840,7 +853,7 @@ void r38(void)
                 exit(1);
         }
 
-        if (open_file("path.txt", "r", input) == false) {
+        if (open_file("path.txt", "r", input, NULL) == false) {
                 free_texlerobject(input);
                 return;
         }
@@ -852,7 +865,7 @@ void r38(void)
                 exit(1);
         }
 
-        if (open_file("new_r38.txt", "w+", output) == false) {
+        if (open_file("new_r38.txt", "w+", output, NULL) == false) {
                 free_texlerobject(input);
                 free_texlerobject(output);
                 return;
@@ -944,7 +957,7 @@ void r39(void)
                 exit(1);
         }
 
-        if (open_file("path_columns.txt", "r", input) == false) {
+        if (open_file("path_columns.txt", "r", input, ",") == false) {
                 free_texlerobject(input);
                 return;
         }
@@ -956,7 +969,7 @@ void r39(void)
                 exit(1);
         }
 
-        if (open_file("new_r39.txt", "w+", output) == false) {
+        if (open_file("new_r39.txt", "w+", output, NULL) == false) {
                 free_texlerobject(input);
                 free_texlerobject(output);
                 return;
@@ -989,8 +1002,9 @@ void r39(void)
 
                 while (remaining != NULL) {
                         int separator_char = 0;
-                        col_len = columns(&remaining, ",", &column,
-                                          &separator_char);
+                        col_len = columns(&remaining,
+                                          input->value.file.separators,
+                                          &column, &separator_char);
                         if (column != NULL && col_len > 0) {
                                 IS_NUMBER_RETURN isnum =
                                         is_number(column, strlen(column));
@@ -1048,6 +1062,7 @@ void r310(void)
         input->type = TYPE_T_FILE_LIST;
         input->value.file.n_files = get_list_of_files_in_dir(
                 &input->value.file.path_list, "r310_folder/");
+        input->value.file.separators = strdup(",");
 
         TexlerObject *output = (TexlerObject *)calloc(1, sizeof(TexlerObject));
         if (output == NULL) {
@@ -1056,7 +1071,7 @@ void r310(void)
                 exit(1);
         }
 
-        if (open_file("new_r310.txt", "w+", output) == false) {
+        if (open_file("new_r310.txt", "w+", output, NULL) == false) {
                 free_texlerobject(input);
                 free_texlerobject(output);
                 return;
@@ -1072,8 +1087,8 @@ void r310(void)
                         exit(1);
                 }
 
-                if (open_file(input->value.file.path_list[i], "r",
-                              input_file) == false) {
+                if (open_file(input->value.file.path_list[i], "r", input_file,
+                              NULL) == false) {
                         free_texlerobject(input_file);
                         free_texlerobject(input);
                         free_texlerobject(output);
@@ -1117,7 +1132,7 @@ void r311(void)
         }
 
         // Deberia fallar aca:
-        if (open_file("path_r311.txt", "r", input) == false) {
+        if (open_file("path_r311.txt", "r", input, "\n") == false) {
                 free_texlerobject(input);
                 return;
         }
@@ -1129,7 +1144,7 @@ void r311(void)
                 exit(1);
         }
 
-        if (open_file("new_r311.txt", "w+", output) == false) {
+        if (open_file("new_r311.txt", "w+", output, NULL) == false) {
                 free_texlerobject(input);
                 free_texlerobject(output);
                 return;

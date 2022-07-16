@@ -23,7 +23,7 @@ void generate_internal_functions(FILE *const output)
 void generate_internal_functions_headers(FILE *const output)
 {
         fprintf(output, "bool open_file(const char *name, const char *mode,"
-                        "TexlerObject *tex_obj);");
+                        "TexlerObject *tex_obj, const char *separators);");
         fprintf(output, "void copy_buffer_content(char *from, FILE *to);");
         fprintf(output, "void copy_file_content(FILE *from, FILE *to);");
         fprintf(output, "long get_list_of_files_in_dir("
@@ -38,7 +38,8 @@ static void generate_internal_function_open_file(FILE *const output)
                 "bool open_file("
                 "const char *name,"
                 "const char *mode,"
-                "TexlerObject *tex_obj)"
+                "TexlerObject *tex_obj," 
+                "const char *separators)"
                 "{"
                 "if (name == NULL || mode == NULL || tex_obj == NULL)"
                 "{"
@@ -52,34 +53,44 @@ static void generate_internal_function_open_file(FILE *const output)
 
         generate_allocation_error_msg(output, "error_msg");
 
-        fprintf(output, "strcpy(error_msg, \"Error while opening file '\");"
-                        "strcat(error_msg, name);"
-                        "strcat(error_msg, \"'\");"
+        fprintf(output,
+                "strcpy(error_msg, \"Error while opening file '\");"
+                "strcat(error_msg, name);"
+                "strcat(error_msg, \"'\");"
 
-                        "FILE *fptr = fopen(name, mode);"
-                        "if (fptr == NULL) {"
-                        "perror(error_msg);"
-                        "free(error_msg);"
-                        "return false;"
-                        "}"
-                        "free(error_msg);"
+                "FILE *fptr = fopen(name, mode);"
+                "if (fptr == NULL) {"
+                "perror(error_msg);"
+                "free(error_msg);"
+                "return false;"
+                "}"
+                "free(error_msg);"
 
-                        "rewind(fptr);"
+                "rewind(fptr);"
 
-                        "tex_obj->type = TYPE_T_FILEPTR;"
-                        "tex_obj->value.file.stream = fptr;"
-                        "if ("
-                        "fgetpos(tex_obj->value.file.stream, "
-                        "&tex_obj->value.file.pos)"
-                        ")"
-                        "{"
-                        "perror(\"Error while getting file position\");"
-                        "return false;"
-                        "}"
-                        "tex_obj->value.file.n_line = 1;"
+                "tex_obj->type = TYPE_T_FILEPTR;"
+                "tex_obj->value.file.stream = fptr;"
+                "if ("
+                "fgetpos(tex_obj->value.file.stream, "
+                "&tex_obj->value.file.pos)"
+                ")"
+                "{"
+                "perror(\"Error while getting file position\");"
+                "return false;"
+                "}"
+                "tex_obj->value.file.n_line = 1;"
 
-                        "return true;"
-                        "}");
+                "if (separators == NULL)"
+                "{"
+                "tex_obj->value.file.separators = strdup(DEFAULT_SEPARATORS);"
+                "}"
+                "else"
+                "{"
+                "tex_obj->value.file.separators = strdup(separators);"
+                "}"
+
+                "return true;"
+                "}");
 }
 
 static void generate_internal_function_copy_buffer_content(FILE *const output)

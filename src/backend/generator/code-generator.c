@@ -290,6 +290,7 @@ static void generate_header_types_TexlerObject(FILE *const output)
                         "struct {"
                         "FILE *stream;"
                         "fpos_t pos;"
+                        "char *separators;"
                         "char **path_list;"
                         "union {"
                         "size_t n_line;"
@@ -333,6 +334,14 @@ static void generate_header_types_TexlerObject(FILE *const output)
                         "tex_obj->value.file.n_files--;"
                         "}"
                         "free(tex_obj->value.file.path_list);"
+                        "}"
+                        "if ("
+                        "tex_obj->value.file.separators != NULL"
+                        "&&"
+                        "tex_obj->value.file.separators != DEFAULT_SEPARATORS"
+                        ")"
+                        "{"
+                        "free(tex_obj->value.file.separators);"
                         "}"
                         "break;"
                         "case TYPE_T_STRING:"
@@ -468,7 +477,8 @@ static bool generate_expression(FILE *const output,
                 break;
         case EXPRESSION_VARIABLE_DECLARATION: /* Fallsthrough */
         case EXPRESSION_FILE_DECLARATION:
-                if (!generate_variable(output, expr->var, frees_stack)) {
+                if (!generate_variable(output, expr->var, expr->list_expr,
+                                       frees_stack)) {
                         return false;
                 }
                 break;
@@ -501,8 +511,9 @@ static bool generate_expression(FILE *const output,
         return true;
 }
 
-static bool generate_variable(FILE *const output, variable *var,
-                              free_function_call_array *frees_stack)
+static bool
+generate_variable(FILE *const output, variable *var,
+                  node_list *separators free_function_call_array *frees_stack)
 {
         if (output == NULL || var == NULL || frees_stack == NULL)
                 return false;
@@ -561,7 +572,7 @@ static bool generate_variable(FILE *const output, variable *var,
                 }
                 break;
         case FILE_PATH_TYPE:
-                generate_variable_file(output, var, frees_stack);
+                generate_variable_file(output, var, separators, frees_stack);
                 break;
         default:
                 LogDebug("Got variable type: %d\n"
@@ -572,8 +583,9 @@ static bool generate_variable(FILE *const output, variable *var,
         return true;
 }
 
-static bool generate_variable_file(FILE *const output, variable *var,
-                                   free_function_call_array *frees_stack)
+static bool generate_variable_file(
+        FILE *const output, variable *var,
+        node_list *separators free_function_call_array *frees_stack)
 {
         if (output == NULL || var == NULL || frees_stack == NULL)
                 return false;
@@ -581,11 +593,38 @@ static bool generate_variable_file(FILE *const output, variable *var,
         char *frees_string =
                 generate_complete_free_function_call_array(frees_stack);
 
+        char *str_separators = NULL;
+        if (separators == NULL && separators->exprs != NULL &&
+            separators->exprs[0] != "") {
+                str_separators = strdup("NULL");
+        } else {
+                str_separators =
+                        strdup(separators->exprs[0]->var.value.string);
+
+                for (size_t i = 1; i < separators->len; i++) {
+                        size_t new_size =
+                                strlen(str_separators) +
+                                strlen(separators->exprs[i]->var.value.string) +
+                                1;
+                        char *aux = (char *)realloc(str_separators,
+                                                    sizeof(char) * new_size);
+                        if (aux == NULL) {
+                                error_no_memory();
+                                exit(1);
+                        }
+
+                        strcat(aux, separators->exprs[i]->var.value.string);
+                        aux[new_size - 1] = '\0';
+
+                        str_separators = aux;
+                }
+        }
+
         if (strstr(var->name, "input") == var->name) {
                 fprintf(output,
-                        "if (open_file(%s, \"r\", %s) == false)"
+                        "if (open_file(%s, \"r\", %s, %s) == false)"
                         "{",
-                        var->value.string, var->name);
+                        var->value.string, var->name, str_separators);
 
                 if (frees_string != NULL)
                         fprintf(output, "%s", frees_string);
@@ -624,9 +663,9 @@ static bool generate_variable_file(FILE *const output, variable *var,
                                 var->name);
                 } else {
                         fprintf(output,
-                                "if (open_file(%s, \"w+\", %s) == false)"
+                                "if (open_file(%s, \"w+\", %s, %s) == false)"
                                 "{",
-                                var->value.string, var->name);
+                                var->value.string, var->name, str_separators);
 
                         if (frees_string != NULL)
                                 fprintf(output, "%s", frees_string);
@@ -641,6 +680,9 @@ static bool generate_variable_file(FILE *const output, variable *var,
 
         if (frees_string != NULL)
                 free(frees_string);
+
+        if (str_separators != NULL)
+                free(str_separators);
 
         return true;
 }
