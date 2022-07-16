@@ -73,6 +73,19 @@ static const char *generate_number_arithmetic_mul(FILE *const output,
                                                   node_expression *left,
                                                   node_expression *right);
 
+static bool generate_string_arithmetic_expression(FILE *const output,
+                                                  variable *var,
+                                                  node_expression *operation);
+
+static bool generate_string_arithmetic_add_expression(node_expression *left,
+                                                      node_expression *right,
+                                                      variable *var,
+                                                      FILE *const output);
+static bool generate_string_arithmetic_sub_expression(node_expression *left,
+                                                      node_expression *right,
+                                                      variable *var,
+                                                      FILE *const output);
+
 // void generate_type_code(token_t type);
 // void generate_declaration(node_expression *declaration);
 // void generate_assign_declaration(node_expression *assign_declaration);
@@ -402,20 +415,6 @@ static bool generate_expression(FILE *const output,
                         return false;
                 }
                 break;
-                // case EXPRESSION_STR_ARITHMETIC_ADD:
-                //         if (!generate_string_arithmetic_expression(
-                //                     output, EXPRESSION_STR_ARITHMETIC_ADD, expr->left,
-                //                     expr->right)) {
-                //                 return false;
-                //         }
-                //         break;
-                // case EXPRESSION_STR_ARITHMETIC_SUB:
-                //         if (!generate_string_arithmetic_expression(
-                //                     output, EXPRESSION_STR_ARITHMETIC_SUB, expr->left,
-                //                     expr->right)) {
-                //                 return false;
-                //         }
-                //         break;
 
         case EXPRESSION_CONDITIONAL:
                 if (!generate_conditional(output, expr->conditional,
@@ -578,42 +577,148 @@ static bool generate_variable_file(FILE *const output, variable *var,
 }
 
 static bool generate_string_arithmetic_expression(FILE *const output,
-                                                  int operation,
-                                                  node_expression *left,
-                                                  node_expression *right)
+                                                  variable *var,
+                                                  node_expression *operation)
 {
-        if (output == NULL || left == NULL || right == NULL)
+        if (output == NULL || var == NULL || operation == NULL)
                 return false;
 
-        // chequear si van en el switch, creo que no
-        // case EXPRESSION_VARIABLE:
-        //      grammar_concat_list_args_with_id
-        //      grammar_new_list_args_from_id
-        //      grammar_concat_list_args_with_id
-        // case EXPRESSION_VARIABLE_DECLARATION:
-        // case EXPRESSION_VARIABLE_TYPE_COMPARISON:
-        // case EXPRESSION_VARIABLE_ASSIGNMENT:
+        if (operation->type == EXPRESSION_STR_ARITHMETIC_ADD) {
+                return generate_string_arithmetic_add_expression(
+                        operation->left, operation->right, var, output);
+        } else {
+                return generate_string_arithmetic_sub_expression(
+                        operation->left, operation->right, var, output);
+        }
 
-        if ((left->type == VARIABLE_TYPE ||
-             left->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) &&
-            (right->type == VARIABLE_TYPE ||
-             right->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE)) {
-                if (operation == EXPRESSION_STR_ARITHMETIC_SUB) {
-                        fprintf(output, "string_substract(%s, %s);",
-                                left->var->name, right->var->name);
-                } else {
-                        fprintf(output, "");
+        return true;
+}
+
+static bool generate_string_arithmetic_add_expression(node_expression *left,
+                                                      node_expression *right,
+                                                      variable *var,
+                                                      FILE *const output)
+{
+                if (left->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE &&
+            right->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
+                long aux_len = 1 + strlen(left->var->value.string) +
+                               strlen(right->var->value.string);
+                char *aux = (char *)calloc(aux_len, sizeof(char));
+                if (aux == NULL) {
+                        error_no_memory();
+                        exit(1);
                 }
+
+                strncpy(aux, left->var->value.string, aux_len);
+                strncat(aux, right->var->value.string, aux_len);
+
+                if (var->type == FILE_PATH_TYPE) {
+                        fprintf(output,
+                                "copy_buffer_content("
+                                "%s"
+                                ","
+                                "%s->value.file.stream"
+                                ");",
+                                aux, var->name);
+                } else if (var->type == STRING_TYPE) {
+                        fprintf(output, "%s = %s", var->name, aux);
+                }
+
+                free(aux);
+        } else if (left->type == VARIABLE_TYPE &&
+                   left->var->type == FILE_PATH_TYPE) {
+                if (var->type != FILE_PATH_TYPE) {
+                        LogError("File addition must be stored in a file");
+                        return false;
+                }
+
+                fprintf(output,
+                        "copy_file_content("
+                        "%s->value.file.stream"
+                        ","
+                        "%s->value.file.stream);",
+                        left->var->name, var->name);
+
+                if (right->type == VARIABLE_TYPE &&
+                    right->var->type == FILE_PATH_TYPE) {
+                        fprintf(output,
+                                "copy_file_content("
+                                "%s->value.file.stream"
+                                ","
+                                "%s->value.file.stream);",
+                                right->var->name, var->name);
+                } else if (right->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
+                        fprintf(output,
+                                "copy_buffer_content("
+                                "%s"
+                                ","
+                                "%s->value.file.stream);",
+                                right->var->value.string, var->name);
+                } else if (right->type ==
+                           VARIABLE_TYPE) { // es ID pero no de tipo file
+                        fprintf(output,
+                                "copy_buffer_content("
+                                "%s"
+                                ","
+                                "%s->value.file.stream);",
+                                right->var->name, var->name);
+                }
+        } else if (right->type == VARIABLE_TYPE &&
+                   right->var->type == FILE_PATH_TYPE) {
+                if (var->type != FILE_PATH_TYPE) {
+                        LogError("File addition must be stored in a file");
+                        return false;
+                }
+
+                fprintf(output,
+                        "copy_file_content("
+                        "%s->value.file.stream"
+                        ","
+                        "%s->value.file.stream);",
+                        right->var->name, var->name);
+
+                if (left->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
+                        fprintf(output,
+                                "copy_buffer_content("
+                                "%s"
+                                ","
+                                "%s->value.file.stream);",
+                                left->var->value.string, var->name);
+                } else if (left->type ==
+                           VARIABLE_TYPE) { // es ID pero no de tipo file
+                        fprintf(output,
+                                "copy_buffer_content("
+                                "%s"
+                                ","
+                                "%s->value.file.stream);",
+                                left->var->name, var->name);
+                }
+
+        } else if (left->type == VARIABLE_TYPE) {
+                LogDebug(
+                        "Not implemented: string addition with left of type %ld",
+                        left->type);
+        } else if (right->type == VARIABLE_TYPE) {
+                LogDebug(
+                        "Not implemented: string addition with right of type %ld",
+                        right->type);
+        } else {
+                LogError(
+                        "String addition not posible for types: %ld and %ld\n",
+                        left->type, right->type);
+
+                return false;
         }
 
-        switch (left->type) {
-        case VARIABLE_TYPE: // ID ++
-        case EXPRESSION_GRAMMAR_CONSTANT_TYPE: // string_constant ++
+        return true;
+}
 
-                break;
-        default:
-                break;
-        }
+static bool generate_string_arithmetic_sub_expression(node_expression *left,
+                                                      node_expression *right,
+                                                      variable *var,
+                                                      FILE *const output)
+{
+        return true;
 }
 
 static bool generate_variable_assignment(FILE *const output, variable *var,
@@ -646,16 +751,9 @@ static bool generate_variable_assignment(FILE *const output, variable *var,
                 }
                 break;
         case EXPRESSION_STR_ARITHMETIC_ADD:
-                if (!generate_string_arithmetic_expression(
-                            output, EXPRESSION_STR_ARITHMETIC_ADD, expr->left,
-                            expr->right)) {
-                        return false;
-                }
-                break;
         case EXPRESSION_STR_ARITHMETIC_SUB:
-                if (!generate_string_arithmetic_expression(
-                            output, EXPRESSION_STR_ARITHMETIC_SUB, expr->left,
-                            expr->right)) {
+                if (!generate_string_arithmetic_expression(output, var,
+                                                           expr)) {
                         return false;
                 }
                 break;

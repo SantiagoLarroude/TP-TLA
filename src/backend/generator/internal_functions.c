@@ -5,6 +5,7 @@ static void generate_internal_function_copy_buffer_content(FILE *const output);
 static void generate_internal_function_copy_file_content(FILE *const output);
 static void
 generate_internal_function_get_list_of_files_in_dir(FILE *const output);
+static void generate_internal_function_string_addition(FILE *const output);
 static void generate_internal_function_string_substract(FILE *const output);
 
 extern void generate_allocation_error_msg(FILE *const output, char *ptr_name);
@@ -15,6 +16,7 @@ void generate_internal_functions(FILE *const output)
         generate_internal_function_copy_buffer_content(output);
         generate_internal_function_copy_file_content(output);
         generate_internal_function_get_list_of_files_in_dir(output);
+        generate_internal_function_string_addition(output);
         generate_internal_function_string_substract(output);
 }
 
@@ -84,6 +86,11 @@ static void generate_internal_function_copy_buffer_content(FILE *const output)
 {
         fprintf(output, "void copy_buffer_content(char *from, FILE *to)"
                         "{"
+                        "if (from == NULL || to == NULL || "
+                        "(void*)from == (void*)to)"
+                        "{"
+                        "return;"
+                        "}"
                         "fputs(from, to);"
                         "}");
 }
@@ -92,6 +99,11 @@ static void generate_internal_function_copy_file_content(FILE *const output)
 {
         fprintf(output, "void copy_file_content(FILE *from, FILE *to)"
                         "{"
+                        "if (from == NULL || to == NULL || "
+                        "(void*)from == (void*)to)"
+                        "{"
+                        "return;"
+                        "}"
                         "char buffer[BUFFER_SIZE] = { 0 };"
                         "rewind(from);"
                         "while (!feof(from)) {"
@@ -160,6 +172,35 @@ generate_internal_function_get_list_of_files_in_dir(FILE *const output)
                         "}");
 }
 
+static void generate_internal_function_string_addition(FILE *const output)
+{
+        fprintf(output,
+                "/* Concat str2 at the end of str1 and store it in str1 */"
+                "char *string_addition(char *str1, char *str2)"
+                "{"
+                "if (str2 == NULL)"
+                "{"
+                "return str1;"
+                "}"
+                "else if (str1 == NULL)"
+                "{"
+                "return str2;"
+                "}"
+                "int str1_len = strlen(str1);"
+                "int str2_len = strlen(str2);"
+                "int aux_len = 1 + str1_len + str2_len;"
+                "char *aux = (char *)realloc(str1, aux_len * sizeof(char));");
+
+        generate_allocation_error_msg(output, "aux");
+
+        fprintf(output, "memset(aux + str1_len, 0, aux_len - str2_len);"
+                        "strncat(aux, str2, aux_len);"
+                        "aux[aux_len - 1] = '\\0';"
+                        "str1 = aux;"
+                        "return str1;"
+                        "}");
+}
+
 static void generate_internal_function_string_substract(FILE *const output)
 {
         fprintf(output,
@@ -193,4 +234,3 @@ static void generate_internal_function_string_substract(FILE *const output)
                         "return str1;"
                         "}");
 }
-
