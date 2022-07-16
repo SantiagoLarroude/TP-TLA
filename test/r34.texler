@@ -4,14 +4,12 @@ function r34()
     File "test_file_cases.txt" as input.
     File "new_r34.txt" as output.
 
-    with input: for line in lines().byIndex(1) do
-                    for column in line.columns() do
+    with input: for column in columns().lines().byIndex(1) do
                         if column is Number then
                             column * 2 -> output.
                         else
                             column -> output.
                         .
-                    .
                 .
     .
 

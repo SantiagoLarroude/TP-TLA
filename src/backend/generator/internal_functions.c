@@ -193,3 +193,4 @@ static void generate_internal_function_string_substract(FILE *const output)
                         "return str1;"
                         "}");
 }
+

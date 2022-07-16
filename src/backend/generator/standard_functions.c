@@ -2,6 +2,7 @@
 
 static void generate_std_function_is_number(FILE *const output);
 static void generate_std_function_lines(FILE *const output);
+static void generate_internal_function_line_by_number(FILE *const output);
 static void generate_std_function_columns(FILE *const output);
 static void generate_std_function_is_in_string(FILE *const output);
 
@@ -11,6 +12,7 @@ void generate_standard_functions(FILE *const output)
 {
         generate_std_function_is_number(output);
         generate_std_function_lines(output);
+        generate_internal_function_line_by_number(output);
         generate_std_function_columns(output);
         generate_std_function_is_in_string(output);
 }
@@ -29,8 +31,14 @@ void generate_standard_functions_headers(FILE *const output)
         fprintf(output,
                 "long int line_length(FILE *stream, const fpos_t *pos);\n");
         fprintf(output,
+                "long int lines(TexlerObject *tex_obj, char **buffer);\n");
+        fprintf(output, "long line_by_number("
+                        "TexlerObject *tex_obj,"
+                        "char **buffer,"
+                        "unsigned long n);\n");
+        fprintf(output,
                 "long int columns("
-                "char **str, char *separators, char **buffer, int *separator"
+                "char **str, char *separators, char **buffer, long *separator"
                 ")\n;");
         fprintf(output, "bool is_in_string(char *str, char *line);\n");
 }
@@ -147,6 +155,43 @@ static void generate_std_function_lines(FILE *const output)
                 "}");
 }
 
+static void generate_internal_function_line_by_number(FILE *const output)
+{
+        fprintf(output,
+                "long line_by_number("
+                "TexlerObject *tex_obj,"
+                "char **buffer,"
+                "unsigned long n)"
+                "{"
+                "if (tex_obj == NULL || buffer == NULL || *buffer == NULL)"
+                "{"
+                "return 0;"
+                "}"
+
+                "if (tex_obj->type != TYPE_T_FILEPTR ||"
+                "tex_obj->value.file.stream == NULL) "
+                "{"
+                "return 0;"
+                "}"
+
+                "long to_return = 0;"
+                "if (tex_obj->value.file.n_line > n)"
+                "{"
+                "rewind(tex_obj->value.file.stream);"
+                "}"
+
+                "do"
+                "{"
+                "to_return = lines(tex_obj, buffer);"
+                "}"
+                "while (to_return > 0 && tex_obj->value.file.n_line < n);"
+
+                "to_return = lines(tex_obj, buffer); /* Line n */"
+
+                "return to_return;"
+                "}");
+}
+
 static void generate_std_function_columns(FILE *const output)
 {
         /*
@@ -156,7 +201,7 @@ static void generate_std_function_columns(FILE *const output)
          */
         fprintf(output,
                 "long int columns("
-                "char **str, char *separators, char **buffer, int *separator"
+                "char **str, char *separators, char **buffer, long *separator"
                 ")"
                 "{"
                 "char *seps = separators;"
