@@ -202,7 +202,7 @@ long get_list_of_files_in_dir(char ***files, const char *path)
         return count_files;
 }
 
-// Substract str2 from the end of str1
+// Substract str2 from the end of str1 and store it in str1
 char *string_substract(char *str1, char *str2)
 {
         int str1_len = strlen(str1);
@@ -232,6 +232,35 @@ char *string_substract(char *str1, char *str2)
 
                 str1 = aux;
         }
+
+        return str1;
+}
+
+// Concat str2 at the end of str1 and store it in str1
+char *string_addition(char *str1, char *str2)
+{
+        if (str2 == NULL) {
+                return str1;
+        } else if (str1 == NULL) {
+                return str2;
+        }
+
+        int str1_len = strlen(str1);
+        int str2_len = strlen(str2);
+
+        int aux_len = 1 + str1_len + str2_len;
+        char *aux = (char *)realloc(str1, aux_len * sizeof(char));
+        if (aux == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+
+        memset(aux + str1_len, 0, aux_len - str2_len);
+        strncat(aux, str2, aux_len);
+
+        aux[aux_len - 1] = '\0';
+
+        str1 = aux;
 
         return str1;
 }
@@ -376,6 +405,30 @@ bool is_in_string(char *str, char *line)
         char *aux = strstr(line, str);
 
         return (aux == NULL) ? false : true;
+}
+
+long line_by_number(TexlerObject *tex_obj, char **buffer, unsigned long n)
+{
+        if (tex_obj == NULL || buffer == NULL || *buffer == NULL)
+                return 0;
+
+        if (tex_obj->type != TYPE_T_FILEPTR ||
+            tex_obj->value.file.stream == NULL)
+                return 0;
+
+        long to_return = 0;
+        if (tex_obj->value.file.n_line > n) {
+                rewind(tex_obj->value.file.stream);
+        }
+
+        do {
+                to_return = lines(tex_obj, buffer);
+        } while (to_return > 0 && tex_obj->value.file.n_line < n);
+
+        // Line n
+        to_return = lines(tex_obj, buffer);
+
+        return to_return;
 }
 
 void r30(void)
@@ -551,53 +604,46 @@ void r34(void)
         }
 
         // byIndex:
-        for (long i = 1 - 1; i < 2; i++) {
-                line_len = lines(input, &line);
-                if (line_len <= 0 || line == NULL)
-                        break;
+        line_len = line_by_number(input, &line, 2);
+        if (line_len <= 0 || line == NULL)
+                return;
 
-                char *remaining = line;
-                long int col_len = BUFFER_SIZE;
-                char *column = (char *)calloc(col_len, sizeof(char));
-                if (column == NULL) {
-                        perror("Aborting due to");
-                        free_texlerobject(input);
-                        free_texlerobject(output);
-                        free(line);
-                        exit(1);
-                }
-
-                while (remaining != NULL) {
-                        int separator_char = 0;
-                        col_len = columns(&remaining, NULL, &column,
-                                          &separator_char);
-                        if (column != NULL && col_len > 0) {
-                                IS_NUMBER_RETURN isnum =
-                                        is_number(column, strlen(column));
-                                if (isnum == IS_NUMBER_RETURN_FLOATING) {
-                                        double n = atof(column);
-                                        n *= 2;
-                                        fprintf(output->value.file.stream,
-                                                "%f", n);
-                                } else if (isnum == IS_NUMBER_RETURN_INTEGER) {
-                                        long n = atol(column);
-                                        n *= 2;
-                                        fprintf(output->value.file.stream,
-                                                "%ld", n);
-                                } else {
-                                        copy_buffer_content(
-                                                column,
-                                                output->value.file.stream);
-                                }
-                        }
-
-                        if (separator_char) {
-                                fputc(separator_char,
-                                      output->value.file.stream);
-                        }
-                }
-                free(column);
+        char *remaining = line;
+        long int col_len = BUFFER_SIZE;
+        char *column = (char *)calloc(col_len, sizeof(char));
+        if (column == NULL) {
+                perror("Aborting due to");
+                free_texlerobject(input);
+                free_texlerobject(output);
+                free(line);
+                exit(1);
         }
+
+        while (remaining != NULL) {
+                int separator_char = 0;
+                col_len = columns(&remaining, NULL, &column, &separator_char);
+                if (column != NULL && col_len > 0) {
+                        IS_NUMBER_RETURN isnum =
+                                is_number(column, strlen(column));
+                        if (isnum == IS_NUMBER_RETURN_FLOATING) {
+                                double n = atof(column);
+                                n *= 2;
+                                fprintf(output->value.file.stream, "%f", n);
+                        } else if (isnum == IS_NUMBER_RETURN_INTEGER) {
+                                long n = atol(column);
+                                n *= 2;
+                                fprintf(output->value.file.stream, "%ld", n);
+                        } else {
+                                copy_buffer_content(column,
+                                                    output->value.file.stream);
+                        }
+                }
+
+                if (separator_char) {
+                        fputc(separator_char, output->value.file.stream);
+                }
+        }
+        free(column);
 
         free(line);
         free_texlerobject(input);
@@ -924,7 +970,6 @@ void r39(void)
                 exit(1);
         }
 
-        // byIndex:
         while (line_len > 0) {
                 line_len = lines(input, &line);
                 if (line_len <= 0 || line == NULL)
