@@ -56,3 +56,11 @@ void error_invalid_node_file_handler(const char *function)
 {
         LogError("Invalid node_file_block.\tFunction: %s", function);
 }
+
+void error_invalid_byIndex_argument()
+{
+        LogError("A call to byIndex() has an invalid argument type."
+                 "Valid types are:\n"
+                 "\t- Constants. ie: byIndex(5)\n"
+                 "\t- Ranges. ie: byIndex([1..6])\n");
+}
