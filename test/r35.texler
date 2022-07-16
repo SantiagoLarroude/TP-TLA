@@ -1,8 +1,8 @@
 # R3.5 [Aceptar] Un programa que concatene más de 2 archivos.
 function r35()
-    File "path1" as input1.
-    File "path2" as input2.
-    File "path3" as input3.
+    File "path1.txt" as input1.
+    File "path2.txt" as input2.
+    File "path3.txt" as input3.
     File "new_r35.txt" as output.
 
     input1 ++ input2 -> output.
