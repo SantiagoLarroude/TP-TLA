@@ -387,6 +387,21 @@ static bool generate_expression(FILE *const output,
                         return false;
                 }
                 break;
+                // case EXPRESSION_STR_ARITHMETIC_ADD:
+                //         if (!generate_string_arithmetic_expression(
+                //                     output, EXPRESSION_STR_ARITHMETIC_ADD, expr->left,
+                //                     expr->right)) {
+                //                 return false;
+                //         }
+                //         break;
+                // case EXPRESSION_STR_ARITHMETIC_SUB:
+                //         if (!generate_string_arithmetic_expression(
+                //                     output, EXPRESSION_STR_ARITHMETIC_SUB, expr->left,
+                //                     expr->right)) {
+                //                 return false;
+                //         }
+                //         break;
+
         default:
                 LogDebug("Got expression of type: %d\n"
                          "\tFunction:",
@@ -427,7 +442,7 @@ static bool generate_variable(FILE *const output, variable *var,
                         var->value.boolean);
                 break;
         case STRING_TYPE:
-                fprintf(output, "%s->type = TYPE_T_BOOLEAN;", var->name);
+                fprintf(output, "%s->type = TYPE_T_STRING;", var->name);
                 fprintf(output, "%s->value.string = %s;", var->name,
                         var->value.string);
                 fprintf(output, "%s->value.length = %ld;", var->name,
@@ -447,7 +462,7 @@ static bool generate_variable(FILE *const output, variable *var,
                                 var->value.expr->var->value.boolean);
                         break;
                 case STRING_TYPE:
-                        fprintf(output, "%s->type = TYPE_T_BOOLEAN;",
+                        fprintf(output, "%s->type = TYPE_T_STRING;",
                                 var->name);
                         fprintf(output, "%s->value.string = %s;", var->name,
                                 var->value.expr->var->value.string);
@@ -541,6 +556,45 @@ static bool generate_variable_file(FILE *const output, variable *var,
         return true;
 }
 
+static bool generate_string_arithmetic_expression(FILE *const output,
+                                                  int operation,
+                                                  node_expression *left,
+                                                  node_expression *right)
+{
+        if (output == NULL || left == NULL || right == NULL)
+                return false;
+
+        // chequear si van en el switch, creo que no
+        // case EXPRESSION_VARIABLE:
+        //      grammar_concat_list_args_with_id
+        //      grammar_new_list_args_from_id
+        //      grammar_concat_list_args_with_id
+        // case EXPRESSION_VARIABLE_DECLARATION:
+        // case EXPRESSION_VARIABLE_TYPE_COMPARISON:
+        // case EXPRESSION_VARIABLE_ASSIGNMENT:
+
+        if ((left->type == VARIABLE_TYPE ||
+             left->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) &&
+            (right->type == VARIABLE_TYPE ||
+             right->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE)) {
+                if (operation == EXPRESSION_STR_ARITHMETIC_SUB) {
+                        fprintf(output, "string_substract(%s, %s);",
+                                left->var->name, right->var->name);
+                } else {
+                        fprintf(output, "");
+                }
+        }
+
+        switch (left->type) {
+        case VARIABLE_TYPE: // ID ++
+        case EXPRESSION_GRAMMAR_CONSTANT_TYPE: // string_constant ++
+
+                break;
+        default:
+                break;
+        }
+}
+
 static bool generate_variable_assignment(FILE *const output, variable *var,
                                          node_expression *expr)
 {
@@ -557,6 +611,20 @@ static bool generate_variable_assignment(FILE *const output, variable *var,
         case VARIABLE_TYPE: // ID -> ID.
                 if (!generate_variable_assignment_to_variable(output, var,
                                                               expr->var)) {
+                        return false;
+                }
+                break;
+        case EXPRESSION_STR_ARITHMETIC_ADD:
+                if (!generate_string_arithmetic_expression(
+                            output, EXPRESSION_STR_ARITHMETIC_ADD, expr->left,
+                            expr->right)) {
+                        return false;
+                }
+                break;
+        case EXPRESSION_STR_ARITHMETIC_SUB:
+                if (!generate_string_arithmetic_expression(
+                            output, EXPRESSION_STR_ARITHMETIC_SUB, expr->left,
+                            expr->right)) {
                         return false;
                 }
                 break;

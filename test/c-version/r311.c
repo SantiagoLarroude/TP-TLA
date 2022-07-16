@@ -620,7 +620,7 @@ void r35(void)
         TexlerObject *input2 = (TexlerObject *)calloc(1, sizeof(TexlerObject));
         if (input2 == NULL) {
                 perror("Aborting due to");
-                free_texlerobject(input1);
+                free_texlerobject(input2);
                 exit(1);
         }
 
@@ -633,6 +633,7 @@ void r35(void)
         TexlerObject *input3 = (TexlerObject *)calloc(1, sizeof(TexlerObject));
         if (input3 == NULL) {
                 perror("Aborting due to");
+                free_texlerobject(input3);
                 exit(1);
         }
 
