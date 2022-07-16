@@ -66,12 +66,14 @@ static bool generate_conditional(FILE *const output,
                                  node_conditional *conditional,
                                  const char *working_filename);
 
-static const char *generate_number_arithmetic_add(FILE *const output,
-                                                  node_expression *left,
-                                                  node_expression *right);
-static const char *generate_number_arithmetic_mul(FILE *const output,
-                                                  node_expression *left,
-                                                  node_expression *right);
+static const char *
+generate_number_arithmetic_add(FILE *const output, node_expression *left,
+                               node_expression *right,
+                               const char *assign_variable_name);
+static const char *
+generate_number_arithmetic_mul(FILE *const output, node_expression *left,
+                               node_expression *right,
+                               const char *assign_variable_name);
 
 static bool generate_string_arithmetic_expression(FILE *const output,
                                                   variable *var,
@@ -85,6 +87,9 @@ static bool generate_string_arithmetic_sub_expression(node_expression *left,
                                                       node_expression *right,
                                                       variable *var,
                                                       FILE *const output);
+static const char *generate_number_arithmetic_mul_with_file(
+        FILE *const output, node_expression *left, node_expression *right,
+        const char *assign_variable_name);
 
 // void generate_type_code(token_t type);
 // void generate_declaration(node_expression *declaration);
@@ -158,17 +163,81 @@ static bool generate_c_main(FILE *const output, node_function *main_function)
         if (main_function == NULL)
                 return false;
 
-        fprintf(output,
-                "int main(void)"
-                "{"
-                " %s();"
-                "return 0;"
-                "}",
-                main_function->name);
+        fputs("int main(const int argc, const char **argv)", output);
+        fputc('{', output);
+
+        if (main_function->args == NULL || main_function->args->len == 0) {
+                fprintf(output, "%s();", main_function->name);
+        } else {
+                //
+
+                free_function_call_array *frees_stack =
+                        (free_function_call_array *)calloc(
+                                1, sizeof(free_function_call_array));
+                if (frees_stack == NULL) {
+                        perror("Aborting due to");
+                        exit(1);
+                }
+
+                for (long n_args = 0; n_args < main_function->args->len;
+                     n_args++) {
+                        fprintf(output,
+                                "TexlerObject * %s = "
+                                "(TexlerObject *)"
+                                "calloc(1, sizeof(TexlerObject));",
+                                main_function->args->exprs[n_args]->var->name);
+
+                        generate_allocation_error_msg(
+                                output,
+                                main_function->args->exprs[n_args]->var->name);
+
+                        push_free_function_call(
+                                frees_stack,
+                                main_function->args->exprs[n_args]->var->name,
+                                "free_texlerobject");
+
+                        // Caso base: argv[0] es un número
+                        // HI: argv[n] es un número
+                        // TI: argv[n+1] es un número
+
+                        fprintf(output, "%s->type = TYPE_T_REAL;",
+                                main_function->args->exprs[n_args]->var->name);
+                        fprintf(output, "%s->value.real = atof(argv[%ld]);",
+                                main_function->args->exprs[n_args]->var->name,
+                                n_args + 1);
+
+                        // La prueba resulta ser errónea, pero lo revisaremos
+                        // en la versión 2 de este paper.
+                }
+
+                fprintf(output, "%s(", main_function->name);
+                for (long n_args = 0; n_args < main_function->args->len - 1;
+                     n_args++) {
+                        fprintf(output, "%s",
+                                main_function->args->exprs[n_args]->var->name);
+                }
+                fprintf(output, "%s",
+                        main_function->args
+                                ->exprs[main_function->args->len - 1]
+                                ->var->name);
+                fputs(");", output);
+
+                while (frees_stack->size > 0) {
+                        free_function_call *ffc =
+                                pop_free_function_call(&frees_stack);
+
+                        if (ffc != NULL)
+                                fprintf(output, "%s(%s);", ffc->fun,
+                                        ffc->name);
+
+                        free_struct_free_function_call(&ffc);
+                }
+        }
+        fputs("return 0;", output);
+        fputc('}', output);
 
         return true;
 }
-
 /* HEADER */
 static void generate_header(FILE *const output)
 {
@@ -599,7 +668,7 @@ static bool generate_string_arithmetic_add_expression(node_expression *left,
                                                       variable *var,
                                                       FILE *const output)
 {
-                if (left->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE &&
+        if (left->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE &&
             right->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
                 long aux_len = 1 + strlen(left->var->value.string) +
                                strlen(right->var->value.string);
@@ -853,22 +922,19 @@ static bool generate_variable_assignment_from_number_arithmetic(
         case EXPRESSION_NUMBER_ARITHMETIC_ADD:
                 fputc('{', output);
                 c_variable_assign_name = generate_number_arithmetic_add(
-                        output, operation->left, operation->right);
+                        output, operation->left, operation->right, var->name);
                 break;
         case EXPRESSION_NUMBER_ARITHMETIC_MUL:
                 fputc('{', output);
                 c_variable_assign_name = generate_number_arithmetic_mul(
-                        output, operation->left, operation->right);
+                        output, operation->left, operation->right, var->name);
                 break;
         default:
                 c_variable_assign_name = NULL;
                 break;
         }
 
-        if (c_variable_assign_name == NULL) {
-                fputc('}', output);
-                return false;
-        } else
+        if (c_variable_assign_name != NULL)
                 fprintf(output,
                         "fprintf("
                         "%s->value.file.stream, \"%%f\", %s);",
@@ -1304,9 +1370,10 @@ static bool generate_conditional(FILE *const output,
         return true;
 }
 
-static const char *generate_number_arithmetic_add(FILE *const output,
-                                                  node_expression *left,
-                                                  node_expression *right)
+static const char *
+generate_number_arithmetic_add(FILE *const output, node_expression *left,
+                               node_expression *right,
+                               const char *assign_variable_name)
 {
         const char *var_name = "_add_arithm_n";
         fprintf(output, "double %s = 0;", var_name);
@@ -1343,10 +1410,19 @@ static const char *generate_number_arithmetic_add(FILE *const output,
         return var_name;
 }
 
-static const char *generate_number_arithmetic_mul(FILE *const output,
-                                                  node_expression *left,
-                                                  node_expression *right)
+static const char *
+generate_number_arithmetic_mul(FILE *const output, node_expression *left,
+                               node_expression *right,
+                               const char *assign_variable_name)
 {
+        if ((left->type == VARIABLE_TYPE &&
+             left->var->type == FILE_PATH_TYPE) ||
+            (right->type == VARIABLE_TYPE &&
+             right->var->type == FILE_PATH_TYPE)) {
+                return generate_number_arithmetic_mul_with_file(
+                        output, left, right, assign_variable_name);
+        }
+
         const char *var_name = "_mul_arithm_n";
 
         fprintf(output, "double %s = 1;", var_name);
@@ -1381,6 +1457,66 @@ static const char *generate_number_arithmetic_mul(FILE *const output,
         }
 
         return var_name;
+}
+
+static const char *generate_number_arithmetic_mul_with_file(
+        FILE *const output, node_expression *left, node_expression *right,
+        const char *assign_variable_name)
+{
+        const char *var_name = "_mul_arithm_n";
+        node_expression *file_id = NULL;
+        node_expression *variable_id = NULL;
+
+        if (left->var->type == FILE_PATH_TYPE) {
+                file_id = left;
+                variable_id = right;
+        } else {
+                file_id = right;
+                variable_id = left;
+        }
+
+        if (variable_id->type == VARIABLE_TYPE) {
+                fprintf(output,
+                        "if("
+                        "%s->type != TYPE_T_REAL"
+                        "&&"
+                        "%s->type != TYPE_T_INTEGER"
+                        ")"
+                        "{"
+                        "fprintf(stderr, \"Invalid object type in %s.\\n\");"
+                        "return;"
+                        "}",
+                        variable_id->var->name, variable_id->var->name,
+                        variable_id->var->name);
+        }
+
+        fprintf(output, "long %s = 0;", var_name);
+
+        if (variable_id->type == VARIABLE_TYPE) {
+                fprintf(output, "%s = %s->value.real;", var_name,
+                        variable_id->var->name);
+        } else if (variable_id->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE &&
+                   variable_id->var->type == NUMBER_TYPE) {
+                fprintf(output, "%s = %f;", var_name,
+                        variable_id->var->value.number);
+        } else {
+                error_invalid_multiplication_type();
+                return false;
+        }
+
+        fprintf(output,
+                "while (%s > 0)"
+                "{"
+                "copy_file_content("
+                "%s->value.file.stream"
+                ","
+                "%s->value.file.stream"
+                ");"
+                "%s--;"
+                "}",
+                var_name, file_id->var->name, assign_variable_name, var_name);
+
+        return NULL;
 }
 
 static bool generate_return(FILE *const output, const variable *var)

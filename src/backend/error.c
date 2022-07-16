@@ -64,3 +64,9 @@ void error_invalid_byIndex_argument()
                  "\t- Constants. ie: byIndex(5)\n"
                  "\t- Ranges. ie: byIndex([1..6])\n");
 }
+
+void error_invalid_multiplication_type()
+{
+        LogError("Trying to multiply with an invalid type.\n"
+        "You can only use variable names and numbers.\n");
+}
