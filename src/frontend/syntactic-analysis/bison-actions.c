@@ -234,8 +234,10 @@ node_function_call *grammar_function_call_from_id(const char *id,
         variable *var = lookup_variable_create_dangling(id);
 
         node->id = var;
-        node->next = (node_function_call *)fun;
+        node->next = fun;
         node->prev = NULL;
+
+        fun->prev = node;
 
         return node;
 }
@@ -805,14 +807,16 @@ node_expression *grammar_expression_cmp_by_type(const char *id,
         node->type = EXPRESSION_VARIABLE_TYPE_COMPARISON;
 
         if (strcmp(type, "File") == 0) {
-                node->compare_type = TYPE_FILE;
+                node->compare_type = FILE_PATH_TYPE;
         } else if (strcmp(type, "Number") == 0) {
-                node->compare_type = TYPE_NUMBER;
+                node->compare_type = NUMBER_TYPE;
         } else if (strcmp(type, "String") == 0) {
-                node->compare_type = TYPE_STRING;
+                node->compare_type = STRING_TYPE;
         } else if (strcmp(type, "Boolean") == 0) {
-                node->compare_type = TYPE_BOOLEAN;
+                node->compare_type = BOOL_TYPE;
         }
+
+        node->var = lookup_variable_create_dangling(id);
 
         return node;
 }
