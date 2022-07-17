@@ -35,6 +35,7 @@ static bool generate_expression(FILE *const output,
                                 const char *working_filename);
 
 static bool generate_variable(FILE *const output, variable *var,
+                              node_list *separators,
                               free_function_call_array *frees_stack);
 
 static bool generate_variable_assignment(FILE *const output, variable *var,
@@ -49,7 +50,9 @@ static bool generate_variable_assignment_from_number_arithmetic(
         FILE *const output, variable *var, node_expression *operation);
 
 static bool generate_variable_file(FILE *const output, variable *var,
+                                   node_list *separators,
                                    free_function_call_array *frees_stack);
+
 static bool generate_expressions_list_with_file(FILE *const output,
                                                 node_file_block *fhandler);
 static bool generate_loop_expression(FILE *const output, node_loop *loop,
@@ -511,9 +514,9 @@ static bool generate_expression(FILE *const output,
         return true;
 }
 
-static bool
-generate_variable(FILE *const output, variable *var,
-                  node_list *separators free_function_call_array *frees_stack)
+static bool generate_variable(FILE *const output, variable *var,
+                              node_list *separators,
+                              free_function_call_array *frees_stack)
 {
         if (output == NULL || var == NULL || frees_stack == NULL)
                 return false;
@@ -572,7 +575,9 @@ generate_variable(FILE *const output, variable *var,
                 }
                 break;
         case FILE_PATH_TYPE:
-                generate_variable_file(output, var, separators, frees_stack);
+                generate_variable_file(output, var,
+                                       separators->exprs[0]->list_expr,
+                                       frees_stack);
                 break;
         default:
                 LogDebug("Got variable type: %d\n"
@@ -583,9 +588,9 @@ generate_variable(FILE *const output, variable *var,
         return true;
 }
 
-static bool generate_variable_file(
-        FILE *const output, variable *var,
-        node_list *separators free_function_call_array *frees_stack)
+static bool generate_variable_file(FILE *const output, variable *var,
+                                   node_list *separators,
+                                   free_function_call_array *frees_stack)
 {
         if (output == NULL || var == NULL || frees_stack == NULL)
                 return false;
@@ -594,18 +599,18 @@ static bool generate_variable_file(
                 generate_complete_free_function_call_array(frees_stack);
 
         char *str_separators = NULL;
-        if (separators == NULL && separators->exprs != NULL &&
-            separators->exprs[0] != "") {
+        if (separators == NULL || separators->exprs == NULL ||
+            strcmp(separators->exprs[0]->var->value.string, "") == 0) {
                 str_separators = strdup("NULL");
         } else {
                 str_separators =
-                        strdup(separators->exprs[0]->var.value.string);
+                        strdup(separators->exprs[0]->var->value.string);
 
                 for (size_t i = 1; i < separators->len; i++) {
-                        size_t new_size =
-                                strlen(str_separators) +
-                                strlen(separators->exprs[i]->var.value.string) +
-                                1;
+                        size_t new_size = strlen(str_separators) +
+                                          strlen(separators->exprs[i]
+                                                         ->var->value.string) +
+                                          1;
                         char *aux = (char *)realloc(str_separators,
                                                     sizeof(char) * new_size);
                         if (aux == NULL) {
@@ -613,7 +618,7 @@ static bool generate_variable_file(
                                 exit(1);
                         }
 
-                        strcat(aux, separators->exprs[i]->var.value.string);
+                        strcat(aux, separators->exprs[i]->var->value.string);
                         aux[new_size - 1] = '\0';
 
                         str_separators = aux;
@@ -666,6 +671,9 @@ static bool generate_variable_file(
                                 "if (open_file(%s, \"w+\", %s, %s) == false)"
                                 "{",
                                 var->value.string, var->name, str_separators);
+                        // if (strcmp(str_separators, "NULL") != 0) {
+                        //         change_separators_from_input(str_separators, );
+                        // }
 
                         if (frees_string != NULL)
                                 fprintf(output, "%s", frees_string);
@@ -885,7 +893,8 @@ static bool generate_variable_assignment_to_variable(FILE *const output,
         if (dest->name == NULL || source->name == NULL)
                 return false;
 
-        if (dest->type == FILE_PATH_TYPE && source->type == FILE_PATH_TYPE) {
+        if (dest->type == FILE_PATH_TYPE && source->type == FILE_PATH_TYPE ) {
+        // && dest->value.expr.) {
                 fprintf(output,
                         "copy_file_content("
                         "%s->value.file.stream"
