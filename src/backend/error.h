@@ -13,5 +13,6 @@ void error_invalid_file_variable_name(const char *name);
 void error_invalid_node_file_handler(const char *function);
 void error_invalid_byIndex_argument();
 void error_invalid_multiplication_type();
+void error_loop_iterable_of_invalid_type();
 
 #endif

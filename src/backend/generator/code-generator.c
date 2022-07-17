@@ -575,9 +575,12 @@ static bool generate_variable(FILE *const output, variable *var,
                 }
                 break;
         case FILE_PATH_TYPE:
-                generate_variable_file(output, var,
-                                       separators->exprs[0]->list_expr,
-                                       frees_stack);
+                if (separators == NULL)
+                        generate_variable_file(output, var, NULL, frees_stack);
+                else
+                        generate_variable_file(output, var,
+                                               separators->exprs[0]->list_expr,
+                                               frees_stack);
                 break;
         default:
                 LogDebug("Got variable type: %d\n"
@@ -893,9 +896,8 @@ static bool generate_variable_assignment_to_variable(FILE *const output,
         if (dest->name == NULL || source->name == NULL)
                 return false;
 
-        if (dest->type == FILE_PATH_TYPE && source->type == FILE_PATH_TYPE ) {
-                fprintf(output,
-                        "copy_file_content_texler(%s, %s);",
+        if (dest->type == FILE_PATH_TYPE && source->type == FILE_PATH_TYPE) {
+                fprintf(output, "copy_file_content_texler(%s, %s);",
                         source->name, dest->name);
         } else if (source->type == LOOP_VARIABLE_TYPE) {
                 switch (dest->type) {
@@ -1015,8 +1017,29 @@ static bool generate_loop_expression(FILE *const output, node_loop *loop,
                 return false;
 
         switch (loop->iterable->type) {
-        case LIST_RANGE_TYPE:
-                // TODO
+        case EXPRESSION_LIST:
+                if (loop->iterable->list_expr->type == LIST_RANGE_TYPE) {
+                // loop->iterable->list_expr
+                fprintf(output,
+                        "for ("
+                        "long %s = %ld - 1;"
+                        "%s < %ld;"
+                        "%s++)"
+                        "{",
+                        loop->var->name, loop->iterable->list_expr->from,
+                        loop->var->name, loop->iterable->list_expr->to,
+                        loop->var->name);
+
+                generate_loop_action(output, loop, frees_stack,
+                                     working_filename);
+
+                fprintf(output, "}");
+                }
+                else {
+                        error_loop_iterable_of_invalid_type();
+                        return false;
+                }
+
                 break;
         case EXPRESSION_FUNCTION_CALL:
                 if (!generate_loop_function_calls_expression(
@@ -1053,31 +1076,6 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                 fn_calls = fn_calls->next;
                 concat_functions++;
         }
-
-        // while (concat_functions > 0) {
-        //         if (concat_functions >= 2 &&
-        //                 strcmp(fn_calls->id->name, "lines") == 0) {
-        //                 fprintf(output, "long _line_len_implementation"
-        //                                 "="
-        //                                 "BUFFER_SIZE;");
-        //                 fprintf(output,
-        //                         "char * %s = "
-        //                         "(char *)"
-        //                         "calloc("
-        //                         "_line_len_implementation,"
-        //                         "sizeof(char)"
-        //                         ");",
-        //                         loop->var->name);
-        //                 generate_allocation_error_msg(output, loop->var->name);
-        //                 fprintf(output,
-        //                         "_line_len_implementation = "
-        //                         "lines(%s, &%s);",
-        //                         working_filename, loop->var->name);
-        //         }else if (concat_functions == 1 && 0 == strcmp()) {}
-
-        //         fn_calls = fn_calls->prev;
-        //         concat_functions--;
-        // }
 
         while (concat_functions > 0) {
                 if (strcmp(fn_calls->id->name, "lines") == 0) {
