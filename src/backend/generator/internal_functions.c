@@ -26,10 +26,15 @@ void generate_internal_functions_headers(FILE *const output)
                         "TexlerObject *tex_obj, const char *separators);");
         fprintf(output, "void copy_buffer_content(char *from, FILE *to);");
         fprintf(output, "void copy_file_content(FILE *from, FILE *to);");
+        fprintf(output, "void copy_file_content_texler("
+                        "TexlerObject *source,"
+                        "TexlerObject *destination"
+                        ");");
         fprintf(output, "long get_list_of_files_in_dir("
                         "char ***files, const char *path"
                         ");");
         fprintf(output, "char *string_substract(char *str1, char *str2);");
+        fprintf(output, "char *string_addition(char *str1, char *str2);");
 }
 
 static void generate_internal_function_open_file(FILE *const output)
@@ -38,7 +43,7 @@ static void generate_internal_function_open_file(FILE *const output)
                 "bool open_file("
                 "const char *name,"
                 "const char *mode,"
-                "TexlerObject *tex_obj," 
+                "TexlerObject *tex_obj,"
                 "const char *separators)"
                 "{"
                 "if (name == NULL || mode == NULL || tex_obj == NULL)"
@@ -123,6 +128,94 @@ static void generate_internal_function_copy_file_content(FILE *const output)
                         "break;"
                         "}"
                         "fputs(buffer, to);"
+                        "}"
+                        "}");
+
+        fprintf(output,
+                "void copy_file_content_texler("
+                "TexlerObject *source,"
+                "TexlerObject *destination"
+                ")"
+                "{"
+                "if ("
+                "strcmp("
+                "destination->value.file.separators,"
+                "DEFAULT_SEPARATORS"
+                ") == 0)"
+                "{"
+                "copy_file_content(source->value.file.stream,"
+                "destination->value.file.stream);"
+                "}"
+                "else"
+                "{"
+                "long source_separators_len ="
+                "strlen(source->value.file.separators);"
+                "long destination_separators_len ="
+                "strlen(destination->value.file.separators);"
+
+                "long line_len = BUFFER_SIZE;"
+                "char *line = (char *)calloc(line_len, sizeof(char));");
+        generate_allocation_error_msg(output, "line");
+
+        fprintf(output,
+                "while (line_len > 0)"
+                "{"
+                "line_len = lines(source, &line);"
+                "if (line_len <= 0 || line == NULL) "
+                "{"
+                "break;"
+                "}"
+                "char *remaining = line;"
+                "long int col_len = BUFFER_SIZE;"
+                "char *column = (char *)calloc(col_len, sizeof(char));");
+
+        generate_allocation_error_msg(output, "column");
+
+        fprintf(output, "while (remaining != NULL)"
+                        "{"
+                        "int separator_char = 0;"
+                        "col_len ="
+                        "columns("
+                        "&remaining,"
+                        "source->value.file.separators,"
+                        "&column,"
+                        "&separator_char"
+                        ");"
+                        "if (column != NULL && col_len > 0) {"
+                        "copy_buffer_content("
+                        "column,"
+                        "destination->value.file.stream);"
+                        "}"
+                        "if ("
+                        "separator_char"
+                        "&&"
+                        "source_separators_len == destination_separators_len"
+                        ")"
+                        "{"
+                        "for (long i = 0; i < source_separators_len; i++)"
+                        "{"
+                        "if ("
+                        "source->value.file.separators[i] == separator_char"
+                        ")"
+                        "{"
+                        "fputc("
+                        "destination->value.file.separators[i],"
+                        "destination->value.file.stream"
+                        ");"
+                        "}"
+                        "}"
+                        "}"
+                        "else if (separator_char)"
+                        "{"
+                        "fputc("
+                        "destination->value.file.separators[0],"
+                        "destination->value.file.stream"
+                        ");"
+                        "}"
+                        "}"
+                        "free(column);"
+                        "}"
+                        "free(line);"
                         "}"
                         "}");
 }

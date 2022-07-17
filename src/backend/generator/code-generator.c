@@ -894,13 +894,8 @@ static bool generate_variable_assignment_to_variable(FILE *const output,
                 return false;
 
         if (dest->type == FILE_PATH_TYPE && source->type == FILE_PATH_TYPE ) {
-        // && dest->value.expr.) {
                 fprintf(output,
-                        "copy_file_content("
-                        "%s->value.file.stream"
-                        ","
-                        "%s->value.file.stream"
-                        ");",
+                        "copy_file_content_texler(%s, %s);",
                         source->name, dest->name);
         } else if (source->type == LOOP_VARIABLE_TYPE) {
                 switch (dest->type) {

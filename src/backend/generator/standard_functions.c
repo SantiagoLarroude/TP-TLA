@@ -38,7 +38,7 @@ void generate_standard_functions_headers(FILE *const output)
                         "unsigned long n);\n");
         fprintf(output,
                 "long int columns("
-                "char **str, char *separators, char **buffer, long *separator"
+                "char **str, char *separators, char **buffer, int *separator"
                 ")\n;");
         fprintf(output, "bool is_in_string(char *str, char *line);\n");
 }
@@ -201,7 +201,7 @@ static void generate_std_function_columns(FILE *const output)
          */
         fprintf(output,
                 "long int columns("
-                "char **str, char *separators, char **buffer, long *separator"
+                "char **str, char *separators, char **buffer, int *separator"
                 ")"
                 "{"
                 "char *seps = separators;"

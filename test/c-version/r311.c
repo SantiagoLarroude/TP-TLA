@@ -161,6 +161,7 @@ void copy_buffer_content(char *from, FILE *to)
         fputs(from, to);
 }
 
+
 void copy_file_content(FILE *from, FILE *to)
 {
         char buffer[BUFFER_SIZE] = { 0 };
@@ -441,6 +442,82 @@ long line_by_number(TexlerObject *tex_obj, char **buffer, unsigned long n)
         to_return = lines(tex_obj, buffer);
 
         return to_return;
+}
+
+//                                      input                   output
+void copy_file_content_texler(TexlerObject *source, TexlerObject *destination)
+{
+        if (strcmp(destination->value.file.separators, DEFAULT_SEPARATORS) ==
+            0) {
+                copy_file_content(source->value.file.stream,
+                                  destination->value.file.stream);
+        } else {
+                long source_separators_len =
+                        strlen(source->value.file.separators);
+                long destination_separators_len =
+                        strlen(destination->value.file.separators);
+
+                long line_len = BUFFER_SIZE;
+                char *line = (char *)calloc(line_len, sizeof(char));
+                if (line == NULL) {
+                        perror("Aborting due to");
+                        free_texlerobject(source);
+                        free_texlerobject(destination);
+                        exit(1);
+                }
+
+                while (line_len > 0) {
+                        line_len = lines(source, &line);
+                        if (line_len <= 0 || line == NULL)
+                                break;
+
+                        char *remaining = line;
+                        long int col_len = BUFFER_SIZE;
+                        char *column = (char *)calloc(col_len, sizeof(char));
+                        if (column == NULL) {
+                                perror("Aborting due to");
+                                free(line);
+                                free_texlerobject(source);
+                                free_texlerobject(destination);
+                                exit(1);
+                        }
+
+                        while (remaining != NULL) {
+                                int separator_char = 0;
+                                col_len =
+                                        columns(&remaining,
+                                                source->value.file.separators,
+                                                &column, &separator_char);
+                                if (column != NULL && col_len > 0) {
+                                        copy_buffer_content(
+                                                column,
+                                                destination->value.file.stream);
+                                }
+                                if (separator_char &&
+                                    source_separators_len ==
+                                            destination_separators_len) {
+                                        for (long i = 0;
+                                             i < source_separators_len; i++) {
+                                                if (source->value.file
+                                                            .separators[i] ==
+                                                    separator_char)
+                                                        fputc(destination->value
+                                                                      .file
+                                                                      .separators
+                                                                              [i],
+                                                              destination->value
+                                                                      .file
+                                                                      .stream);
+                                        }
+                                } else if (separator_char) {
+                                        fputc(destination->value.file
+                                                      .separators[0],
+                                              destination->value.file.stream);
+                                }
+                        }
+                        free(column);
+                }
+        }
 }
 
 void r30(void)
@@ -834,7 +911,9 @@ void r37(void)
                                                     output->value.file.stream);
                         }
                         if (separator_char) {
-                                fputs("\n", output->value.file.stream);
+                                // fputs("\n", output->value.file.stream);
+                                fputs(output->value.file.separators,
+                                      output->value.file.stream);
                         }
                 }
                 free(column);
