@@ -312,13 +312,18 @@ static void generate_internal_function_string_addition(FILE *const output)
                 "}"
                 "int str1_len = strlen(str1);"
                 "int str2_len = strlen(str2);"
+
+                "if (str1_len > 1 && str1[str1_len - 1] == '\\n')"
+                "{"
+                "str1[str1_len - 1] = '\\0';"
+                "}"
+
                 "int aux_len = 1 + str1_len + str2_len;"
                 "char *aux = (char *)realloc(str1, aux_len * sizeof(char));");
 
         generate_allocation_error_msg(output, "aux");
 
-        fprintf(output, "memset(aux + str1_len, 0, aux_len - str2_len);"
-                        "strncat(aux, str2, aux_len);"
+        fprintf(output, "strncat(aux, str2, aux_len);"
                         "aux[aux_len - 1] = '\\0';"
                         "str1 = aux;"
                         "return str1;"
