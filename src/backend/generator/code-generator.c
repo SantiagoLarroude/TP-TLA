@@ -470,8 +470,8 @@ static bool generate_expression(FILE *const output,
 
         switch (expr->type) {
         case EXPRESSION_VARIABLE_ASSIGNMENT:
-                if (!generate_variable_assignment(output, expr->var,
-                                                  expr->expr)) {
+                if (!generate_variable_assignment(
+                            output, expr->var, expr->expr, working_filename)) {
                         return false;
                 }
                 break;
@@ -930,7 +930,8 @@ static bool generate_string_arithmetic_sub_expression(node_expression *left,
 }
 
 static bool generate_variable_assignment(FILE *const output, variable *var,
-                                         node_expression *expr)
+                                         node_expression *expr,
+                                         const char *working_filename)
 {
         if (output == NULL || var == NULL || expr == NULL)
                 return false;
@@ -968,7 +969,7 @@ static bool generate_variable_assignment(FILE *const output, variable *var,
         case EXPRESSION_FUNCTION_CALL: // line.filter("ERROR") -> ID
                 // aca toy
                 if (!generate_variable_assignment_from_function_call_from_id(
-                            output, var, expr->)) {
+                            output, var, expr->fun_call, working_filename)) {
                         return false;
                 }
                 break;
@@ -976,6 +977,48 @@ static bool generate_variable_assignment(FILE *const output, variable *var,
                 break;
         }
 
+        return true;
+}
+
+static bool generate_variable_assignment_from_function_call_from_id(
+        FILE *const output, variable *dest,
+        node_function_call *id_plus_function, const char *working_file)
+{
+        if (dest == NULL || id_plus_function == NULL ||
+            id_plus_function->next == NULL)
+                return false;
+        // aca toy
+        size_t closing_braces = 0;
+        size_t concat_functions = 1;
+        variable *working_id = id_plus_function->id; // line
+        // lo que esta despues del DOT
+        node_function_call *fn_calls = id_plus_function->next; // Alias
+
+        while (fn_calls != NULL && fn_calls->next != NULL) {
+                fn_calls = fn_calls->next;
+                concat_functions++;
+        }
+
+        while (concat_functions > 0) {
+                if (strcmp(fn_calls->id->name, "filter") == 0) {
+                        fprintf(output,
+                                "rewind(%s->)"
+                                "value.file.stream);"
+                                "/*generate_variable_assignment_from_function_call_from_id*/",
+                                working_file);
+                        fprintf(output,
+                                "while( _line_len_implementation > 0 ){");
+                        global_braces++;
+                        fprintf(output,
+                                "_line_len_implementation = lines(%s, &%s);"
+                                "if (is_in_string(%s, %s)){"
+                                "",
+                                working_file, working_id,
+                                fn_calls->args->exprs[0]->var->value.string,
+                                working_id);
+                        global_braces++;
+                }
+        }
         return true;
 }
 
@@ -1555,6 +1598,10 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
         while (closing_braces > 0) {
                 fprintf(output, "}");
                 closing_braces--;
+        }
+        while (global_braces > 0) {
+                fprintf(output, "}");
+                global_braces--;
         }
 
         return true;
