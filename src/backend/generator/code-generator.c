@@ -954,6 +954,13 @@ static bool generate_variable_assignment(FILE *const output, variable *var,
                         return false;
                 }
                 break;
+        case EXPRESSION_FUNCTION_CALL: // line.filter("ERROR") -> ID
+                // aca toy
+                if (!generate_variable_assignment_from_function_call_from_id(
+                            output, var, expr->)) {
+                        return false;
+                }
+                break;
         default:
                 break;
         }
@@ -1183,7 +1190,6 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                         "="
                                         "BUFFER_SIZE;");
                         fprintf(output,
-                                "/*probando*/"
                                 "char * %s = "
                                 "(char * )"
                                 "calloc("
