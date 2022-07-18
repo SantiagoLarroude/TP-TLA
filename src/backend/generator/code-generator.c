@@ -292,6 +292,7 @@ static void generate_header_types_TexlerObject(FILE *const output)
                         "char **path_list;"
                         "size_t n_line;"
                         "size_t n_files;"
+                        "unsigned next_open_file;"
                         "} file;"
                         "} value;"
                         "type_t type;"
@@ -630,12 +631,13 @@ static bool generate_variable_file(FILE *const output, variable *var,
                 if (is_directory != NULL) {
                         fprintf(output,
                                 "%s->type = TYPE_T_FILE_LIST;"
+                                "%s->value.file.next_open_file = 0;"
                                 "%s->value.file.n_files = "
                                 "get_list_of_files_in_dir("
                                 "&%s->value.file.path_list, %s);"
                                 "%s->value.file.separators = strdup("
                                 "%s);",
-                                var->name, var->name, var->name,
+                                var->name, var->name, var->name, var->name,
                                 var->value.string, var->name, str_separators);
 
                 } else {
@@ -649,6 +651,8 @@ static bool generate_variable_file(FILE *const output, variable *var,
 
                         fprintf(output, "return;"
                                         "}");
+                        fprintf(output, "%s->value.file.n_files = 1;",
+                                var->name);
                 }
 
         } else if (strstr(var->name, "output") == var->name) {
@@ -668,6 +672,8 @@ static bool generate_variable_file(FILE *const output, variable *var,
 
                         fprintf(output, "%s->type = TYPE_T_FILEPTR;",
                                 var->name);
+                        fprintf(output, "%s->value.file.next_open_file = 0;",
+                                var->name);
                         fprintf(output, "%s->value.file.stream = tmpfile();",
                                 var->name);
                         generate_allocation_error_msg(output, stream_str);
@@ -677,6 +683,8 @@ static bool generate_variable_file(FILE *const output, variable *var,
 
                 } else if (strcmp(var->value.string, "STDOUT") == 0) {
                         fprintf(output, "%s->type = TYPE_T_FILEPTR;",
+                                var->name);
+                        fprintf(output, "%s->value.file.next_open_file = 0;",
                                 var->name);
                         fprintf(output, "%s->value.file.stream = stdout;",
                                 var->name);
@@ -1314,23 +1322,25 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                                 "}",
                                                 loop->var->name);
                                         break;
-                                case LIST_RANGE_TYPE:
-                                        fprintf(output,
-                                                "_line_len_implementation = "
-                                                "lines(%s, &%s);",
-                                                working_filename,
-                                                loop->var->name);
-                                        fprintf(output,
-                                                "if ("
-                                                "_line_len_implementation <= 0"
-                                                "||"
-                                                "%s == NULL"
-                                                ")"
-                                                "{"
-                                                "break;"
-                                                "}",
-                                                loop->var->name);
-
+                                case EXPRESSION_LIST:
+                                        if (fn_calls->next->args->exprs[0]
+                                                    ->list_expr->type ==
+                                            LIST_RANGE_TYPE) {
+                                                fprintf(output,
+                                                        "_line_len_implementation = "
+                                                        "lines(input_file, &%s);",
+                                                        loop->var->name);
+                                                fprintf(output,
+                                                        "if ("
+                                                        "_line_len_implementation <= 0"
+                                                        "||"
+                                                        "%s == NULL"
+                                                        ")"
+                                                        "{"
+                                                        "break;"
+                                                        "}",
+                                                        loop->var->name);
+                                        }
                                         break;
                                 default:
                                         error_invalid_byIndex_argument();
@@ -1533,20 +1543,24 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                 }
 
                                 break;
-                        case LIST_RANGE_TYPE:
-                                fprintf(output,
-                                        "for (long %s = %ld - 1;"
-                                        "%s < %ld;"
-                                        "%s++)"
-                                        "{",
-                                        "_byIndex_implementation",
-                                        fn_calls->args->exprs[0]
-                                                ->list_expr->from,
-                                        "_byIndex_implementation",
-                                        fn_calls->args->exprs[0]->list_expr->to,
-                                        "_byIndex_implementation");
+                        case EXPRESSION_LIST:
+                                if (fn_calls->args->exprs[0]->list_expr->type ==
+                                    LIST_RANGE_TYPE) {
+                                        fprintf(output,
+                                                "for (long %s = %ld - 1;"
+                                                "%s < %ld;"
+                                                "%s++)"
+                                                "{",
+                                                "_byIndex_implementation",
+                                                fn_calls->args->exprs[0]
+                                                        ->list_expr->from,
+                                                "_byIndex_implementation",
+                                                fn_calls->args->exprs[0]
+                                                        ->list_expr->to,
+                                                "_byIndex_implementation");
 
-                                closing_braces++;
+                                        closing_braces++;
+                                }
                                 break;
                         default:
                                 error_invalid_byIndex_argument();

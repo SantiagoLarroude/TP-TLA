@@ -453,8 +453,9 @@ long line_by_number(TexlerObject *tex_obj, char **buffer, unsigned long n)
 //                                      input                   output
 void copy_file_content_texler(TexlerObject *source, TexlerObject *destination)
 {
-        if (strcmp(destination->value.file.separators, DEFAULT_SEPARATORS) ==
-            0) {
+        if (destination->value.file.stream == stdout ||
+            strcmp(destination->value.file.separators, DEFAULT_SEPARATORS) ==
+                    0) {
                 copy_file_content(source->value.file.stream,
                                   destination->value.file.stream);
         } else {
@@ -1159,7 +1160,7 @@ void r39(void)
         free_texlerobject(output);
 }
 
-TexlerObject *get_next_file(TexlerObject *tex_obj, const char* separators)
+TexlerObject *get_next_file(TexlerObject *tex_obj, const char *separators)
 {
         TexlerObject *input_file = NULL;
 
@@ -1176,8 +1177,8 @@ TexlerObject *get_next_file(TexlerObject *tex_obj, const char* separators)
                         exit(1);
                 }
 
-                if (open_file(tex_obj->value.file.path_list[i], "r", input_file,
-                              separators) == false) {
+                if (open_file(tex_obj->value.file.path_list[i], "r",
+                              input_file, separators) == false) {
                         free_texlerobject(input_file);
                         free_texlerobject(tex_obj);
                         // free_texlerobject(output); // no va xq no esta en la funcion
@@ -1217,7 +1218,7 @@ void r310(void)
         }
 
         for (int i = 0; i < input->value.file.n_files; i++) {
-                TexlerObject* input_file = get_next_file(input, ",");
+                TexlerObject *input_file = get_next_file(input, ",");
 
                 long int line_len = BUFFER_SIZE;
                 char *line = (char *)calloc(line_len, sizeof(char));

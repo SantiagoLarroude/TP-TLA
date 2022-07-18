@@ -163,6 +163,8 @@ static void generate_internal_function_copy_file_content(FILE *const output)
                 ")"
                 "{"
                 "if ("
+                "destination->value.file.stream == stdout"
+                "||"
                 "strcmp("
                 "destination->value.file.separators,"
                 "DEFAULT_SEPARATORS"
@@ -452,34 +454,33 @@ void generate_internal_function_compare_equality(FILE *const output)
 
 void generate_internal_function_get_next_file(FILE *const output)
 {
-        fprintf(output,
-                "TexlerObject *"
-                "get_next_file(TexlerObject *tex_obj, "
-                "const char* separators){"
-                "TexlerObject *input_file = NULL;"
+        fprintf(output, "TexlerObject *"
+                        "get_next_file(TexlerObject *tex_obj, "
+                        "const char* separators){"
+                        "TexlerObject *input_file = NULL;"
 
-                "if (tex_obj == NULL) {"
-                "return NULL;"
-                "}"
-                "if (tex_obj->type == TYPE_T_FILE_LIST) {"
-                "*input_file = (TexlerObject *)calloc(1, sizeof(TexlerObject));");
-        
+                        "if (tex_obj == NULL) {"
+                        "return NULL;"
+                        "}"
+                        "if (tex_obj->type == TYPE_T_FILE_LIST) {"
+                        "input_file = "
+                        "(TexlerObject *)calloc(1, sizeof(TexlerObject));");
+
         generate_allocation_error_msg(output, "input_file");
-        // if (input_file == NULL) {
-        //         perror("Aborting due to");
-        //         free_texlerobject(tex_obj);
-        //         // free_texlerobject(output); // no va xq no esta en la funcion
-        //         exit(1);
-        // }
 
         fprintf(output,
-                "if (open_file(tex_obj->value.file.path_list[i], \"r\", input_file,"
+                "if (open_file("
+                "tex_obj->value.file.path_list["
+                "tex_obj->value.file.next_open_file"
+                "]"
+                ", \"r\", input_file,"
                 "separators) == false) {"
                 "free_texlerobject(input_file);"
                 "free_texlerobject(tex_obj);"
                 /* free_texlerobject(output); // no va xq no esta en la funcion */
                 "return NULL;"
                 "}"
+                "tex_obj->value.file.next_open_file++;"
                 "}"
                 "else if (tex_obj->type == TYPE_T_FILEPTR)"
                 "{"
