@@ -73,6 +73,16 @@ static void generate_internal_function_open_file(FILE *const output)
                 "strcat(error_msg, name);"
                 "strcat(error_msg, \"'\");"
 
+                /*caso donde es una carpeta*/
+                "char *is_directory =  strrchr(name, '/');"
+                "if (is_directory != NULL) {"
+                "tex_obj->type = TYPE_T_FILE_LIST;"
+                "tex_obj->value.file.n_files = get_list_of_files_in_dir("
+                "&tex_obj->value.file.path_list, name);"
+                "tex_obj->value.file.separators = separators;"
+                "return true;"
+                "}"
+
                 "FILE *fptr = fopen(name, mode);"
                 "if (fptr == NULL) {"
                 "perror(error_msg);"

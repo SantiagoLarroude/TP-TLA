@@ -631,6 +631,9 @@ static bool generate_variable_file(FILE *const output, variable *var,
         }
 
         if (strstr(var->name, "input") == var->name) {
+                // if () { // toy aca
+                // }
+
                 fprintf(output,
                         "if (open_file(%s, \"r\", %s, %s) == false)"
                         "{",
@@ -1126,16 +1129,14 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                         "BUFFER_SIZE;");
                         fprintf(output,
                                 "/*probando*/"
-                                "/*"
                                 "char * %s = "
                                 "(char * )"
                                 "calloc("
                                 "_line_len_implementation,"
                                 "sizeof(char)"
-                                ");"
-                                "*/",
+                                ");",
                                 loop->var->name);
-                        // generate_allocation_error_msg(output, loop->var->name);
+                        generate_allocation_error_msg(output, loop->var->name);
 
                         if (fn_calls->next != NULL &&
                             strcmp(fn_calls->next->id->name, "byIndex") == 0) {
@@ -1268,7 +1269,7 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                         "if(_line_len_implementation <= 0 || "
                                         "_line_line == NULL) break;\n",
                                         working_filename);
-                                        closing_braces++;
+                                closing_braces++;
 
                                 // aca tiene que venir la parte del line_len > 0 del r311
 
@@ -1356,8 +1357,8 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                         1 + strlen(original_loop_var_name));
 
                                 free(original_loop_var_name);
-                                
-                                while (closing_braces > 0){
+
+                                while (closing_braces > 0) {
                                         fputs("}", output);
                                         closing_braces--;
                                 }
@@ -1392,6 +1393,27 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                 return false;
                         }
                 } else if (strcmp(fn_calls->id->name, "filter") == 0) {
+                        fprintf(output,
+                                        "rewind(%s->"
+                                        "value.file.stream);"
+                                        "while (_line_len_implementation > 0)"
+                                        "{",
+                                        working_filename);
+                                fprintf(output,
+                                        "_line_len_implementation = "
+                                        "lines(%s, &%s);",
+                                        working_filename, loop->var->name);
+
+                                closing_braces++;
+
+                                fprintf(output, "if (is_in_string(%s, %s)) {",
+                                        fn_calls->args->exprs[0]
+                                                ->var->value
+                                                .string, // "palabra"
+                                        loop->var->name
+
+                                );
+                                closing_braces++;
                         // fprintf(output,
                         //         "// rewind(el nombre de input flechita "
                         //         "value.file.stream);\n"
