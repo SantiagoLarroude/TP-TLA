@@ -4,8 +4,8 @@ function r33()
     File "test_file_cases.txt" as input.
     File "new_r33.txt" as output.
 
-    with input: for line in lines().filter("palabra") do
-                    line -> output.
+    with input: for line in lines() do
+                    line.filter("palabra") -> output.
                 .
     .
 

@@ -1,6 +1,6 @@
 hola miguel, como estas?,1234, 542.2,  21.0
 hola don pepito 1234, como 542.2 21.0 estas?
-hola, juan
+hola juan
 hola, jose
 chau ,palabra xd
 hola ,pedro

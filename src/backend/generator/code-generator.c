@@ -39,7 +39,8 @@ static bool generate_variable(FILE *const output, variable *var,
                               free_function_call_array *frees_stack);
 
 static bool generate_variable_assignment(FILE *const output, variable *var,
-                                         node_expression *expr);
+                                         node_expression *expr,
+                                         const char *working_filename);
 static bool generate_variable_assignment_to_variable(FILE *const output,
                                                      variable *dest,
                                                      variable *source);
@@ -93,6 +94,9 @@ static bool generate_string_arithmetic_sub_expression(node_expression *left,
 static const char *generate_number_arithmetic_mul_with_file(
         FILE *const output, node_expression *left, node_expression *right,
         const char *assign_variable_name);
+static bool generate_variable_assignment_from_function_call_from_id(
+        FILE *const output, variable *dest,
+        node_function_call *id_plus_function, const char *working_file);
 
 size_t global_braces = 0;
 
@@ -868,6 +872,49 @@ static bool generate_string_arithmetic_add_expression(node_expression *left,
                                         var->name, var->name,
                                         right->var->name);
                         }
+
+                } else if (left->var->type == LOOP_VARIABLE_TYPE) {
+                        fprintf(output,
+                                "size_t _copy_loop_var_type_len = strlen(%s);"
+                                "bool _copy_loop_var_type_has_newline = false;"
+                                "if (_copy_loop_var_type_len > 1"
+                                "&&"
+                                "%s[_copy_loop_var_type_len - 1] == '\\n') {"
+                                "%s[_copy_loop_var_type_len - 1] = '\\0';"
+                                "_copy_loop_var_type_has_newline = true;"
+                                "}",
+                                left->var->name, left->var->name,
+                                left->var->name);
+                        fprintf(output,
+                                "copy_buffer_content("
+                                "%s"
+                                ","
+                                "%s->value.file.stream);",
+                                left->var->name, var->name);
+
+                        if (right->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
+                                fprintf(output,
+                                        "copy_buffer_content("
+                                        "%s"
+                                        ","
+                                        "%s->value.file.stream);",
+                                        right->var->value.string, var->name);
+                        } else if (right->type ==
+                                   VARIABLE_TYPE) { // es ID pero no de tipo file
+                                fprintf(output,
+                                        "copy_buffer_content("
+                                        "%s"
+                                        ","
+                                        "%s->value.file.stream);",
+                                        right->var->name, var->name);
+                        }
+
+                        fprintf(output,
+                                "if (_copy_loop_var_type_has_newline)"
+                                "{"
+                                "fputc('\\n', %s->value.file.stream);"
+                                "}",
+                                var->name);
                 } else {
                         fprintf(output,
                                 "copy_buffer_content("
@@ -975,7 +1022,6 @@ static bool generate_variable_assignment(FILE *const output, variable *var,
                 }
                 break;
         case EXPRESSION_FUNCTION_CALL: // line.filter("ERROR") -> ID
-                // aca toy
                 if (!generate_variable_assignment_from_function_call_from_id(
                             output, var, expr->fun_call, working_filename)) {
                         return false;
@@ -995,38 +1041,49 @@ static bool generate_variable_assignment_from_function_call_from_id(
         if (dest == NULL || id_plus_function == NULL ||
             id_plus_function->next == NULL)
                 return false;
-        // aca toy
+
         size_t closing_braces = 0;
         size_t concat_functions = 1;
-        variable *working_id = id_plus_function->id; // line
+        variable *working_id = id_plus_function->id; // 'line'
         // lo que esta despues del DOT
-        node_function_call *fn_calls = id_plus_function->next; // Alias
+        node_function_call *fn_calls = id_plus_function; // Alias
 
         while (fn_calls != NULL && fn_calls->next != NULL) {
                 fn_calls = fn_calls->next;
                 concat_functions++;
         }
 
+
         while (concat_functions > 0) {
                 if (strcmp(fn_calls->id->name, "filter") == 0) {
-                        fprintf(output,
-                                "rewind(%s->)"
-                                "value.file.stream);"
-                                "/*generate_variable_assignment_from_function_call_from_id*/",
+                        fprintf(output, "rewind(%s_file->value.file.stream);",
                                 working_file);
+                        fprintf(output, "while( _line_len_implementation > 0 )"
+                                        "{");
+                        closing_braces++;
                         fprintf(output,
-                                "while( _line_len_implementation > 0 ){");
-                        global_braces++;
-                        fprintf(output,
-                                "_line_len_implementation = lines(%s, &%s);"
-                                "if (is_in_string(%s, %s)){"
-                                "",
-                                working_file, working_id,
+                                "_line_len_implementation = lines(%s_file, &%s);"
+                                "if (is_in_string(%s, %s))"
+                                "{",
+                                working_file, working_id->name,
                                 fn_calls->args->exprs[0]->var->value.string,
-                                working_id);
-                        global_braces++;
+                                working_id->name);
+                        closing_braces++;
+                } else if (fn_calls->id->type == LOOP_VARIABLE_TYPE) {
+                        fprintf(output,
+                                "copy_buffer_content(%s, %s->value.file.stream);",
+                                working_id->name, dest->name);
                 }
+
+                fn_calls = fn_calls->prev;
+                concat_functions--;
         }
+
+        while (closing_braces > 0) {
+                fputc('}', output);
+                closing_braces--;
+        }
+
         return true;
 }
 
@@ -1251,9 +1308,10 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
 
         fprintf(output,
                 "for (int i = 0; i < %s->value.file.n_files; i++) {"
-                "TexlerObject* input_file = get_next_file(%s, "
+                "TexlerObject* %s_file = get_next_file(%s, "
                 "%s->value.file.separators);",
-                working_filename, working_filename, working_filename);
+                working_filename, working_filename, working_filename,
+                working_filename);
         // global_braces++;
         closing_braces++;
 
@@ -1278,12 +1336,13 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                 case EXPRESSION_VARIABLE:
                                         fprintf(output,
                                                 "_line_len_implementation ="
-                                                "line_by_number(input"
+                                                "line_by_number(%s_file"
                                                 ","
                                                 "&%s"
                                                 ","
                                                 "%s + 1"
                                                 ");",
+                                                working_filename,
                                                 loop->var->name,
                                                 fn_calls->next->args->exprs[0]
                                                         ->var->name);
@@ -1328,7 +1387,8 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                             LIST_RANGE_TYPE) {
                                                 fprintf(output,
                                                         "_line_len_implementation = "
-                                                        "lines(input_file, &%s);",
+                                                        "lines(%s_file, &%s);",
+                                                        working_filename,
                                                         loop->var->name);
                                                 fprintf(output,
                                                         "if ("
@@ -1352,14 +1412,14 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                    strcmp(fn_calls->next->id->name,
                                           "filter") == 0) {
                                 fprintf(output,
-                                        "rewind(%s->"
+                                        "rewind(%s_file->"
                                         "value.file.stream);"
                                         "while (_line_len_implementation > 0)"
                                         "{",
                                         working_filename);
                                 fprintf(output,
                                         "_line_len_implementation = "
-                                        "lines(%s, &%s);",
+                                        "lines(%s_file, &%s);",
                                         working_filename, loop->var->name);
 
                                 closing_braces++;
@@ -1424,7 +1484,7 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                         "while (_line_len_implementation"
                                         " > 0) {"
                                         "_line_len_implementation = "
-                                        "lines(%s, &_line_line);"
+                                        "lines(%s_file, &_line_line);"
                                         "if(_line_len_implementation <= 0 || "
                                         "_line_line == NULL) break;\n",
                                         working_filename);
@@ -1464,7 +1524,8 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                         "&_columns_remaining_implementation"
                                         ",");
 
-                                fprintf(output, "%s->value.file.separators,",
+                                fprintf(output,
+                                        "%s_file->value.file.separators,",
                                         working_filename);
 
                                 fprintf(output,
@@ -1568,14 +1629,14 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                         }
                 } else if (strcmp(fn_calls->id->name, "filter") == 0) {
                         fprintf(output,
-                                "rewind(%s->"
+                                "rewind(%s_file->"
                                 "value.file.stream);"
                                 "while (_line_len_implementation > 0)"
                                 "{",
                                 working_filename);
                         fprintf(output,
                                 "_line_len_implementation = "
-                                "lines(%s, &%s);",
+                                "lines(%s_file, &%s);",
                                 working_filename, loop->var->name);
 
                         closing_braces++;
