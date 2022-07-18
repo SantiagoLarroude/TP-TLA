@@ -353,7 +353,6 @@ static void generate_header_types_TexlerObject(FILE *const output)
                         "default:"
                         "break;"
                         "}"
-                        "memset(tex_obj, 0, sizeof(TexlerObject));"
                         "free(tex_obj);"
                         "}");
 }
@@ -544,7 +543,7 @@ static bool generate_variable(FILE *const output, variable *var,
                 break;
         case STRING_TYPE:
                 fprintf(output, "%s->type = TYPE_T_STRING;", var->name);
-                fprintf(output, "%s->value.string = %s;", var->name,
+                fprintf(output, "%s->value.string = strdup(%s);", var->name,
                         var->value.string);
                 fprintf(output, "%s->value.length = %ld;", var->name,
                         strlen(var->value.string));
@@ -565,8 +564,8 @@ static bool generate_variable(FILE *const output, variable *var,
                 case STRING_TYPE:
                         fprintf(output, "%s->type = TYPE_T_STRING;",
                                 var->name);
-                        fprintf(output, "%s->value.string = %s;", var->name,
-                                var->value.expr->var->value.string);
+                        fprintf(output, "%s->value.string = strdup(%s);",
+                                var->name, var->value.expr->var->value.string);
                         fprintf(output, "%s->value.length = %ld;", var->name,
                                 strlen(var->value.expr->var->value.string));
                         break;
@@ -829,29 +828,53 @@ static bool generate_string_arithmetic_add_expression(node_expression *left,
                 }
 
         } else if (left->type == VARIABLE_TYPE) {
-                fprintf(output,
-                        "copy_buffer_content("
-                        "%s"
-                        ","
-                        "%s->value.file.stream);",
-                        left->var->name, var->name);
+                if (var->type == CONSTANT_TYPE &&
+                    var->value.expr->var->type == STRING_TYPE) {
+                        fprintf(output,
+                                "%s->value.string = "
+                                "string_addition(%s->value.string, %s);",
+                                var->name, var->name, left->var->name);
 
-                if (right->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
+                        if (right->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
+                                fprintf(output,
+                                        "%s->value.string = "
+                                        "string_addition(%s->value.string, %s);",
+                                        var->name, var->name,
+                                        right->var->value.string);
+                        } else if (right->type ==
+                                   VARIABLE_TYPE) { // es ID pero no de tipo file
+                                fprintf(output,
+                                        "%s->value.string = "
+                                        "string_addition(%s->value.string, %s);",
+                                        var->name, var->name,
+                                        right->var->name);
+                        }
+                } else {
                         fprintf(output,
                                 "copy_buffer_content("
                                 "%s"
                                 ","
                                 "%s->value.file.stream);",
-                                right->var->value.string, var->name);
-                } else if (right->type ==
-                           VARIABLE_TYPE) { // es ID pero no de tipo file
-                        fprintf(output,
-                                "copy_buffer_content("
-                                "%s"
-                                ","
-                                "%s->value.file.stream);",
-                                right->var->name, var->name);
+                                left->var->name, var->name);
+
+                        if (right->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
+                                fprintf(output,
+                                        "copy_buffer_content("
+                                        "%s"
+                                        ","
+                                        "%s->value.file.stream);",
+                                        right->var->value.string, var->name);
+                        } else if (right->type ==
+                                   VARIABLE_TYPE) { // es ID pero no de tipo file
+                                fprintf(output,
+                                        "copy_buffer_content("
+                                        "%s"
+                                        ","
+                                        "%s->value.file.stream);",
+                                        right->var->name, var->name);
+                        }
                 }
+
         } else if (right->type == VARIABLE_TYPE) {
                 if (left->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
                         fprintf(output,
@@ -962,7 +985,24 @@ static bool generate_variable_assignment_to_variable(FILE *const output,
                                 ");",
                                 source->name, dest->name);
                         break;
-
+                default:
+                        fprintf(output,
+                                "memcpy(%s, %s, sizeof(TexlerObject));",
+                                dest->name, source->name);
+                        break;
+                }
+        } else if (source->type == CONSTANT_TYPE &&
+                   source->value.expr->var->type == STRING_TYPE) {
+                switch (dest->type) {
+                case FILE_PATH_TYPE:
+                        fprintf(output,
+                                "copy_buffer_content("
+                                "%s->value.string"
+                                ","
+                                "%s->value.file.stream"
+                                ");",
+                                source->name, dest->name);
+                        break;
                 default:
                         fprintf(output,
                                 "memcpy(%s, %s, sizeof(TexlerObject));",
@@ -998,7 +1038,7 @@ static bool generate_variable_assignment_to_constant(FILE *const output,
                 fprintf(output, "%s->type = TYPE_T_BOOLEAN;", dest->name);
                 break;
         case STRING_TYPE:
-                fprintf(output, ".string = %s;", source->value.string);
+                fprintf(output, ".string = strdup(%s);", source->value.string);
                 fprintf(output, ".length = %ld;",
                         strlen(source->value.string));
                 fprintf(output, "%s->type = TYPE_T_STRING;", dest->name);
@@ -1156,6 +1196,29 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                         if (fn_calls->next != NULL &&
                             strcmp(fn_calls->next->id->name, "byIndex") == 0) {
                                 switch (fn_calls->next->args->exprs[0]->type) {
+                                case EXPRESSION_VARIABLE:
+                                        fprintf(output,
+                                                "_line_len_implementation ="
+                                                "line_by_number(input"
+                                                ","
+                                                "&%s"
+                                                ","
+                                                "%s + 1"
+                                                ");",
+                                                loop->var->name,
+                                                fn_calls->next->args->exprs[0]
+                                                        ->var->name);
+                                        fprintf(output,
+                                                "if ("
+                                                "_line_len_implementation <= 0"
+                                                "||"
+                                                "%s == NULL"
+                                                ")"
+                                                "{"
+                                                "return;"
+                                                "}",
+                                                loop->var->name);
+                                        break;
                                 case EXPRESSION_GRAMMAR_CONSTANT_TYPE:
                                         fprintf(output,
                                                 "_line_len_implementation ="
@@ -1380,9 +1443,20 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                         }
                 } else if (strcmp(fn_calls->id->name, "byIndex") == 0) {
                         switch (fn_calls->args->exprs[0]->type) {
+                        case EXPRESSION_VARIABLE:
+                                if (fn_calls->args->exprs[0]->var->type ==
+                                    LOOP_VARIABLE_TYPE) {
+                                        // Do nothing
+                                } else {
+                                        error_invalid_byIndex_argument();
+                                        return false;
+                                }
+                                break;
                         case EXPRESSION_GRAMMAR_CONSTANT_TYPE:
-                                if (fn_calls->args->exprs[0]->var->type !=
+                                if (fn_calls->args->exprs[0]->var->type ==
                                     NUMBER_TYPE) {
+                                        // Do nothing
+                                } else {
                                         error_invalid_byIndex_argument();
                                         return false;
                                 }

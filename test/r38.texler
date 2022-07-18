@@ -8,12 +8,14 @@ function r38()
 
     for idx in [1..5] do
         if idx == 5 then
-            with input: lines().byIndex(idx) -> accumulator.
+            with input: for line in lines().byIndex(idx) do
+                            line -> accumulator.
+                        .
             .
         else
-            with input:
-                lines().byIndex(idx) -- "\n" -> accumulator.
-                accumulator ++ "," -> accumulator.
+            with input: for line in lines().byIndex(idx) do
+                            line ++ "," -> accumulator.
+                        .
             .
         .
     .

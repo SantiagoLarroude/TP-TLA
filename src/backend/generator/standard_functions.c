@@ -180,11 +180,14 @@ static void generate_internal_function_line_by_number(FILE *const output)
                 "rewind(tex_obj->value.file.stream);"
                 "}"
 
-                "do"
+                "while (tex_obj->value.file.n_line < n)"
                 "{"
                 "to_return = lines(tex_obj, buffer);"
+                "if (to_return <= 0)"
+                "{"
+                "break;"
                 "}"
-                "while (to_return > 0 && tex_obj->value.file.n_line < n);"
+                "}"
 
                 "to_return = lines(tex_obj, buffer); /* Line n */"
 
