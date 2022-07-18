@@ -413,21 +413,27 @@ void generate_internal_function_compare_equality(FILE *const output)
                 "return false;"
                 "}");
 
-        fprintf(output, "bool "
-                        "compare_equality_constant_number_int(long left,"
-                        "TexlerObject *right)"
-                        "{"
-                        "if ("
-                        "right->type == TYPE_T_BOOLEAN"
-                        "||"
-                        "right->type == TYPE_T_INTEGER"
-                        ")"
-                        "{"
-                        "return (left - right->value.integer) == 0;"
-                        "}"
+        fprintf(output,
+                "bool "
+                "compare_equality_constant_number_int(long left,"
+                "TexlerObject *right)"
+                "{"
+                "if ("
+                "right->type == TYPE_T_BOOLEAN"
+                "||"
+                "right->type == TYPE_T_INTEGER"
+                ")"
+                "{"
+                "return (left - right->value.integer) == 0;"
+                "}"
 
-                        "return false;"
-                        "}");
+                "else if (right->type == TYPE_T_REAL)"
+                "{"
+                "return fabs((double) left - right->value.real) < DBL_EPSILON;"
+                "}"
+
+                "return false;"
+                "}");
 
         fprintf(output, "bool "
                         "compare_equality_constant_string(char* left,"

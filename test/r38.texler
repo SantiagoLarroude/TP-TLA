@@ -9,7 +9,7 @@ function r38()
     for idx in [1..5] do
         if idx == 5 then
             with input: for line in lines().byIndex(idx) do
-                            line -> accumulator.
+                            accumulator ++ line -> accumulator.
                         .
             .
         else
