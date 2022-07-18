@@ -5,6 +5,9 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include <math.h>
+#include <cfloat.h>
+
 #define BUFFER_SIZE 256
 
 const char *DEFAULT_SEPARATORS = " ,";
@@ -160,7 +163,6 @@ void copy_buffer_content(char *from, FILE *to)
 {
         fputs(from, to);
 }
-
 
 void copy_file_content(FILE *from, FILE *to)
 {
@@ -518,6 +520,29 @@ void copy_file_content_texler(TexlerObject *source, TexlerObject *destination)
                         free(column);
                 }
         }
+}
+
+bool compare_equality(TexlerObject *left, TexlerObject *right)
+{
+        if ((left->type == TYPE_T_BOOLEAN || left->type == TYPE_T_INTEGER) &&
+            (right->type == TYPE_T_BOOLEAN || right->type == TYPE_T_INTEGER)) {
+                return (left->value.integer - right->value.integer) == 0;
+        } else if ((left->type == TYPE_T_REAL &&
+                    (right->type == TYPE_T_BOOLEAN ||
+                     right->type == TYPE_T_INTEGER ||
+                     right->type == TYPE_T_REAL)) ||
+                   (right->type == TYPE_T_REAL &&
+                    (left->type == TYPE_T_BOOLEAN ||
+                     left->type == TYPE_T_INTEGER ||
+                     left->type == TYPE_T_REAL))) {
+                return fabs(left->value.real - right->value.real) < DBL_EPSILON;
+        }
+        else if (left->type == TYPE_T_STRING && right->type == TYPE_T_STRING) {
+                return strcmp(left->value.string, right->value.string) == 0;
+        }
+
+
+        return false;
 }
 
 void r30(void)

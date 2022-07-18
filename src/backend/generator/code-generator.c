@@ -246,6 +246,8 @@ static void generate_header(FILE *const output)
 {
         fprintf(output, "#include <ctype.h>\n"
                         "#include <dirent.h>\n"
+                        "#include <float.h>\n"
+                        "#include <math.h>\n"
                         "#include <stdio.h>\n"
                         "#include <stdlib.h>\n"
                         "#include <stdbool.h>\n"
@@ -817,13 +819,53 @@ static bool generate_string_arithmetic_add_expression(node_expression *left,
                 }
 
         } else if (left->type == VARIABLE_TYPE) {
-                LogDebug(
-                        "Not implemented: string addition with left of type %ld",
-                        left->type);
+                fprintf(output,
+                        "copy_buffer_content("
+                        "%s"
+                        ","
+                        "%s->value.file.stream);",
+                        left->var->name, var->name);
+
+                if (right->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
+                        fprintf(output,
+                                "copy_buffer_content("
+                                "%s"
+                                ","
+                                "%s->value.file.stream);",
+                                right->var->value.string, var->name);
+                } else if (right->type ==
+                           VARIABLE_TYPE) { // es ID pero no de tipo file
+                        fprintf(output,
+                                "copy_buffer_content("
+                                "%s"
+                                ","
+                                "%s->value.file.stream);",
+                                right->var->name, var->name);
+                }
         } else if (right->type == VARIABLE_TYPE) {
-                LogDebug(
-                        "Not implemented: string addition with right of type %ld",
-                        right->type);
+                if (left->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
+                        fprintf(output,
+                                "copy_buffer_content("
+                                "%s"
+                                ","
+                                "%s->value.file.stream);",
+                                left->var->value.string, var->name);
+                } else if (left->type ==
+                           VARIABLE_TYPE) { // es ID pero no de tipo file
+                        fprintf(output,
+                                "copy_buffer_content("
+                                "%s"
+                                ","
+                                "%s->value.file.stream);",
+                                left->var->name, var->name);
+                }
+
+                fprintf(output,
+                        "copy_buffer_content("
+                        "%s"
+                        ","
+                        "%s->value.file.stream);",
+                        right->var->name, var->name);
         } else {
                 LogError(
                         "String addition not posible for types: %ld and %ld\n",
@@ -1019,23 +1061,23 @@ static bool generate_loop_expression(FILE *const output, node_loop *loop,
         switch (loop->iterable->type) {
         case EXPRESSION_LIST:
                 if (loop->iterable->list_expr->type == LIST_RANGE_TYPE) {
-                // loop->iterable->list_expr
-                fprintf(output,
-                        "for ("
-                        "long %s = %ld - 1;"
-                        "%s < %ld;"
-                        "%s++)"
-                        "{",
-                        loop->var->name, loop->iterable->list_expr->from,
-                        loop->var->name, loop->iterable->list_expr->to,
-                        loop->var->name);
+                        // loop->iterable->list_expr
+                        fprintf(output,
+                                "for ("
+                                "long %s = %ld - 1;"
+                                "%s < %ld;"
+                                "%s++)"
+                                "{",
+                                loop->var->name,
+                                loop->iterable->list_expr->from,
+                                loop->var->name, loop->iterable->list_expr->to,
+                                loop->var->name);
 
-                generate_loop_action(output, loop, frees_stack,
-                                     working_filename);
+                        generate_loop_action(output, loop, frees_stack,
+                                             working_filename);
 
-                fprintf(output, "}");
-                }
-                else {
+                        fprintf(output, "}");
+                } else {
                         error_loop_iterable_of_invalid_type();
                         return false;
                 }
@@ -1083,14 +1125,17 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                         "="
                                         "BUFFER_SIZE;");
                         fprintf(output,
+                                "/*probando*/"
+                                "/*"
                                 "char * %s = "
-                                "(char *)"
+                                "(char * )"
                                 "calloc("
                                 "_line_len_implementation,"
                                 "sizeof(char)"
-                                ");",
+                                ");"
+                                "*/",
                                 loop->var->name);
-                        generate_allocation_error_msg(output, loop->var->name);
+                        // generate_allocation_error_msg(output, loop->var->name);
 
                         if (fn_calls->next != NULL &&
                             strcmp(fn_calls->next->id->name, "byIndex") == 0) {
@@ -1198,29 +1243,58 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                         "_columns_implementation",
                                         new_loop_var_name_len);
 
+                                // fprintf(output, "long _line_len_implementation"
+                                //                 "="
+                                //                 "BUFFER_SIZE;");
+                                fprintf(output, "char * _line_line = "
+                                                "(char *)"
+                                                "calloc("
+                                                "_line_len_implementation,"
+                                                "sizeof(char)"
+                                                ");");
+                                generate_allocation_error_msg(output,
+                                                              "_line_line");
+
+                                // while (_line_len_implementation > 0) {
+                                // while (line_len > 0) {
+                                //         line_len = lines(input, &line);
+                                //         if (line_len <= 0 || line == NULL)
+                                //                 break;
+                                fprintf(output,
+                                        "while (_line_len_implementation"
+                                        " > 0) {"
+                                        "_line_len_implementation = "
+                                        "lines(%s, &_line_line);"
+                                        "if(_line_len_implementation <= 0 || "
+                                        "_line_line == NULL) break;\n",
+                                        working_filename);
+                                        closing_braces++;
+
+                                // aca tiene que venir la parte del line_len > 0 del r311
+
                                 fprintf(output,
                                         "char *_columns_remaining_implementation"
-                                        "= %s;"
+                                        "= _line_line;"
                                         "long _columns_len_implementation = "
                                         "BUFFER_SIZE;"
                                         "char *%s = "
                                         "(char *)"
                                         "calloc(_columns_len_implementation,"
                                         "sizeof(char));",
-                                        original_loop_var_name,
                                         loop->var->name);
                                 generate_allocation_error_msg(output,
                                                               loop->var->name);
 
                                 fprintf(output,
                                         "while ("
-                                        "_columns_remaining_implementation != NULL"
+                                        "_columns_remaining_implementation "
+                                        "!= NULL"
                                         ")"
                                         "{");
                                 closing_braces++;
 
                                 fprintf(output,
-                                        "long"
+                                        "int"
                                         " "
                                         "_columns_separator_char_implementation"
                                         "= 0;");
@@ -1230,9 +1304,8 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                         "&_columns_remaining_implementation"
                                         ",");
 
-                                fprintf(output,
-                                        "NULL" // TODO: Separators
-                                        ",");
+                                fprintf(output, "%s->value.file.separators,",
+                                        working_filename);
 
                                 fprintf(output,
                                         "&%s"
@@ -1283,6 +1356,11 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                         1 + strlen(original_loop_var_name));
 
                                 free(original_loop_var_name);
+                                
+                                while (closing_braces > 0){
+                                        fputs("}", output);
+                                        closing_braces--;
+                                }
                         }
                 } else if (strcmp(fn_calls->id->name, "byIndex") == 0) {
                         switch (fn_calls->args->exprs[0]->type) {
@@ -1358,6 +1436,17 @@ static bool generate_conditional(FILE *const output,
                                  node_conditional *conditional,
                                  const char *working_filename)
 {
+        free_function_call_array *frees_stack =
+                (free_function_call_array *)calloc(
+                        1, sizeof(free_function_call_array));
+        if (frees_stack == NULL) {
+                perror("Aborting due to");
+                exit(1);
+        }
+
+        node_expression *left = conditional->condition->left;
+        node_expression *right = conditional->condition->right;
+
         switch (conditional->condition->type) {
         case EXPRESSION_VARIABLE_TYPE_COMPARISON:
                 switch (conditional->condition->compare_type) {
@@ -1401,6 +1490,43 @@ static bool generate_conditional(FILE *const output,
                         break;
                 }
                 break;
+        case EXPRESSION_COMPARE_EQUALS:
+        case EXPRESSION_COMPARE_NOT_EQUALS: // parece que no entraria en esta idea
+        case EXPRESSION_COMPARE_GREATER_THAN:
+        case EXPRESSION_COMPARE_GREATER_EQUAL:
+        case EXPRESSION_COMPARE_LESS_THAN:
+        case EXPRESSION_COMPARE_LESS_EQUAL:
+                if (left->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
+                        left->var->name = strdup("_constant_number_if");
+                        if (!generate_variable(output, left->var, NULL,
+                                               frees_stack))
+                                return false;
+                }
+
+                if (right->type == EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
+                        right->var->name = strdup("_constant_number_if");
+                        if (!generate_variable(output, right->var, NULL,
+                                               frees_stack))
+                                return false;
+                }
+
+                if (left->var->type == LOOP_VARIABLE_TYPE) {
+                        fprintf(output,
+                                "if("
+                                "compare_equality_constant_number_int(%s, %s)"
+                                "== 1)",
+                                left->var->name, right->var->name);
+                } else {
+                        fprintf(output, "if(compare_equality(%s, %s) == 1)",
+                                left->var->name, right->var->name);
+                }
+
+                fputc('{', output);
+                generate_expression(output, NULL, conditional->true_condition,
+                                    working_filename);
+                fputc('}', output);
+
+                break;
         default:
                 break;
         }
@@ -1411,6 +1537,15 @@ static bool generate_conditional(FILE *const output,
                             working_filename);
         fputc('}', output);
 
+        while (frees_stack->size > 0) {
+                free_function_call *ffc = pop_free_function_call(&frees_stack);
+
+                if (ffc != NULL)
+                        fprintf(output, "%s(%s);", ffc->fun, ffc->name);
+
+                free_struct_free_function_call(&ffc);
+        }
+        free_struct_free_function_call_array(&frees_stack);
         return true;
 }
 

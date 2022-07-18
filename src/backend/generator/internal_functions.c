@@ -7,6 +7,7 @@ static void
 generate_internal_function_get_list_of_files_in_dir(FILE *const output);
 static void generate_internal_function_string_addition(FILE *const output);
 static void generate_internal_function_string_substract(FILE *const output);
+void generate_internal_function_compare_equality(FILE *const output);
 
 extern void generate_allocation_error_msg(FILE *const output, char *ptr_name);
 
@@ -18,6 +19,7 @@ void generate_internal_functions(FILE *const output)
         generate_internal_function_get_list_of_files_in_dir(output);
         generate_internal_function_string_addition(output);
         generate_internal_function_string_substract(output);
+        generate_internal_function_compare_equality(output);
 }
 
 void generate_internal_functions_headers(FILE *const output)
@@ -35,6 +37,14 @@ void generate_internal_functions_headers(FILE *const output)
                         ");");
         fprintf(output, "char *string_substract(char *str1, char *str2);");
         fprintf(output, "char *string_addition(char *str1, char *str2);");
+        fprintf(output, "bool compare_equality("
+                        "TexlerObject *left, TexlerObject *right);");
+        fprintf(output, "bool "
+                        "compare_equality_constant_number_int(long left,"
+                        "TexlerObject *right);");
+        fprintf(output, "bool "
+                        "compare_equality_constant_string(char* left,"
+                        "TexlerObject *right);");
 }
 
 static void generate_internal_function_open_file(FILE *const output)
@@ -336,5 +346,80 @@ static void generate_internal_function_string_substract(FILE *const output)
                         "str1 = aux;"
                         "}"
                         "return str1;"
+                        "}");
+}
+
+void generate_internal_function_compare_equality(FILE *const output)
+{
+        fprintf(output,
+                "bool "
+                "compare_equality(TexlerObject *left, TexlerObject *right)"
+                "{"
+                "if ("
+                "(left->type == TYPE_T_BOOLEAN"
+                "||"
+                "left->type == TYPE_T_INTEGER)"
+                "&&"
+                "(right->type == TYPE_T_BOOLEAN"
+                "||"
+                "right->type == TYPE_T_INTEGER)"
+                ")"
+                "{"
+                "return (left->value.integer - right->value.integer) == 0;"
+                "}"
+                "else if ("
+                "("
+                "left->type == TYPE_T_REAL &&"
+                "(right->type == TYPE_T_BOOLEAN ||"
+                "right->type == TYPE_T_INTEGER ||"
+                "right->type == TYPE_T_REAL)"
+                ")"
+                "||"
+                "(right->type == TYPE_T_REAL &&"
+                "(left->type == TYPE_T_BOOLEAN ||"
+                "left->type == TYPE_T_INTEGER ||"
+                "left->type == TYPE_T_REAL)"
+                ")"
+                ")"
+                "{"
+                "return fabs(left->value.real - right->value.real) < DBL_EPSILON;"
+                "}"
+                "else if"
+                "(left->type == TYPE_T_STRING && right->type == TYPE_T_STRING)"
+                "{"
+                "return strcmp(left->value.string, right->value.string) == 0;"
+                "}"
+
+                "return false;"
+                "}");
+
+        fprintf(output, "bool "
+                        "compare_equality_constant_number_int(long left,"
+                        "TexlerObject *right)"
+                        "{"
+                        "if ("
+                        "right->type == TYPE_T_BOOLEAN"
+                        "||"
+                        "right->type == TYPE_T_INTEGER"
+                        ")"
+                        "{"
+                        "return (left - right->value.integer) == 0;"
+                        "}"
+
+                        "return false;"
+                        "}");
+
+        fprintf(output, "bool "
+                        "compare_equality_constant_string(char* left,"
+                        "TexlerObject *right)"
+                        "{"
+                        "if ("
+                        "right->type == TYPE_T_STRING"
+                        ")"
+                        "{"
+                        "return strcmp(left, right->value.string) == 0;"
+                        "}"
+
+                        "return false;"
                         "}");
 }
