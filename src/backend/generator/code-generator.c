@@ -831,8 +831,19 @@ static bool generate_string_arithmetic_add_expression(node_expression *left,
                 }
 
         } else if (left->type == VARIABLE_TYPE) {
-                if (var->type == CONSTANT_TYPE &&
-                    var->value.expr->var->type == STRING_TYPE) {
+                if (strcmp(left->var->name, var->name) == 0) {
+                        fprintf(output,
+                                "%s->value.string = "
+                                "string_addition(%s->value.string, %s);",
+                                var->name, var->name, right->var->name);
+                } else if (right->type == VARIABLE_TYPE &&
+                           strcmp(right->var->name, var->name) == 0) {
+                        fprintf(output,
+                                "%s->value.string = "
+                                "string_addition(%s->value.string, %s);",
+                                var->name, var->name, left->var->name);
+                } else if (var->type == CONSTANT_TYPE &&
+                           var->value.expr->var->type == STRING_TYPE) {
                         fprintf(output,
                                 "%s->value.string = "
                                 "string_addition(%s->value.string, %s);",
@@ -987,6 +998,17 @@ static bool generate_variable_assignment_to_variable(FILE *const output,
                                 "%s->value.file.stream"
                                 ");",
                                 source->name, dest->name);
+                        break;
+                case CONSTANT_TYPE:
+                        if (dest->value.expr->var->type == STRING_TYPE) {
+                                fprintf(output,
+                                        "%s->value.string = strdup(%s);",
+                                        dest->name, source->name);
+                        } else {
+                                fprintf(output,
+                                        "memcpy(%s, %s, sizeof(TexlerObject));",
+                                        dest->name, source->name);
+                        }
                         break;
                 default:
                         fprintf(output,
@@ -1178,7 +1200,6 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                         "="
                                         "BUFFER_SIZE;");
                         fprintf(output,
-                                "/*probando*/"
                                 "char * %s = "
                                 "(char * )"
                                 "calloc("
@@ -1618,7 +1639,9 @@ static bool generate_conditional(FILE *const output,
                 if (left->var->type == LOOP_VARIABLE_TYPE) {
                         fprintf(output,
                                 "if("
-                                "compare_equality_constant_number_int(%s, %s)"
+                                "compare_equality_constant_number_int("
+                                "%s + 1, %s"
+                                ")"
                                 "== 1)",
                                 left->var->name, right->var->name);
                 } else {
