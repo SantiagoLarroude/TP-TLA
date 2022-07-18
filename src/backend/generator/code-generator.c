@@ -630,20 +630,30 @@ static bool generate_variable_file(FILE *const output, variable *var,
                 }
         }
 
+        char *is_directory = strrchr(var->value.string, '/');
         if (strstr(var->name, "input") == var->name) {
-                // if () { // toy aca
-                // }
+                if (is_directory != NULL) { // toy aca
+                        fprintf(output,
+                                "%s->type = TYPE_T_FILE_LIST;"
+                                "%s->value.file.n_files = "
+                                "get_list_of_files_in_dir("
+                                "&%s->value.file.path_list, %s);"
+                                "%s->value.file.separators = strdup("
+                                "%s);",
+                                var->name, var->name, var->name,
+                                var->value.string, var->name, str_separators);
+                } else {
+                        fprintf(output,
+                                "if (open_file(%s, \"r\", %s, %s) == false)"
+                                "{",
+                                var->value.string, var->name, str_separators);
 
-                fprintf(output,
-                        "if (open_file(%s, \"r\", %s, %s) == false)"
-                        "{",
-                        var->value.string, var->name, str_separators);
+                        if (frees_string != NULL)
+                                fprintf(output, "%s", frees_string);
 
-                if (frees_string != NULL)
-                        fprintf(output, "%s", frees_string);
-
-                fprintf(output, "return;"
-                                "}");
+                        fprintf(output, "return;"
+                                        "}");
+                }
 
         } else if (strstr(var->name, "output") == var->name) {
                 if (strlen(var->value.string) == 0 ||
@@ -1394,26 +1404,25 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                         }
                 } else if (strcmp(fn_calls->id->name, "filter") == 0) {
                         fprintf(output,
-                                        "rewind(%s->"
-                                        "value.file.stream);"
-                                        "while (_line_len_implementation > 0)"
-                                        "{",
-                                        working_filename);
-                                fprintf(output,
-                                        "_line_len_implementation = "
-                                        "lines(%s, &%s);",
-                                        working_filename, loop->var->name);
+                                "rewind(%s->"
+                                "value.file.stream);"
+                                "while (_line_len_implementation > 0)"
+                                "{",
+                                working_filename);
+                        fprintf(output,
+                                "_line_len_implementation = "
+                                "lines(%s, &%s);",
+                                working_filename, loop->var->name);
 
-                                closing_braces++;
+                        closing_braces++;
 
-                                fprintf(output, "if (is_in_string(%s, %s)) {",
-                                        fn_calls->args->exprs[0]
-                                                ->var->value
-                                                .string, // "palabra"
-                                        loop->var->name
+                        fprintf(output, "if (is_in_string(%s, %s)) {",
+                                fn_calls->args->exprs[0]
+                                        ->var->value.string, // "palabra"
+                                loop->var->name
 
-                                );
-                                closing_braces++;
+                        );
+                        closing_braces++;
                         // fprintf(output,
                         //         "// rewind(el nombre de input flechita "
                         //         "value.file.stream);\n"
