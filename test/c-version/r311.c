@@ -53,10 +53,9 @@ struct TexlerObject {
                         char *separators;
 
                         char **path_list;
-                        union {
-                                size_t n_line;
-                                size_t n_files;
-                        };
+                        size_t n_line;
+                        size_t n_files;
+
                 } file;
         } value;
         type_t type;
@@ -150,6 +149,7 @@ bool open_file(const char *name, const char *mode, TexlerObject *tex_obj,
                 return false;
         }
         tex_obj->value.file.n_line = 1;
+        tex_obj->value.file.n_files = 1;
         if (separators == NULL) {
                 tex_obj->value.file.separators = strdup(DEFAULT_SEPARATORS);
         } else {
@@ -535,12 +535,12 @@ bool compare_equality(TexlerObject *left, TexlerObject *right)
                     (left->type == TYPE_T_BOOLEAN ||
                      left->type == TYPE_T_INTEGER ||
                      left->type == TYPE_T_REAL))) {
-                return fabs(left->value.real - right->value.real) < DBL_EPSILON;
-        }
-        else if (left->type == TYPE_T_STRING && right->type == TYPE_T_STRING) {
+                return fabs(left->value.real - right->value.real) <
+                       DBL_EPSILON;
+        } else if (left->type == TYPE_T_STRING &&
+                   right->type == TYPE_T_STRING) {
                 return strcmp(left->value.string, right->value.string) == 0;
         }
-
 
         return false;
 }
@@ -1155,6 +1155,37 @@ void r39(void)
         free_texlerobject(output);
 }
 
+TexlerObject *get_next_file(TexlerObject *tex_obj, const char* separators)
+{
+        TexlerObject *input_file = NULL;
+
+        if (tex_obj == NULL) {
+                return NULL;
+        }
+
+        if (tex_obj->type == TYPE_T_FILE_LIST) {
+                *input_file = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+                if (input_file == NULL) {
+                        perror("Aborting due to");
+                        free_texlerobject(tex_obj);
+                        // free_texlerobject(output); // no va xq no esta en la funcion
+                        exit(1);
+                }
+
+                if (open_file(tex_obj->value.file.path_list[i], "r", input_file,
+                              separators) == false) {
+                        free_texlerobject(input_file);
+                        free_texlerobject(tex_obj);
+                        // free_texlerobject(output); // no va xq no esta en la funcion
+                        return NULL;
+                }
+        } else if (tex_obj->type == TYPE_T_FILEPTR) {
+                input_file = tex_obj;
+        }
+
+        return input_file;
+}
+
 void r310(void)
 {
         TexlerObject *input = (TexlerObject *)calloc(1, sizeof(TexlerObject));
@@ -1182,22 +1213,7 @@ void r310(void)
         }
 
         for (int i = 0; i < input->value.file.n_files; i++) {
-                TexlerObject *input_file =
-                        (TexlerObject *)calloc(1, sizeof(TexlerObject));
-                if (input_file == NULL) {
-                        perror("Aborting due to");
-                        free_texlerobject(input);
-                        free_texlerobject(output);
-                        exit(1);
-                }
-
-                if (open_file(input->value.file.path_list[i], "r", input_file,
-                              NULL) == false) {
-                        free_texlerobject(input_file);
-                        free_texlerobject(input);
-                        free_texlerobject(output);
-                        return;
-                }
+                TexlerObject* input_file = get_next_file(input, ",");
 
                 long int line_len = BUFFER_SIZE;
                 char *line = (char *)calloc(line_len, sizeof(char));
@@ -1219,7 +1235,7 @@ void r310(void)
                         }
                 }
 
-                free_texlerobject(input_file);
+                // free_texlerobject(input_file);
                 free(line);
         }
 

@@ -94,14 +94,7 @@ static const char *generate_number_arithmetic_mul_with_file(
         FILE *const output, node_expression *left, node_expression *right,
         const char *assign_variable_name);
 
-// void generate_type_code(token_t type);
-// void generate_declaration(node_expression *declaration);
-// void generate_assign_declaration(node_expression *assign_declaration);
-// void generate_assign(node_expression *assignment);
-// void generate_return(variable *v);
-// static void error_handler(char *msg);
-//
-// char *variable_types[] = { "double", "bool", "char *", "int" };
+size_t global_braces = 0;
 
 bool generate_code(program_t *ast, const char *filename)
 {
@@ -297,10 +290,8 @@ static void generate_header_types_TexlerObject(FILE *const output)
                         "fpos_t pos;"
                         "char *separators;"
                         "char **path_list;"
-                        "union {"
                         "size_t n_line;"
                         "size_t n_files;"
-                        "};"
                         "} file;"
                         "} value;"
                         "type_t type;"
@@ -450,6 +441,11 @@ static bool generate_expressions_list(FILE *const output,
                                     working_filename);
 
                 expressions = expressions->next;
+        }
+
+        while (global_braces > 0) {
+                fputs("}", output);
+                global_braces--;
         }
 
         /* while (frees_stack->size > 0) {
@@ -632,7 +628,7 @@ static bool generate_variable_file(FILE *const output, variable *var,
 
         char *is_directory = strrchr(var->value.string, '/');
         if (strstr(var->name, "input") == var->name) {
-                if (is_directory != NULL) { // toy aca
+                if (is_directory != NULL) {
                         fprintf(output,
                                 "%s->type = TYPE_T_FILE_LIST;"
                                 "%s->value.file.n_files = "
@@ -642,6 +638,7 @@ static bool generate_variable_file(FILE *const output, variable *var,
                                 "%s);",
                                 var->name, var->name, var->name,
                                 var->value.string, var->name, str_separators);
+
                 } else {
                         fprintf(output,
                                 "if (open_file(%s, \"r\", %s, %s) == false)"
@@ -1131,6 +1128,14 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                 fn_calls = fn_calls->next;
                 concat_functions++;
         }
+
+        fprintf(output,
+                "for (int i = 0; i < %s->value.file.n_files; i++) {"
+                "TexlerObject* input_file = get_next_file(%s, "
+                "%s->value.file.separators);",
+                working_filename, working_filename, working_filename);
+        // global_braces++;
+        closing_braces++;
 
         while (concat_functions > 0) {
                 if (strcmp(fn_calls->id->name, "lines") == 0) {

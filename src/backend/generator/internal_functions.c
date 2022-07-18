@@ -8,6 +8,7 @@ generate_internal_function_get_list_of_files_in_dir(FILE *const output);
 static void generate_internal_function_string_addition(FILE *const output);
 static void generate_internal_function_string_substract(FILE *const output);
 void generate_internal_function_compare_equality(FILE *const output);
+void generate_internal_function_get_next_file(FILE *const output);
 
 extern void generate_allocation_error_msg(FILE *const output, char *ptr_name);
 
@@ -20,6 +21,7 @@ void generate_internal_functions(FILE *const output)
         generate_internal_function_string_addition(output);
         generate_internal_function_string_substract(output);
         generate_internal_function_compare_equality(output);
+        generate_internal_function_get_next_file(output);
 }
 
 void generate_internal_functions_headers(FILE *const output)
@@ -45,6 +47,9 @@ void generate_internal_functions_headers(FILE *const output)
         fprintf(output, "bool "
                         "compare_equality_constant_string(char* left,"
                         "TexlerObject *right);");
+        fprintf(output, "TexlerObject *"
+                        "get_next_file(TexlerObject *tex_obj, "
+                        "const char* separators);");
 }
 
 static void generate_internal_function_open_file(FILE *const output)
@@ -432,4 +437,43 @@ void generate_internal_function_compare_equality(FILE *const output)
 
                         "return false;"
                         "}");
+}
+
+void generate_internal_function_get_next_file(FILE *const output)
+{
+        fprintf(output,
+                "TexlerObject *"
+                "get_next_file(TexlerObject *tex_obj, "
+                "const char* separators){"
+                "TexlerObject *input_file = NULL;"
+
+                "if (tex_obj == NULL) {"
+                "return NULL;"
+                "}"
+                "if (tex_obj->type == TYPE_T_FILE_LIST) {"
+                "*input_file = (TexlerObject *)calloc(1, sizeof(TexlerObject));");
+        
+        generate_allocation_error_msg(output, "input_file");
+        // if (input_file == NULL) {
+        //         perror("Aborting due to");
+        //         free_texlerobject(tex_obj);
+        //         // free_texlerobject(output); // no va xq no esta en la funcion
+        //         exit(1);
+        // }
+
+        fprintf(output,
+                "if (open_file(tex_obj->value.file.path_list[i], \"r\", input_file,"
+                "separators) == false) {"
+                "free_texlerobject(input_file);"
+                "free_texlerobject(tex_obj);"
+                /* free_texlerobject(output); // no va xq no esta en la funcion */
+                "return NULL;"
+                "}"
+                "}"
+                "else if (tex_obj->type == TYPE_T_FILEPTR)"
+                "{"
+                "input_file = tex_obj;"
+                "}"
+
+                "return input_file;}");
 }
