@@ -1,4 +1,4 @@
 hola
 chau
-OTRO ERROR
+[ERROR] Este es un error
 buenas 1

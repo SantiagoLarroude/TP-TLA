@@ -1,2 +1,2 @@
-ERROR MAN!
+[ERROR] Este es un error
 hola 
