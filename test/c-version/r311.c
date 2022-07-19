@@ -1358,6 +1358,17 @@ char *toString(TexlerObject *tex_obj)
         return to_return;
 }
 
+char at_function(char *str, long pos){
+        if (pos > strlen(str))
+        {
+                fprintf(stderr,
+                        "\nError al querer pasar un string con longitud menor a la solicitada\n");
+                        return 0;
+        } else {
+                return str[pos - 1];
+        }       
+}
+
 int main(void)
 {
         // TYPE_T_BOOLEAN,
@@ -1371,6 +1382,9 @@ int main(void)
         hola->type = TYPE_T_STRING;
         chau = toString(hola);
         printf("string: |%s|\n", chau);
+        printf("char: |%c| - pos: |%d|\n", at_function(hola->value.string, 4), 4);
+        printf("char: |%c| - pos: |%ld|\n", at_function(hola->value.string, 554327598340), 554327598340);
+
 
         TexlerObject *hola2 = (TexlerObject *)calloc(1, sizeof(TexlerObject));
         hola2->value.real = 1.2;

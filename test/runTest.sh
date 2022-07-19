@@ -19,7 +19,7 @@ declare -A test_files=(\
     ["r312.texler"]=0 \
     ["r313.texler"]=1 \
     ["r314.texler"]=1 \
-#    ["r315.texler"]=0 \
+    ["r315.texler"]=0 \
 )
 
 declare -A test_files_execution_args=(\
@@ -41,7 +41,7 @@ declare -A test_files_execution=(\
     ["r310.texler"]="new_r310.txt" \
     ["r311.texler"]="stdout" \
     ["r312.texler"]="stdout" \
-#    ["r315.texler"]="stdout" \
+    ["r315.texler"]="stdout" \
 )
 
 readonly test_logs="logs"
