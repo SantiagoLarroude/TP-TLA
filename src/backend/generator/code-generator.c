@@ -1078,21 +1078,26 @@ static bool generate_variable_assignment_from_function_call_from_id(
                         }
 
                 } else if (strcmp(fn_calls->id->name, "at") == 0) {
+                        fprintf(output,
+                                "int _at_implementation_ret ="
+                                "at(%s->value.string, %ld);"
+                                "if (_at_implementation_ret < 0)"
+                                "{"
+                                "return 1;"
+                                "}",
+                                working_id->name,
+                                (long)fn_calls->args->exprs[0]
+                                        ->var->value.number);
                         if (dest->type == FILE_PATH_TYPE) {
                                 fprintf(output,
-                                        "copy_buffer_content("
-                                        "at(%s->value.string, %s), "
+                                        "fputc(_at_implementation_ret,"
                                         "%s->value.file.stream);",
-                                        working_id->name,
-                                        fn_calls->args->exprs[0]
-                                                ->var->value.string,
                                         dest->name);
                         } else if (dest->type == CONSTANT_TYPE) {
                                 fprintf(output,
-                                        "%s->value.string = at(%s->value.string, %s);",
-                                        dest->name, working_id->name,
-                                        fn_calls->args->exprs[0]
-                                                ->var->value.string);
+                                        "%s->value.string ="
+                                        "_at_implementation_ret;",
+                                        dest->name);
                         } else {
                                 // TODO error msg
                         }

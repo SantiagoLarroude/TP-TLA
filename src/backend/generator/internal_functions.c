@@ -28,20 +28,6 @@ void generate_internal_functions(FILE *const output)
         generate_internal_function_at(output);
 }
 
-static void generate_internal_function_at(FILE *const output)
-{
-        fprintf(output, 
-        "char at_function(char *str, long pos)"
-        "{"
-                "if (pos > strlen(str)) {"
-                        "fprintf(stderr, \"\\nError al querer pasar un string con longitud menor a la solicitada\\n\");"
-                        "return 0;"
-                "} else {"
-                        "return str[pos - 1];"
-                "}"
-        "}");
-}
-
 void generate_internal_functions_headers(FILE *const output)
 {
         fprintf(output, "bool open_file(const char *name, const char *mode,"
@@ -70,9 +56,26 @@ void generate_internal_functions_headers(FILE *const output)
                         "const char* separators);");
         fprintf(output, "char *"
                         "toString(TexlerObject *tex_obj);");
-        fprintf(output, "char *"
+        fprintf(output, "int "
                         "at(char *str, long pos);");
 }
+
+static void generate_internal_function_at(FILE *const output)
+{
+        fprintf(output, 
+        "int at(char *str, long pos)"
+        "{"
+                "if (pos < 1 || pos > strlen(str)) {"
+                        "fprintf(stderr, "
+                        "\"\\nError al querer pasar un string con longitud erronea\\n\""
+                        ");"
+                        "return -1;"
+                "} else {"
+                        "return str[pos - 1];"
+                "}"
+        "}");
+}
+
 
 static void generate_internal_function_toString(FILE *const output)
 {
