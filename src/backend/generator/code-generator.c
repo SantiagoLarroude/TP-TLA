@@ -1064,22 +1064,38 @@ static bool generate_variable_assignment_from_function_call_from_id(
                                 working_id->name);
                         closing_braces++;
                 } else if (strcmp(fn_calls->id->name, "toString") == 0) {
-                        fprintf(output,
-                                "\n/* aca tendria que estar el ID "
-                                "de la derecha de assignment: "
-                                "%s = toString(%s);*/\n",
-                                working_id->name, working_id->name);
+                        if (dest->type == FILE_PATH_TYPE) {
+                                fprintf(output,
+                                        "copy_buffer_content(toString(%s), "
+                                        "%s->value.file.stream);",
+                                        working_id->name, dest->name);
+                        } else if (dest->type == CONSTANT_TYPE) {
+                                fprintf(output,
+                                        "%s->value.string = toString(%s);",
+                                        dest->name, working_id->name);
+                        } else {
+                                // TODO error msg
+                        }
+
                 } else if (strcmp(fn_calls->id->name, "at") == 0) {
-                        fprintf(output,
-                                "if (%s->value.length < %ld) {"
-                                "exit(1);}else{"
-                                "%s->value.string[%ld];}",
-                                working_id->name,
-                                (long)fn_calls->args->exprs[0]
-                                        ->var->value.number,
-                                working_id->name,
-                                (long)fn_calls->args->exprs[0]
-                                        ->var->value.number);
+                        if (dest->type == FILE_PATH_TYPE) {
+                                fprintf(output,
+                                        "copy_buffer_content("
+                                        "at(%s->value.string, %s), "
+                                        "%s->value.file.stream);",
+                                        working_id->name,
+                                        fn_calls->args->exprs[0]
+                                                ->var->value.string,
+                                        dest->name);
+                        } else if (dest->type == CONSTANT_TYPE) {
+                                fprintf(output,
+                                        "%s->value.string = at(%s->value.string, %s);",
+                                        dest->name, working_id->name,
+                                        fn_calls->args->exprs[0]
+                                                ->var->value.string);
+                        } else {
+                                // TODO error msg
+                        }
                 } else if (fn_calls->id->type == LOOP_VARIABLE_TYPE) {
                         fprintf(output,
                                 "copy_buffer_content(%s, "

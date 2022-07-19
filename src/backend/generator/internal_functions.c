@@ -10,6 +10,7 @@ static void generate_internal_function_string_substract(FILE *const output);
 void generate_internal_function_compare_equality(FILE *const output);
 void generate_internal_function_get_next_file(FILE *const output);
 static void generate_internal_function_toString(FILE *const output);
+static void generate_internal_function_at(FILE *const output);
 
 extern void generate_allocation_error_msg(FILE *const output, char *ptr_name);
 
@@ -23,6 +24,22 @@ void generate_internal_functions(FILE *const output)
         generate_internal_function_string_substract(output);
         generate_internal_function_compare_equality(output);
         generate_internal_function_get_next_file(output);
+        generate_internal_function_toString(output);
+        generate_internal_function_at(output);
+}
+
+static void generate_internal_function_at(FILE *const output)
+{
+        fprintf(output, 
+        "char at_function(char *str, long pos)"
+        "{"
+                "if (pos > strlen(str)) {"
+                        "fprintf(stderr, \"\\nError al querer pasar un string con longitud menor a la solicitada\\n\");"
+                        "return 0;"
+                "} else {"
+                        "return str[pos - 1];"
+                "}"
+        "}");
 }
 
 void generate_internal_functions_headers(FILE *const output)
@@ -53,6 +70,8 @@ void generate_internal_functions_headers(FILE *const output)
                         "const char* separators);");
         fprintf(output, "char *"
                         "toString(TexlerObject *tex_obj);");
+        fprintf(output, "char *"
+                        "at(char *str, long pos);");
 }
 
 static void generate_internal_function_toString(FILE *const output)
@@ -74,7 +93,7 @@ static void generate_internal_function_toString(FILE *const output)
                 "sprintf(to_return, \"%%f\", tex_obj->value.real);"
                 "break;"
                 "case TYPE_T_INTEGER:"
-                "to_return = strdup("
+                "to_return = strdup(\"\""
                 ");"
                 "sprintf(to_return, \"%%ld\", tex_obj->value.integer);"
                 "break;"
@@ -84,8 +103,8 @@ static void generate_internal_function_toString(FILE *const output)
                 "default:"
                 "to_return = NULL;"
                 "fprintf(stderr,"
-                "\\nError al querer pasar a string"
-                "\" algo que no es una variable, solo variables de tipo numerico, \""
+                "\"\\nError al querer pasar a string"
+                " algo que no es una variable, solo variables de tipo numerico, \""
                 "\"booleanas o strings.\\n\");"
                 "break;"
                 "}"
