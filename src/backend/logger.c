@@ -20,7 +20,7 @@ void LogDebug(const char *const format, ...)
 #ifdef DEBUG
         va_list arguments;
         va_start(arguments, format);
-        Log(stderr, "[DEBUG] ", format, "\n", arguments);
+        Log(stdout, "[DEBUG] ", format, "\n", arguments);
         va_end(arguments);
 #endif
 }
@@ -45,6 +45,6 @@ void LogInfo(const char *const format, ...)
 {
         va_list arguments;
         va_start(arguments, format);
-        Log(stderr, "[INFO ] ", format, "\n", arguments);
+        Log(stdout, "[INFO ] ", format, "\n", arguments);
         va_end(arguments);
 }
