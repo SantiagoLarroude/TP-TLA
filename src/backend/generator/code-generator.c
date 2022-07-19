@@ -165,7 +165,7 @@ static bool generate_c_main(FILE *const output, node_function *main_function)
         fputc('{', output);
 
         if (main_function->args == NULL || main_function->args->len == 0) {
-                fprintf(output, "%s();", main_function->name);
+                fprintf(output, "return %s();", main_function->name);
         } else {
                 //
 
@@ -230,8 +230,8 @@ static bool generate_c_main(FILE *const output, node_function *main_function)
 
                         free_struct_free_function_call(&ffc);
                 }
+                fputs("return 0;", output);
         }
-        fputs("return 0;", output);
         fputc('}', output);
 
         return true;
@@ -367,7 +367,7 @@ static bool generate_function(FILE *const output, node_function *function)
                 return false;
 
         if (function->return_variable == NULL) {
-                fprintf(output, " void ");
+                fprintf(output, " int ");
         } else {
                 fprintf(output, " TexlerObject * ");
         }
@@ -646,7 +646,7 @@ static bool generate_variable_file(FILE *const output, variable *var,
                         if (frees_string != NULL)
                                 fprintf(output, "%s", frees_string);
 
-                        fprintf(output, "return;"
+                        fprintf(output, "return 1;"
                                         "}");
                         fprintf(output, "%s->value.file.n_files = 1;",
                                 var->name);
@@ -697,7 +697,7 @@ static bool generate_variable_file(FILE *const output, variable *var,
                         if (frees_string != NULL)
                                 fprintf(output, "%s", frees_string);
 
-                        fprintf(output, "return;"
+                        fprintf(output, "return 1;"
                                         "}");
                 }
         } else {
@@ -1368,7 +1368,7 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                                 "\"Line number %%d not found.\\n\","
                                                 "%s + 1"
                                                 ");"
-                                                "return;"
+                                                "return 1;"
                                                 "}",
                                                 loop->var->name,
                                                 fn_calls->next->args->exprs[0]
@@ -1399,7 +1399,7 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                                 "\"Line number %%d not found.\\n\","
                                                 "%ld"
                                                 ");"
-                                                "return;"
+                                                "return 1;"
                                                 "}",
                                                 loop->var->name,
                                                 (long)fn_calls->next->args
@@ -1538,15 +1538,9 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                                 " || "
                                                 "_line_line == NULL)"
                                                 "{"
-                                                "fprintf(stderr,"
-                                                "\"Column with index %%d not found.\\n\","
-                                                "%s + 1"
-                                                ");"
                                                 "break;"
                                                 "}",
-                                                working_filename,
-                                                fn_calls->next->args->exprs[0]
-                                                        ->var->name);
+                                                working_filename);
                                         closing_braces++;
 
                                         // aca tiene que venir la parte del line_len > 0 del r311
@@ -1984,7 +1978,7 @@ static const char *generate_number_arithmetic_mul_with_file(
                         ")"
                         "{"
                         "fprintf(stderr, \"Invalid object type in %s.\\n\");"
-                        "return;"
+                        "return 1;"
                         "}",
                         variable_id->var->name, variable_id->var->name,
                         variable_id->var->name);
@@ -2022,7 +2016,7 @@ static const char *generate_number_arithmetic_mul_with_file(
 static bool generate_return(FILE *const output, const variable *var)
 {
         if (var == NULL) {
-                fprintf(output, "return;");
+                fprintf(output, "return 0;");
         } else {
                 fprintf(output, "return %s;", var->name);
         }
