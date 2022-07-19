@@ -28,7 +28,7 @@ documentación:
 
 Para compilar Texler
 ```bash
-https://github.com/SSanti32/TP-TLA texler
+git clone https://github.com/SSanti32/TP-TLA texler
 cd texler/
 chmod +x compile_compiler.sh
 # Opcional: modificar CMAKE_BUILD_TYPE en CMakeLists.txt
