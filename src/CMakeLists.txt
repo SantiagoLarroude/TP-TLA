@@ -30,7 +30,7 @@ add_custom_command(
                 ${CMAKE_SOURCE_DIR}/src/frontend/syntactic-analysis/bison-parser.h
         COMMAND bison   -d ${CMAKE_SOURCE_DIR}/src/frontend/syntactic-analysis/bison-grammar.y
                         -o ${CMAKE_SOURCE_DIR}/src/frontend/syntactic-analysis/bison-parser.c
-                        # -Wcounterexamples
+                        -Wcounterexamples
         )
 
 message(STATUS "Bison built.")
@@ -75,7 +75,6 @@ endif ()
 
 add_compile_options(
         -Wall
-        # -pedantic
 )
 
 if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
