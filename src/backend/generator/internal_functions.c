@@ -9,6 +9,7 @@ static void generate_internal_function_string_addition(FILE *const output);
 static void generate_internal_function_string_substract(FILE *const output);
 void generate_internal_function_compare_equality(FILE *const output);
 void generate_internal_function_get_next_file(FILE *const output);
+static void generate_internal_function_toString(FILE *const output);
 
 extern void generate_allocation_error_msg(FILE *const output, char *ptr_name);
 
@@ -67,7 +68,7 @@ static void generate_internal_function_toString(FILE *const output)
                 "} else {"
                 "to_return = strdup(\"False\");"
                 "}"
-                "break";
+                "break;"
                 "case TYPE_T_REAL:"
                 "to_return = strdup(\"\");"
                 "sprintf(to_return, \"%%f\", tex_obj->value.real);"

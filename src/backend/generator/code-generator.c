@@ -1424,14 +1424,11 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                                         "{"
                                                         "fprintf(stderr,"
                                                         "\"Line number %%d not found.\\n\","
-                                                        "%s + 1"
+                                                        "_byIndex_implementation + 1"
                                                         ");"
                                                         "break;"
                                                         "}",
-                                                        loop->var->name,
-                                                        fn_calls->next->args
-                                                                ->exprs[0]
-                                                                ->var->name);
+                                                        loop->var->name);
                                         }
                                         break;
                                 default:
