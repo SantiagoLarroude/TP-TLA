@@ -61,11 +61,8 @@ typedef struct {
         // Indica el resultado de la compilación:
         int result;
 
-        // Agregar una pila para almacenar tokens/nodos.
-        // Agregar un nodo hacia la raíz del árbol de sintaxis abstracta.
-        // Agregar una tabla de símbolos.
-        // ...
-
+        // Error de sintaxis detectado en bison-actions.c
+        bool syntax_error;
 } CompilerState;
 
 typedef enum COMPILER_STATE_RESULTS {

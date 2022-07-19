@@ -74,6 +74,9 @@ int grammar_program(program_t *root, node_function *fun)
         if (count_dangling() > 0) {
                 state.result = COMPILER_STATE_RESULTS_DANGLING_VARIABLES;
                 state.succeed = false;
+        } else if (state.syntax_error == true) {
+                state.result = COMPILER_STATE_RESULTS_SYNTAX_ERROR;
+                state.succeed = false;
         }
 
         return 0;
@@ -264,6 +267,47 @@ node_expression *grammar_new_declaration_file_node(const char *fpath,
         }
 
         node->var->value.string = strdup(fpath);
+
+        if (separators != NULL) {
+                if (separators->type != LIST_EXPRESSION_TYPE ||
+                    separators->len != 1) {
+                        error_invalid_separator_in_file_decalration_bad_type();
+                        state.syntax_error = true;
+                }
+
+                // List with len != 0. Here are the strings with the separators
+                node_list *separators_list = separators->exprs[0]->list_expr;
+
+                for (int i = 0; i < separators_list->len; i++) {
+                        if (separators_list->exprs[i]->type !=
+                            EXPRESSION_GRAMMAR_CONSTANT_TYPE) {
+                                error_invalid_separator_in_file_decalration_bad_type();
+                                state.syntax_error = true;
+                        } else if (separators_list->exprs[i]->var->type !=
+                                   STRING_TYPE) {
+                                error_invalid_separator_in_file_decalration_bad_type();
+                                state.syntax_error = true;
+                        } else {
+                                // Alias
+                                size_t len =
+                                        strlen(separators_list->exprs[i]
+                                                       ->var->value.string);
+
+                                if (len < 3 || len > 4 ||
+                                    (len == 4 &&
+                                     separators_list->exprs[i]
+                                                     ->var->value.string[1] !=
+                                             '\\')) {
+                                        // " + character + " = 3
+                                        // " + \ + character + " = 4
+                                        error_invalid_separator_in_file_decalration_bad_len(
+                                                separators_list->exprs[i]
+                                                        ->var->value.string);
+                                        state.syntax_error = true;
+                                }
+                        }
+                }
+        }
 
         return node;
 }

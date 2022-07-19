@@ -1,2 +1,6 @@
 [ERROR] Este es un error
 hola 
+don
+pepito
+don
+jose

@@ -25,6 +25,16 @@ void error_dangling_variable_found()
                  count_dangling());
 }
 
+void error_invalid_separator_in_file_decalration_bad_len(const char * sep)
+{
+    LogError("'%s' is not a valid file separator. It must be a single character.", sep);
+}
+
+void error_invalid_separator_in_file_decalration_bad_type()
+{
+    LogError("File separators must be a single-character string.");
+}
+
 void error_function_not_found(const char *name)
 {
         LogError("Function %s not found.", name);

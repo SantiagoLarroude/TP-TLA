@@ -2,3 +2,4 @@ hola
 chau
 [ERROR] Este es un error
 buenas 1
+hubo un error, son buenas?
