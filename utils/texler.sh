@@ -43,6 +43,8 @@ for (( opt_i=1; opt_i <= ${#}; opt_i++)); do
    fi
 done
 
+readonly compilation_logs_folder="logs"
+
 function compile_file()
 {
     local ret_val=0
@@ -52,25 +54,47 @@ function compile_file()
     source_name="${source_name%.*}"
     local c_source="$(mktemp -u -p . ${source_name}_XXX.c)"
 
-    "$SCRIPT_DIR"/texler_compiler < "$texler_source" > "$c_source"
+    "$SCRIPT_DIR"/texler_compiler \
+        $c_source \
+        < "$texler_source" \
+        > "$compilation_logs_folder/$source_name.log" \
+        2> "$compilation_logs_folder/$source_name.err.log"
     ret_val=$?
 
+    if [ ! -s "$compilation_logs_folder/$source_name.err.log" ]
+    then
+        rm "$compilation_logs_folder/$source_name.err.log"
+    fi
+
     if [ $ret_val -ne 0 ]; then
+        echo "Texler compiler error. Probably due to bad grammar."
         return $ret_val
     fi
 
     gcc \
-        --std=c11 \
-        -Wall \
-        -g \
+        --std=gnu11 \
         "$c_source" \
-        -o "$source_name.elf"
+        -o "$source_name.elf" \
+        &> /dev/null
     ret_val=$?
     
+    if [ $ret_val -ne 0 ]; then
+        echo "GCC error. Call support D:"
+        return $ret_val
+    fi
+
     return $ret_val
 }
 
 max_return=0
+
+# if [ -d "$compilation_logs_folder" ]
+# then
+#     rm -R "$compilation_logs_folder.old" &> /dev/null
+#     mv "$compilation_logs_folder" "$compilation_logs_folder.old"
+# fi
+
+mkdir -p "$compilation_logs_folder" &> /dev/null
 
 for (( opt_i=1; opt_i <= ${#}; opt_i++)); do
     ret_val=0
