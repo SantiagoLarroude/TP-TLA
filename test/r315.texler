@@ -1,18 +1,20 @@
 # R3.15 [Rechazar] Un programa que acceda a una posición dentro de un string
 # fuera de rango.
 function r315()
-    File "path" as input.
+    File "test_file_cases.txt" as input.
     File STDOUT as output.
 
     let myString be "".
     
-    with input: lines.byIndex(1) -> myString.
+    with input: for line in lines().byIndex(1) do
+                    line -> myString.
+                .
     .
 
     # Nos aseguramos que sea un string
     myString.toString() -> myString.
 
-    myString.at(213125151) -> output.
+    myString.at(1234) -> output.
 
     return.
 end

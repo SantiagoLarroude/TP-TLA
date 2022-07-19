@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include <math.h>
-#include <cfloat.h>
+#include <float.h>
 
 #define BUFFER_SIZE 256
 
@@ -53,8 +53,10 @@ struct TexlerObject {
                         char *separators;
 
                         char **path_list;
-                        size_t n_line;
                         size_t n_files;
+
+                        size_t n_line;
+                        unsigned next_open_file;
 
                 } file;
         } value;
@@ -1167,27 +1169,25 @@ TexlerObject *get_next_file(TexlerObject *tex_obj, const char *separators)
         if (tex_obj == NULL) {
                 return NULL;
         }
-
         if (tex_obj->type == TYPE_T_FILE_LIST) {
-                *input_file = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+                input_file = (TexlerObject *)calloc(1, sizeof(TexlerObject));
                 if (input_file == NULL) {
                         perror("Aborting due to");
                         free_texlerobject(tex_obj);
                         // free_texlerobject(output); // no va xq no esta en la funcion
                         exit(1);
                 }
-
-                if (open_file(tex_obj->value.file.path_list[i], "r",
-                              input_file, separators) == false) {
+                if (open_file(tex_obj->value.file.path_list
+                                      [tex_obj->value.file.next_open_file],
+                              "r", input_file, separators) == false) {
                         free_texlerobject(input_file);
                         free_texlerobject(tex_obj);
-                        // free_texlerobject(output); // no va xq no esta en la funcion
                         return NULL;
                 }
+                tex_obj->value.file.next_open_file++;
         } else if (tex_obj->type == TYPE_T_FILEPTR) {
                 input_file = tex_obj;
         }
-
         return input_file;
 }
 
@@ -1321,51 +1321,124 @@ void r311(void)
         free(line);
 }
 
-int main(void)
+char *toString(TexlerObject *tex_obj)
 {
-        printf("### r30 ###\n");
-        r30();
+        char *to_return = calloc(1, BUFFER_SIZE * sizeof(char *));
+        switch (tex_obj->type) {
+        case TYPE_T_BOOLEAN:
+                if (tex_obj->value.boolean) {
+                        to_return = strdup("True");
+                } else {
+                        to_return = strdup("False");
+                }
+                break;
+        case TYPE_T_REAL:
+                to_return = strdup("");
+                sprintf(to_return, "%f", tex_obj->value.real);
+                // to_return = '0' + tex_obj->value.real;
+                break;
+        case TYPE_T_INTEGER:
+                to_return = strdup("");
+                sprintf(to_return, "%ld", tex_obj->value.integer);
+                // to_return = '0' + tex_obj->value.integer;
+                break;
+        case TYPE_T_STRING:
+                return tex_obj->value.string;
+                break;
 
-        printf("### r31 ###\n");
-        r31();
-        printf("### r31 ###\n");
-        r31();
-
-        printf("### r32 ###\n");
-        TexlerObject *r32_obj = r32();
-        // Para checkear que funciona
-        if (r32_obj != NULL) {
-                printf("### r32 output ###\n");
-                copy_file_content(r32_obj->value.file.stream, stdout);
-                free_texlerobject(r32_obj);
+        default:
+                to_return = NULL;
+                fprintf(stderr,
+                        "\nError al querer pasar a string"
+                        " algo que no es una variable, solo variables de tipo numerico, "
+                        "booleanas o strings.\n");
+                break;
         }
 
-        printf("### r33 ###\n");
-        r33();
+        return to_return;
+}
 
-        printf("### r34 ###\n");
-        r34();
+int main(void)
+{
+        // TYPE_T_BOOLEAN,
+        // TYPE_T_STRING,
+        // TYPE_T_REAL,
+        // TYPE_T_INTEGER,
+        char *chau;
 
-        printf("### r35 ###\n");
-        r35();
+        TexlerObject *hola = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        hola->value.string = "holala";
+        hola->type = TYPE_T_STRING;
+        chau = toString(hola);
+        printf("string: |%s|\n", chau);
 
-        printf("### r36 ###\n");
-        r36(3);
+        TexlerObject *hola2 = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        hola2->value.real = 1.2;
+        hola2->type = TYPE_T_REAL;
+        chau = toString(hola2);
+        printf("real: |%s|\n", chau);
 
-        printf("### r37 ###\n");
-        r37();
+        TexlerObject *hola3 = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        hola3->value.integer = 3;
+        hola3->type = TYPE_T_INTEGER;
+        chau = toString(hola3);
+        printf("integer: |%s|\n", chau);
 
-        printf("### r38 ###\n");
-        r38();
+        TexlerObject *hola4 = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        hola4->value.boolean = true;
+        hola4->type = TYPE_T_BOOLEAN;
+        chau = toString(hola4);
+        printf("boolean: |%s|\n", chau);
+        
+        TexlerObject *hola5 = (TexlerObject *)calloc(1, sizeof(TexlerObject));
+        hola5->value.boolean = true;
+        hola5->type = TYPE_T_FILEPTR;
+        chau = toString(hola5);
+        printf("no llega: |%s|\n", chau);
 
-        printf("### r39 ###\n");
-        r39();
+        // printf("### r30 ###\n");
+        // r30();
 
-        printf("### r310 ###\n");
-        r310();
+        // printf("### r31 ###\n");
+        // r31();
+        // printf("### r31 ###\n");
+        // r31();
 
-        printf("### r311 ###\n");
-        r311();
+        // printf("### r32 ###\n");
+        // TexlerObject *r32_obj = r32();
+        // // Para checkear que funciona
+        // if (r32_obj != NULL) {
+        //         printf("### r32 output ###\n");
+        //         copy_file_content(r32_obj->value.file.stream, stdout);
+        //         free_texlerobject(r32_obj);
+        // }
+
+        // printf("### r33 ###\n");
+        // r33();
+
+        // printf("### r34 ###\n");
+        // r34();
+
+        // printf("### r35 ###\n");
+        // r35();
+
+        // printf("### r36 ###\n");
+        // r36(3);
+
+        // printf("### r37 ###\n");
+        // r37();
+
+        // printf("### r38 ###\n");
+        // r38();
+
+        // printf("### r39 ###\n");
+        // r39();
+
+        // printf("### r310 ###\n");
+        // r310();
+
+        // printf("### r311 ###\n");
+        // r311();
 
         return 0;
 }

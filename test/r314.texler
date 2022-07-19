@@ -1,7 +1,9 @@
 # R3.14 [Rechazar] Un programa que realice una operación entre tipos 
 # incompatibles.
 function r314()
-    5 % "abc"
+    let accumulator be "".
+    
+    5 % "abc" -> accumulator.
 
     return.
 end

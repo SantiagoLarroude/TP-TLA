@@ -50,6 +50,46 @@ void generate_internal_functions_headers(FILE *const output)
         fprintf(output, "TexlerObject *"
                         "get_next_file(TexlerObject *tex_obj, "
                         "const char* separators);");
+        fprintf(output, "char *"
+                        "toString(TexlerObject *tex_obj);");
+}
+
+static void generate_internal_function_toString(FILE *const output)
+{
+        fprintf(output,
+                "char *toString(TexlerObject *tex_obj)"
+                "{"
+                "char *to_return = calloc(1, BUFFER_SIZE * sizeof(char *));"
+                "switch (tex_obj->type) {"
+                "case TYPE_T_BOOLEAN:"
+                "if (tex_obj->value.boolean) {"
+                "to_return = strdup(\"True\");"
+                "} else {"
+                "to_return = strdup(\"False\");"
+                "}"
+                "break";
+                "case TYPE_T_REAL:"
+                "to_return = strdup(\"\");"
+                "sprintf(to_return, \"%%f\", tex_obj->value.real);"
+                "break;"
+                "case TYPE_T_INTEGER:"
+                "to_return = strdup("
+                ");"
+                "sprintf(to_return, \"%%ld\", tex_obj->value.integer);"
+                "break;"
+                "case TYPE_T_STRING:"
+                "return tex_obj->value.string;"
+                "break;"
+                "default:"
+                "to_return = NULL;"
+                "fprintf(stderr,"
+                "\\nError al querer pasar a string"
+                "\" algo que no es una variable, solo variables de tipo numerico, \""
+                "\"booleanas o strings.\\n\");"
+                "break;"
+                "}"
+                "return to_return;"
+                "}");
 }
 
 static void generate_internal_function_open_file(FILE *const output)
@@ -468,24 +508,23 @@ void generate_internal_function_get_next_file(FILE *const output)
 
         generate_allocation_error_msg(output, "input_file");
 
-        fprintf(output,
-                "if (open_file("
-                "tex_obj->value.file.path_list["
-                "tex_obj->value.file.next_open_file"
-                "]"
-                ", \"r\", input_file,"
-                "separators) == false) {"
-                "free_texlerobject(input_file);"
-                "free_texlerobject(tex_obj);"
-                /* free_texlerobject(output); // no va xq no esta en la funcion */
-                "return NULL;"
-                "}"
-                "tex_obj->value.file.next_open_file++;"
-                "}"
-                "else if (tex_obj->type == TYPE_T_FILEPTR)"
-                "{"
-                "input_file = tex_obj;"
-                "}"
+        fprintf(output, "if (open_file("
+                        "tex_obj->value.file.path_list["
+                        "tex_obj->value.file.next_open_file"
+                        "]"
+                        ", \"r\", input_file,"
+                        "separators) == false) {"
+                        "free_texlerobject(input_file);"
+                        "free_texlerobject(tex_obj);"
+                        "return NULL;"
+                        "}"
+                        "tex_obj->value.file.next_open_file++;"
+                        "}"
+                        "else if (tex_obj->type == TYPE_T_FILEPTR)"
+                        "{"
+                        "input_file = tex_obj;"
+                        "}"
 
-                "return input_file;}");
+                        "return input_file;"
+                        "}");
 }

@@ -98,8 +98,6 @@ static bool generate_variable_assignment_from_function_call_from_id(
         FILE *const output, variable *dest,
         node_function_call *id_plus_function, const char *working_file);
 
-size_t global_braces = 0;
-
 bool generate_code(program_t *ast, const char *filename)
 {
         if (filename == NULL) {
@@ -445,11 +443,6 @@ static bool generate_expressions_list(FILE *const output,
                                     working_filename);
 
                 expressions = expressions->next;
-        }
-
-        while (global_braces > 0) {
-                fputs("}", output);
-                global_braces--;
         }
 
         /* while (frees_stack->size > 0) {
@@ -1053,25 +1046,44 @@ static bool generate_variable_assignment_from_function_call_from_id(
                 concat_functions++;
         }
 
-
         while (concat_functions > 0) {
                 if (strcmp(fn_calls->id->name, "filter") == 0) {
                         fprintf(output, "rewind(%s_file->value.file.stream);",
                                 working_file);
-                        fprintf(output, "while( _line_len_implementation > 0 )"
+                        fprintf(output, "while( _line_len_implementation "
+                                        "> 0 )"
                                         "{");
                         closing_braces++;
                         fprintf(output,
-                                "_line_len_implementation = lines(%s_file, &%s);"
+                                "_line_len_implementation = "
+                                "lines(%s_file, &%s);"
                                 "if (is_in_string(%s, %s))"
                                 "{",
                                 working_file, working_id->name,
                                 fn_calls->args->exprs[0]->var->value.string,
                                 working_id->name);
                         closing_braces++;
+                } else if (strcmp(fn_calls->id->name, "toString") == 0) {
+                        fprintf(output,
+                                "\n/* aca tendria que estar el ID "
+                                "de la derecha de assignment: "
+                                "%s = toString(%s);*/\n",
+                                working_id->name, working_id->name);
+                } else if (strcmp(fn_calls->id->name, "at") == 0) {
+                        fprintf(output,
+                                "if (%s->value.length < %ld) {"
+                                "exit(1);}else{"
+                                "%s->value.string[%ld];}",
+                                working_id->name,
+                                (long)fn_calls->args->exprs[0]
+                                        ->var->value.number,
+                                working_id->name,
+                                (long)fn_calls->args->exprs[0]
+                                        ->var->value.number);
                 } else if (fn_calls->id->type == LOOP_VARIABLE_TYPE) {
                         fprintf(output,
-                                "copy_buffer_content(%s, %s->value.file.stream);",
+                                "copy_buffer_content(%s, "
+                                "%s->value.file.stream);",
                                 working_id->name, dest->name);
                 }
 
@@ -1312,7 +1324,6 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                 "%s->value.file.separators);",
                 working_filename, working_filename, working_filename,
                 working_filename);
-        // global_braces++;
         closing_braces++;
 
         while (concat_functions > 0) {
@@ -1353,19 +1364,26 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                                 "%s == NULL"
                                                 ")"
                                                 "{"
+                                                "fprintf(stderr,"
+                                                "\"Line number %%d not found.\\n\","
+                                                "%s + 1"
+                                                ");"
                                                 "return;"
                                                 "}",
-                                                loop->var->name);
+                                                loop->var->name,
+                                                fn_calls->next->args->exprs[0]
+                                                        ->var->name);
                                         break;
                                 case EXPRESSION_GRAMMAR_CONSTANT_TYPE:
                                         fprintf(output,
                                                 "_line_len_implementation ="
-                                                "line_by_number(input"
+                                                "line_by_number(%s_file"
                                                 ","
                                                 "&%s"
                                                 ","
                                                 "%ld"
                                                 ");",
+                                                working_filename,
                                                 loop->var->name,
                                                 (long)fn_calls->next->args
                                                         ->exprs[0]
@@ -1377,9 +1395,16 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                                 "%s == NULL"
                                                 ")"
                                                 "{"
+                                                "fprintf(stderr,"
+                                                "\"Line number %%d not found.\\n\","
+                                                "%ld"
+                                                ");"
                                                 "return;"
                                                 "}",
-                                                loop->var->name);
+                                                loop->var->name,
+                                                (long)fn_calls->next->args
+                                                        ->exprs[0]
+                                                        ->var->value.number);
                                         break;
                                 case EXPRESSION_LIST:
                                         if (fn_calls->next->args->exprs[0]
@@ -1397,9 +1422,16 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                                         "%s == NULL"
                                                         ")"
                                                         "{"
+                                                        "fprintf(stderr,"
+                                                        "\"Line number %%d not found.\\n\","
+                                                        "%s + 1"
+                                                        ");"
                                                         "break;"
                                                         "}",
-                                                        loop->var->name);
+                                                        loop->var->name,
+                                                        fn_calls->next->args
+                                                                ->exprs[0]
+                                                                ->var->name);
                                         }
                                         break;
                                 default:
@@ -1435,12 +1467,37 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                         }
                 } else if (strcmp(fn_calls->id->name, "columns") == 0) {
                         if (fn_calls->next == NULL) {
-                                LogError("columns() not fully implemented");
+                                LogError(
+                                        "columns() not fully implemented. "
+                                        "Use it with lines: columns().lines()");
                         } else if (fn_calls->next != NULL &&
                                    strcmp(fn_calls->next->id->name, "lines") ==
                                            0) {
                                 char *original_loop_var_name =
                                         strdup(loop->var->name);
+
+                                bool has_by_index = false;
+
+                                node_function_call *tmp_fun_call =
+                                        fn_calls->next;
+                                while (tmp_fun_call != NULL) {
+                                        if (strcmp(tmp_fun_call->id->name,
+                                                   "byIndex") == 0) {
+                                                has_by_index = true;
+                                                break;
+                                        } else {
+                                                tmp_fun_call =
+                                                        tmp_fun_call->next;
+                                        }
+                                }
+
+                                if (has_by_index) {
+                                        fprintf(output,
+                                                "char "
+                                                "*_columns_remaining_implementation"
+                                                "= %s;",
+                                                loop->var->name);
+                                } // Else is a few lines below (!)
 
                                 long new_loop_var_name_len =
                                         1 + strlen(original_loop_var_name) +
@@ -1463,38 +1520,47 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
                                         "_columns_implementation",
                                         new_loop_var_name_len);
 
-                                // fprintf(output, "long _line_len_implementation"
-                                //                 "="
-                                //                 "BUFFER_SIZE;");
-                                fprintf(output, "char * _line_line = "
+                                if (!has_by_index) {
+                                        fprintf(output,
+                                                "char * _line_line = "
                                                 "(char *)"
                                                 "calloc("
                                                 "_line_len_implementation,"
                                                 "sizeof(char)"
                                                 ");");
-                                generate_allocation_error_msg(output,
-                                                              "_line_line");
+                                        generate_allocation_error_msg(
+                                                output, "_line_line");
 
-                                // while (_line_len_implementation > 0) {
-                                // while (line_len > 0) {
-                                //         line_len = lines(input, &line);
-                                //         if (line_len <= 0 || line == NULL)
-                                //                 break;
+                                        fprintf(output,
+                                                "while (_line_len_implementation"
+                                                " > 0) {"
+                                                "_line_len_implementation = "
+                                                "lines(%s_file, &_line_line);"
+                                                "if("
+                                                "_line_len_implementation <= 0"
+                                                " || "
+                                                "_line_line == NULL)"
+                                                "{"
+                                                "fprintf(stderr,"
+                                                "\"Column with index %%d not found.\\n\","
+                                                "%s + 1"
+                                                ");"
+                                                "break;"
+                                                "}",
+                                                working_filename,
+                                                fn_calls->next->args->exprs[0]
+                                                        ->var->name);
+                                        closing_braces++;
+
+                                        // aca tiene que venir la parte del line_len > 0 del r311
+
+                                        fprintf(output,
+                                                "char "
+                                                "*_columns_remaining_implementation"
+                                                "= _line_line;");
+                                }
+
                                 fprintf(output,
-                                        "while (_line_len_implementation"
-                                        " > 0) {"
-                                        "_line_len_implementation = "
-                                        "lines(%s_file, &_line_line);"
-                                        "if(_line_len_implementation <= 0 || "
-                                        "_line_line == NULL) break;\n",
-                                        working_filename);
-                                closing_braces++;
-
-                                // aca tiene que venir la parte del line_len > 0 del r311
-
-                                fprintf(output,
-                                        "char *_columns_remaining_implementation"
-                                        "= _line_line;"
                                         "long _columns_len_implementation = "
                                         "BUFFER_SIZE;"
                                         "char *%s = "
@@ -1673,10 +1739,6 @@ generate_loop_function_calls_expression(FILE *const output, node_loop *loop,
         while (closing_braces > 0) {
                 fprintf(output, "}");
                 closing_braces--;
-        }
-        while (global_braces > 0) {
-                fprintf(output, "}");
-                global_braces--;
         }
 
         return true;
