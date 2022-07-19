@@ -8,6 +8,11 @@ Transformador de archivos de texto
 - Larroude Alvarez, S.
 - Zahnd, M. E.
 
+### Informe
+El informe del trabajo es un PDF que se encuentra en la carpeta de
+documentación:
+[doc/Informe_Segunda-Entrega_Grupo-3.pdf](doc/Informe_Segunda-Entrega_Grupo-3.pdf)
+
 ## Compilación
 ### Requisitos
 
@@ -17,7 +22,7 @@ Transformador de archivos de texto
 - GNU Make (>= 4.0)
 - GNU Bison (>= 3.7.0)
 - Flex (>= 2.6.4)
-- Bash (>= 4.4 para script de testing; >= 3.0 para script de compilación)
+- Bash (>= 4.4 para script de testing; >= 3.0 para scripts de compilación)
 
 ### Instrucciones
 
@@ -30,8 +35,11 @@ chmod +x compile_compiler.sh
 # Default: Debug
 #
 ./compile_compiler.sh
-# Se creará un ejecutable en 'bin/Debug/texler'
-# O en 'bin/Release/texler' si se modificó el CMakeLists.txt
+# Se crearán dos ejecutable en 'bin/Debug/'
+# O en 'bin/Release/' si se modificó el CMakeLists.txt
+# 'texler_compiler' es el transpilador programado con Flex y Bison; mientras
+# que 'texler' es un script (utils/texler.sh) que realiza también 
+# la compilación en C
 ```
 
 Para ejecutar los tests, se debe compilar Texler estableciendo 
@@ -40,18 +48,40 @@ Para ejecutar los tests, se debe compilar Texler estableciendo
 cd test/
 chmod +x runTest.sh
 ./runTest.sh
-# Se muestra en pantalla el resultado de los test, y se crea una subcarpeta
-# 'logs/' con información de cada uno.
+# Se muestra en pantalla el resultado de los test, se crea una subcarpeta
+# 'logs/' con información de cada uno, y otra 'results/' con el código
+# y archivos intermedios y de salida.
 ```
+
+Para ejecutar el compilador se debe proveer como primer argumento nombre del
+archivo con el código fuente de Texler.
+
+Por ejmplo:
+```bash
+cd test/
+../bin/Release/texler r31.texler
+```
+Generará el archivo temporal `r31_XXX.c`, donde cada X es un caracter
+cualquiera, y el ejecutable `r31.elf`.
+
+El código intermedio carece de formato, por lo que es ilegible.
+Para solucionar esto, podemos utilizar 
+[ClangFormat](https://clang.llvm.org/docs/ClangFormat.html)
+del siguiente modo:
+```bash
+clang-format -i r31_XXX.c # Reemplazar las X según corresponda
+```
+que utilizará el mismo 
+[archivo de formato](.clang-format)
+que el proyecto.
 
 ## Otros documentos
 
-- [Checklist basado en las correcciones de la cátedra](CORRECCIONES.md)
 - [Estructura del código](STRUCTURE.md)
 
 ## Recursos utilizados
 
-Lots of help from:
+Se utilizaron principalmente los siguientes dos recursos:
 [Writing Your Own Toy Compiler Using Flex, Bison and LLVM by Loren Segai](https://gnuu.org/2009/09/18/writing-your-own-toy-compiler/)
 
 [Flex-Bison-Compiler by Agustin Golmar](https://github.com/agustin-golmar/Flex-Bison-Compiler)
