@@ -59,7 +59,7 @@ archivo con el código fuente de Texler.
 Por ejmplo:
 ```bash
 cd test/
-../bin/Release/texler r31.texler
+../bin/Debug/texler r31.texler
 ```
 Generará el archivo temporal `r31_XXX.c`, donde cada X es un caracter
 cualquiera, y el ejecutable `r31.elf`.
